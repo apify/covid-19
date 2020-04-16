@@ -1,0 +1,8 @@
+{
+  "title": "Covid-19 world stats",
+  "description": "Actor aggregates data from Apify Covid-19 public actors",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {},
+  "required": []
+}

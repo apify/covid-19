@@ -1,0 +1,8 @@
+{
+  "title": "USA CDC  COVID-19 stats",
+  "description": "This actor scrapes data about COVID-19 from the USA CDS",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {},
+  "required": []
+}
