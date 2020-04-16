@@ -1,0 +1,8 @@
+{
+    "title": "Finland Finnish institute for health and welfare COVID-19",
+    "description": "This actor scrapes data about COVID-19 from the Finnish institute for health and welfare of Finland",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {},
+    "required": []
+  }

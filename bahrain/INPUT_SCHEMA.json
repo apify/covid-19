@@ -1,0 +1,8 @@
+{
+  "title": "Bahrain ministry of health COVID-19",
+  "description": "This actor scrapes data about COVID-19 from the Bahrain ministry of health.",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {},
+  "required": []
+}

@@ -1,0 +1,8 @@
+{
+  "title": "Czech ministry of health COVID-19",
+  "description": "This actor scrapes data about COVID-19 from the Czech republic ministry of health.",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {},
+  "required": []
+}

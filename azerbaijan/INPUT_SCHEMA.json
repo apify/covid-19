@@ -1,0 +1,8 @@
+{
+    "title": "Coronavirus stats in Azerbaijan",
+    "description": "COIVD-19 in Azerbaijan\n\nActor gets an actual number of infected, recovered, deceased and tested people in Azerbaijan from https://koronavirusinfo.az/az/page/statistika/azerbaycanda-cari-veziyyet",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {},
+    "required": []
+}

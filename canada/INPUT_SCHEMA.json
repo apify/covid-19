@@ -1,0 +1,14 @@
+{
+    "title": "Coronavirus stats in Canada",
+    "description": "Actor gets an actual number of infected and deceased people in Canada from https://www.canada.ca/en/public-health/services/diseases/2019-novel-coronavirus-infection.html.\n\nLatest data are available at this URL: https://api.apify.com/v2/key-value-stores/fabbocwKrtxSDf96h/records/LATEST?disableRedirect=true.",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+        "notificationEmail": {
+            "title": "Notification email",
+            "type": "string",
+            "description": "Email where will be send if actor failed",
+            "editor": "textfield"
+        }
+    }
+}

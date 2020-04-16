@@ -1,0 +1,7 @@
+{
+	"name": "covid-ger",
+	"version": "0.2",
+	"buildTag": "latest",
+	"env": null,
+	"template": "apify_project"
+}

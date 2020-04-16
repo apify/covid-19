@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "target": "es2018",
+        "checkJs": true,
+        "alwaysStrict": true,
+        "strict": true,
+        "noImplicitAny": false,
+        "module": "commonJS",
+        "moduleResolution": "node"
+    },
+    "files": [
+        "src/main.js"
+    ]
+}

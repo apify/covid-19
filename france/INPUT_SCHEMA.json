@@ -1,0 +1,8 @@
+{
+  "title": "France COVID-19 stats",
+  "description": "This actor scrapes data about COVID-19 for the France",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {},
+  "required": []
+}

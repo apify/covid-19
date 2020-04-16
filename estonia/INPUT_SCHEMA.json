@@ -1,0 +1,14 @@
+{
+    "title": "Coronavirus stats in Estonia",
+    "description": "Actor gets an actual number of infected and deceased people in Estonia from https://www.terviseamet.ee/en/covid19.\n\nLatest data are available at this URL: https://api.apify.com/v2/key-value-stores/AZUhwS51lBBg26wSG/records/LATEST?disableRedirect=true.",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+        "notificationEmail": {
+            "title": "Notification email",
+            "type": "string",
+            "description": "Email where will be send if actor failed",
+            "editor": "textfield"
+        }
+    }
+}
