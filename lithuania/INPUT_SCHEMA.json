@@ -1,0 +1,8 @@
+{
+    "title": "Lietuvos Respublikos sveikatos apsaugos ministerija COVID-19",
+    "description": "This actor scrapes data about COVID-19 from the Lietuvos Respublikos sveikatos apsaugos ministerija - Lithuania",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {},
+    "required": []
+  }

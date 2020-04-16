@@ -1,0 +1,16 @@
+{
+	"name": "covid-lu",
+	"version": "0.0.1",
+	"description": "This is a boilerplate of an Apify actor.",
+	"dependencies": {
+		"apify": "^0.20.2",
+		"latinize": "^0.4.1"
+	},
+	"devDependencies": {},
+	"scripts": {
+		"start": "node ./src/main.js",
+		"test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1"
+	},
+	"author": "Tugkan Cengiz",
+	"license": "ISC"
+}

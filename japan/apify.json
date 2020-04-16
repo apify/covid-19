@@ -1,0 +1,7 @@
+{
+	"name": "covid-jap",
+	"version": "0.1",
+	"buildTag": "latest",
+	"env": null,
+	"template": "apify_project"
+}

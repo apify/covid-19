@@ -1,0 +1,8 @@
+{
+  "title": "Norway public health of institute COVID-19",
+  "description": "This actor scrapes data about COVID-19 from the Norway public health institute.",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {},
+  "required": []
+}

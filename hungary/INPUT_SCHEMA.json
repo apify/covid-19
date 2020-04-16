@@ -1,0 +1,8 @@
+{
+  "title": "Hungary COVID-19 Official",
+  "description": "This actor scrapes data about COVID-19 from the Hungary official government page.",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {},
+  "required": []
+}

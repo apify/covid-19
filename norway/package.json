@@ -1,0 +1,16 @@
+{
+	"name": "covid-no",
+	"version": "0.0.1",
+	"description": "This is a boilerplate of an Apify actor.",
+	"dependencies": {
+		"apify": "^0.20.2",
+		"cheerio": "^1.0.0-rc.3"
+	},
+	"devDependencies": {},
+	"scripts": {
+		"start": "node ./src/main.js",
+		"test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1"
+	},
+	"author": "It's not you it's me",
+	"license": "ISC"
+}
