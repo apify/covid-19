@@ -1,0 +1,8 @@
+{
+    "title": "Italian Department of Civil Protection COVID-19",
+    "description": "This actor scrapes data about COVID-19 from Italian Department of Civil Protection .",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {},
+    "required": []
+}
