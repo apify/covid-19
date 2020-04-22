@@ -1,10 +1,11 @@
 const Apify = require('apify');
 const {load} = require('cheerio');
-const SOURCE_URL = 'https://mhlw-gis.maps.arcgis.com/apps/opsdashboard/index.html#/0c5d0502bbb54f9a8dddebca003631b8';
+const SOURCE_URL = 'https://www3.nhk.or.jp/news/special/coronavirus/';
 const LATEST = 'LATEST';
 const {log, requestAsBrowser} = Apify.utils;
 
 const LABELS = {
+    MAP: 'MAP',
     GOV: 'GOV',
     WIKI: 'WIKI',
 };
@@ -14,8 +15,21 @@ Apify.main(async () => {
     const requestQueue = await Apify.openRequestQueue();
     const kvStore = await Apify.openKeyValueStore('COVID-19-JAPAN');
     const dataset = await Apify.openDataset("COVID-19-JAPAN-HISTORY");
-    await requestQueue.addRequest({url: 'https://services8.arcgis.com/JdxivnCyd1rvJTrY/arcgis/rest/services/covid19_list_csv_EnglishView/FeatureServer/0/query?f=json&where=%E7%A2%BA%E5%AE%9A%E6%97%A5%20IS%20NOT%20NULL&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=%E7%A2%BA%E5%AE%9A%E6%97%A5%20asc&resultOffset=0&resultRecordCount=2000&cacheHint=true',
-        userData: { label: LABELS.GOV } });
+    const requestList = await Apify.openRequestList('LIST', [
+        {
+            url: 'https://services8.arcgis.com/JdxivnCyd1rvJTrY/arcgis/rest/services/covid19_list_csv_EnglishView/FeatureServer/0/query?f=json&where=%E7%A2%BA%E5%AE%9A%E6%97%A5%20IS%20NOT%20NULL&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=%E7%A2%BA%E5%AE%9A%E6%97%A5%20asc&resultOffset=0&resultRecordCount=2000&cacheHint=true',
+            userData: { label: LABELS.MAP }
+        },
+        {
+            url: 'https://www3.nhk.or.jp/news/special/coronavirus/data/allpatients-data.json',
+            userData: { label: LABELS.GOV }
+        },
+        { url: 'https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Japan', userData: { label: LABELS.WIKI }}
+    ])
+    // await requestQueue.addRequest({url: 'https://services8.arcgis.com/JdxivnCyd1rvJTrY/arcgis/rest/services/covid19_list_csv_EnglishView/FeatureServer/0/query?f=json&where=%E7%A2%BA%E5%AE%9A%E6%97%A5%20IS%20NOT%20NULL&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=%E7%A2%BA%E5%AE%9A%E6%97%A5%20asc&resultOffset=0&resultRecordCount=2000&cacheHint=true',
+    //     userData: { label: LABELS.MAP } });
+    // await requestQueue.addRequest({url: 'https://www3.nhk.or.jp/news/special/coronavirus/data/allpatients-data.json',
+    //     userData: { label: LABELS.GOV } });
 
     if (notificationEmail) {
         await Apify.addWebhook({
@@ -30,14 +44,15 @@ Apify.main(async () => {
     let infectedByRegion = [];
 
     const crawler = new Apify.BasicCrawler({
-        requestQueue,
+        requestList,
         handleRequestFunction: async ({request}) => {
-            console.log('CRAWLER -- start with page');
             const { label } = request.userData;
             let response;
             let body;
+            let $;
+            let tableRows;
             switch (label) {
-                case LABELS.GOV:
+                case LABELS.MAP:
                     response = await requestAsBrowser({
                         url: request.url,
                         json:true,
@@ -49,22 +64,32 @@ Apify.main(async () => {
                     }
                     for (let [key, value] of prefectureMap) {
                         console.log(key + ' = ' + value);
-                        totalInfected += value;
+                        // totalInfected += value;
                         infectedByRegion.push({
                             region: key,
                             infectedCount: value,
                             deceasedCount: undefined
                         });
                     }
-                    await requestQueue.addRequest({ url: 'https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Japan#cite_note-mhlw-1', userData: { label: LABELS.WIKI }});
+                    // await requestQueue.addRequest({ url: 'https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Japan', userData: { label: LABELS.WIKI }});
+                    break;
+                case LABELS.GOV:
+                    response = await requestAsBrowser({
+                        url: request.url,
+                        json: true,
+                    });
+                    body = response.body;
+                    const infectedAll = body.dataAll[1].data;
+                    totalInfected = infectedAll[infectedAll.length - 1];
+                    await requestQueue.addRequest({ url: 'https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Japan', userData: { label: LABELS.WIKI }});
                     break;
                 case LABELS.WIKI:
                     response = await requestAsBrowser({
                         url: request.url,
                     });
                     body = response.body;
-                    const $ = load(body);
-                    const tableRows = $('table.infobox tr').toArray();
+                    $ = load(body);
+                    tableRows = $('table.infobox tr').toArray();
                     for (const row of tableRows) {
                         const $row = $(row);
                         const th = $row.find('th');
@@ -73,12 +98,12 @@ Apify.main(async () => {
                             if (th.text().trim() === 'Deaths') {
                                 totalDeceased = value.text().trim();
                             }
-                            if (th.text().trim() === 'Confirmed cases') {
-                                let trimValue = value.text().trim().replace(',', '');
-                                if (totalInfected < parseInt(trimValue)){
-                                    totalInfected = parseInt(trimValue);
-                                }
-                            }
+                            // if (th.text().trim() === 'Confirmed cases') {
+                            //     let trimValue = value.text().trim().replace(',', '');
+                            //     if (totalInfected < parseInt(trimValue)){
+                            //         totalInfected = parseInt(trimValue);
+                            //     }
+                            // }
                         }
                     }
                     break;
@@ -91,7 +116,7 @@ Apify.main(async () => {
     log.info('CRAWLER -- finish');
 
     const data = {
-        infected: totalInfected,
+        infected: parseInt(totalInfected, 10),
         tested: undefined,
         deceased: parseInt(totalDeceased, 10),
         infectedByRegion,
