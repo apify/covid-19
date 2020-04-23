@@ -8,7 +8,7 @@ log.setLevel(log.LEVELS.INFO);
 const LATEST ='LATEST';
 
 Apify.main(async () => {
-    const sourceUrl = 'https://experience.arcgis.com/experience/d40b2aaf08be4b9c8ec38de30b714f26';
+    const sourceUrl = 'https://thl.fi/fi/web/infektiotaudit-ja-rokotukset/ajankohtaista/ajankohtaista-koronaviruksesta-covid-19/tilannekatsaus-koronaviruksesta';
     const kvStore = await Apify.openKeyValueStore("COVID-19-FINLAND");
     const dataset = await Apify.openDataset("COVID-19-FINLAND-HISTORY");
 
@@ -19,12 +19,12 @@ Apify.main(async () => {
     });
     await requestList.initialize();
 
-    const crawler = new Apify.PuppeteerCrawler({
+    const crawler = new Apify.CheerioCrawler({
         requestList,
-        maxRequestRetries: 2,
-        maxConcurrency: 1,
+        maxRequestRetries: 1,
+        handlePageTimeoutSecs: 60,
 
-        handlePageFunction: async ({ request, page }) => {
+        handlePageFunction: async ({ request, $ }) => {
             log.info(`Processing ${request.url}...`);
 
             const data = {
@@ -33,39 +33,49 @@ Apify.main(async () => {
                 readMe: "https://apify.com/dtrungtin/covid-fi",
             };
 
-            await page.waitForSelector('iframe');
-            console.log('iframe is ready. Loading iframe content');
+            const confirmedDateText = $('#column-2-2 .journal-content-article > p:nth-child(2)').text();
+            const matchUpadatedAt = confirmedDateText.match(/(\d+).(\d+). klo (\d+).(\d+)/);
 
-            const elementHandle = await page.$('iframe[src*="index.html"]');
-            const frame = await elementHandle.contentFrame();
-
-            const confirmedDateText = await frame.evaluate(() => {
-                return $('.dock-element:nth-child(3)').text();
-            });
-
-            const matchUpadatedAt = confirmedDateText.match(/(\d+)\/(\d+)\/(\d+)/);
-
-            if (matchUpadatedAt && matchUpadatedAt.length > 3) {
-                data.lastUpdatedAtSource = moment({
-                    year: parseInt(matchUpadatedAt[3]),
-                    month: parseInt(matchUpadatedAt[2]) - 1,
-                    date: parseInt(matchUpadatedAt[1]),
-                    hour: 0,
-                    minute: 0,
-                    second: 0,
-                    millisecond: 0
-                }).toISOString();
+            if (matchUpadatedAt && matchUpadatedAt.length > 4) {
+                const currentYear = moment().tz('Europe/Helsinki').year();
+                const dateTimeStr = `${currentYear}.${matchUpadatedAt[2]}.${matchUpadatedAt[1]} ${matchUpadatedAt[3]}:${matchUpadatedAt[4]}`;
+                const dateTime = moment.tz(dateTimeStr, "YYYY.MM.DD H:mm", 'Europe/Helsinki');
+               
+                data.lastUpdatedAtSource = dateTime.toISOString();
             } else {
                 throw new Error('lastUpdatedAtSource not found');
             }
 
-            const testedCasesText = await frame.evaluate(() => {
-                return $('.dock-element:nth-child(2)').text();
-            });
+            // const liList = $('.journal-content-article').eq(0).find('ul li');
+            // for (let index=0; index < liList.length; index++) {
+            //     const el = $(liList[index]);
+            //     if (el.text().includes('Finland')) {
+            //         const confirmedCasesText = el.next().find('li:first-child').text();
+            //         log.info(confirmedCasesText);
+            //         const parts = confirmedCasesText.match(/\s+(\d+)\s+/);
+            //         if (parts) {
+            //             data.confirmedCases = parseInt(parts[1]);
+            //             break;
+            //         }
+            //     }
+            // }
 
-            const parts = testedCasesText.match(/[\d,]+/);
+            const testedText = $('.journal-content-article').eq(0).find('ul li').eq(0).text();
+            let parts = testedText.match(/\s+(\d+\s*\d+)\s+/);
             if (parts) {
-                data.testedCases = parseInt(parts[0].replace(/,/, ''));
+                data.tested = parseInt(parts[1].replace(/\s/, ''));
+            }
+
+            const infectedText = $('.journal-content-article').eq(0).find('ul li').eq(1).text();
+            parts = infectedText.match(/\s+(\d+\s*\d+)\s+/);
+            if (parts) {
+                data.infected = parseInt(parts[1].replace(/\s/, ''));
+            }
+
+            const deathsText = $('.journal-content-article').eq(0).find('ul li').eq(3).text();
+            parts = deathsText.match(/\s+(\d+\s*\d+)[.\s]+/);
+            if (parts) {
+                data.deaths = parseInt(parts[1].replace(/\s/, ''));
             }
 
             // Compare and save to history
@@ -81,12 +91,9 @@ Apify.main(async () => {
         handleFailedRequestFunction: async ({ request }) => {
             log.info(`Request ${request.url} failed twice.`);
         },
-
-        gotoFunction: async ({ page, request }) => {
-            await page.viewport({ width: 1024, height: 768 });
-            return page.goto(request.url, { waitUntil: 'networkidle0', timeout: 120000 });
-        },
     });
 
     await crawler.run();
+
+    log.info('Crawler finished.');
 });
