@@ -20,16 +20,9 @@ Apify.main(async () => {
             url: 'https://services8.arcgis.com/JdxivnCyd1rvJTrY/arcgis/rest/services/covid19_list_csv_EnglishView/FeatureServer/0/query?f=json&where=%E7%A2%BA%E5%AE%9A%E6%97%A5%20IS%20NOT%20NULL&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=%E7%A2%BA%E5%AE%9A%E6%97%A5%20asc&resultOffset=0&resultRecordCount=2000&cacheHint=true',
             userData: { label: LABELS.MAP }
         },
-        {
-            url: 'https://www3.nhk.or.jp/news/special/coronavirus/data/allpatients-data.json',
-            userData: { label: LABELS.GOV }
-        },
+        { url: 'https://www3.nhk.or.jp/news/special/coronavirus/data/allpatients-data.json', userData: { label: LABELS.GOV }},
         { url: 'https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Japan', userData: { label: LABELS.WIKI }}
     ])
-    // await requestQueue.addRequest({url: 'https://services8.arcgis.com/JdxivnCyd1rvJTrY/arcgis/rest/services/covid19_list_csv_EnglishView/FeatureServer/0/query?f=json&where=%E7%A2%BA%E5%AE%9A%E6%97%A5%20IS%20NOT%20NULL&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=%E7%A2%BA%E5%AE%9A%E6%97%A5%20asc&resultOffset=0&resultRecordCount=2000&cacheHint=true',
-    //     userData: { label: LABELS.MAP } });
-    // await requestQueue.addRequest({url: 'https://www3.nhk.or.jp/news/special/coronavirus/data/allpatients-data.json',
-    //     userData: { label: LABELS.GOV } });
 
     if (notificationEmail) {
         await Apify.addWebhook({
@@ -133,7 +126,7 @@ Apify.main(async () => {
     if (latest) {
         delete latest.lastUpdatedAtApify;
     }
-    if (latest.infected > data.infected || latest.deceased > data.deceased) {
+    if (data.infected === 0 || data.deceased === 0) {
         log.error('Latest data are high then actual - probably wrong scrap');
         log.info('ACTUAL DATA');
         console.log(data);
