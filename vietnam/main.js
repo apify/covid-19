@@ -33,22 +33,37 @@ Apify.main(async () => {
                 readMe: "https://apify.com/dtrungtin/covid-vi",
             };
 
-            const confirmedDateText = $('.journal-content-article h1').text();
-            let matchUpadatedAt = confirmedDateText.match(/(\d+)h(\d+).*(\d+)\/(\d+)\/(\d+)/);
+            // const confirmedDateText = $('.journal-content-article h1').text();
+            // let matchUpadatedAt = confirmedDateText.match(/(\d+)h(\d+).*(\d+)\/(\d+)\/(\d+)/);
 
-            if (matchUpadatedAt && matchUpadatedAt.length > 5) {
-                const dateTimeStr = `${matchUpadatedAt[5]}.${matchUpadatedAt[4]}.${matchUpadatedAt[3]} ${matchUpadatedAt[0]}:${matchUpadatedAt[1]}`;
-                const dateTime = moment.tz(dateTimeStr, "YYYY.MM.DD h:mm a", 'Asia/Ho_Chi_Minh');
+            // if (matchUpadatedAt && matchUpadatedAt.length > 5) {
+            //     const dateTimeStr = `${matchUpadatedAt[5]}.${matchUpadatedAt[4]}.${matchUpadatedAt[3]} ${matchUpadatedAt[0]}:${matchUpadatedAt[1]}`;
+            //     const dateTime = moment.tz(dateTimeStr, "YYYY.MM.DD h:mm a", 'Asia/Ho_Chi_Minh');
                
-                data.lastUpdatedAtSource = dateTime.toISOString();
+            //     data.lastUpdatedAtSource = dateTime.toISOString();
+            // } else {
+            //     throw new Error('lastUpdatedAtSource not found');
+            // }
+
+            const now = moment();
+            const hour = moment(now).tz('Asia/Ho_Chi_Minh').hour();
+
+            if (hour > 6 && hour < 18) {
+                data.lastUpdatedAtSource = moment(now).tz('Asia/Ho_Chi_Minh').hour(6).minute(0).second(0).millisecond(0).utc().toISOString();
+            } else if (hour < 6) {
+                data.lastUpdatedAtSource = moment(now).tz('Asia/Ho_Chi_Minh').subtract(1, 'day').hour(18).minute(0).second(0).millisecond(0).utc().toISOString();
             } else {
-                throw new Error('lastUpdatedAtSource not found');
+                data.lastUpdatedAtSource = moment(now).tz('Asia/Ho_Chi_Minh').hour(18).minute(0).second(0).millisecond(0).utc().toISOString();
             }
 
-            const died = $('.journal-content-article .row:nth-child(2) span span').text().trim();
-            const confirmed = $('.journal-content-article .row:nth-child(3) div.col-md-9 .text-danger2').text().trim();
-            data.confirmedCases = parseInt(confirmed);
-            data.numberOfDeaths = parseInt(died);
+            const died = $('.fivecolumns:nth-child(1) div:nth-child(5) span').text().trim();
+            const deceased = $('.fivecolumns:nth-child(1) div:nth-child(3) span').text().trim();
+            const recovered = $('.fivecolumns:nth-child(1) div:nth-child(4) span').text().trim();
+            const infected = $('.fivecolumns:nth-child(1) div:nth-child(2) span').text().trim();
+            data.infected = parseInt(infected);
+            data.deceased = parseInt(deceased);
+            data.recovered = parseInt(recovered);
+            data.deaths = parseInt(died);
 
             // Compare and save to history
             const latest = await kvStore.getValue(LATEST) || {};
