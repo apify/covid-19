@@ -20,10 +20,10 @@ Apify.main(async () => {
             log.info('Page loaded.');
             const now = new Date();
 
-            const infectedByRegion = $('.standardTable tr').map((i,el) => ({
+            const infectedByRegion = $('table').filter((i,el) => $(el).text().toLowerCase().includes('agder')).find('tr').map((i,el) => ({
                 region: $($(el).find('td').get(0)).text().trim(),
-                infectedCount: parseInt($($(el).find('td').get(1)).text().trim(),10),
-            })).get().filter(val => val.region !== 'County').slice(12)
+                infectedCount: parseInt($($(el).find('td').get(1)).text().trim().replace(/\D/g,''),10),
+            })).get().filter(val => val.region !== 'County')
 
             const infected = infectedByRegion.reduce((sum,val) => sum+=val.infectedCount,0);
 
