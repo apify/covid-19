@@ -1,0 +1,9 @@
+{
+  "extends": "@apify",
+  "rules": {
+    "camelcase": "off",
+    "default-case": "off",
+    "prefer-destructuring": "off",
+    "no-console": "off"
+  }
+}
