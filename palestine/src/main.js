@@ -5,15 +5,15 @@ const now = new Date();
 const { log } = Apify.utils;
 
 async function waitForContentToLoad(page) {
-    const query = 'document.querySelectorAll(\'full-container full-container\')';
+    const query = 'document.querySelector(\'full-container\').innerText.includes';
 
-    return page.waitForFunction(`!!${query}[0] && !!${query}[1] && !!${query}[2] && !!${query}[5] && !!${query}[7] && !!${query}[6]`
-        + ` && !!${query}[0].innerText.includes('الاصابات المؤكدة التراكمية')`
-        + ` && !!${query}[1].innerText.includes('الشفاء التام')`
-        + ` && !!${query}[2].innerText.includes('الحالات المؤكدة حسب')`
-        + ` && !!${query}[5].innerText.includes('الحجر المنزلي')`
-        + ` && !!${query}[7].innerText.includes('عدد الوفيات')`
-        + ` && !!${query}[6].innerText.includes('Last update')`, { timeout: 45 * 1000 });
+    return page.waitForFunction(
+        `!!document.querySelector('full-container full-container')
+        && ${query}('الاصابات المؤكدة التراكمية') && ${query}('الشفاء التام') 
+        && ${query}('الحالات المؤكدة حسب') && ${query}('الحجر المنزلي') 
+        && ${query}('عدد الوفيات') && ${query}('Last update') 
+        && !!document.querySelectorAll('nav.feature-list')[0]`
+        , { timeout: 45 * 1000 });
 }
 
 Apify.main(async () => {
@@ -61,15 +61,15 @@ Apify.main(async () => {
                     return parseInt(str.replace(/( |,)/g, ''))
                 }
 
-                const fullContainer = $('full-container full-container').toArray();
+                const text = $('full-container full-container').text().replace(/(\n|\r)/g, '').trim()
+                const infected = await strToInt(text.match(/(?<=الاصابات المؤكدة التراكمية\s*)[\d,]+/g)[0]);
+                const recovered = await strToInt(text.match(/(?<=الشفاء التام\s*)[\d,]+/g)[0]);
+                const deceased = await strToInt(text.match(/(?<=عدد الوفيات\s*)[\d,]+/g)[0]);
+                const atHome = await strToInt(text.match(/(?<=الحجر المنزلي\s*)[\d,]+/g)[0]);
 
-                const date = $(fullContainer[6]).find('i').text().trim();
-                const infected = await strToInt($(fullContainer[0]).find('g').last().text().trim());
-                const recovered = await strToInt($(fullContainer[1]).find('g').last().text().trim());
-                const deceased = await strToInt($(fullContainer[7]).find('g').last().text().trim());
-                const atHome = await strToInt($(fullContainer[5]).find('g').last().text().trim());
+                const date = $('i:contains(Last update)').eq(1).text().match(/(?<=Last update:).*/g)[0];
 
-                const spans = $(fullContainer[2]).find('span[id*="ember"]').toArray();
+                const spans = $($('nav.feature-list')[0]).find('span[id*="ember"]').toArray();
 
                 const infectedByRegion = [];
                 spans.forEach(async (span) => {
@@ -87,9 +87,8 @@ Apify.main(async () => {
 
             log.info('Processing and saving data.')
             // ADD: tested, infected, recovered, deceased, atHome, infectedByRegion
-
-            // const sourceDate = new Date(getDateFromString(extracted.date));
             const sourceDate = await getDateFromString(extracted.date);
+
             delete extracted.date;
 
             const data = {

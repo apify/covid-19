@@ -5,15 +5,13 @@ const now = new Date();
 const { log } = Apify.utils;
 
 async function waitForContentToLoad(page) {
-    const query = 'document.querySelectorAll(\'full-container full-container\')';
+    const query = 'document.querySelector(\'full-container\').innerText.includes';
 
-    return page.waitForFunction(`!!document.querySelector('#appInfo div') || (!!${query}[0] && !!${query}[2] && !!${query}[3] && !!${query}[10] && !!${query}[11] && !!${query}[12]`
-        + ` && !!${query}[0].innerText.includes('الحالات المؤكدة')`
-        + ` && !!${query}[2].innerText.includes('Mise à jour')`
-        + ` && !!${query}[3].innerHTML.includes('<nav class="feature-list">')`
-        + ` && !!${query}[10].innerText.includes('حالة شفاء')`
-        + ` && !!${query}[11].innerText.includes('تحت العلاج')`
-        + ` && !!${query}[12].innerText.includes('حالة وفاة'))`, { timeout: 45 * 1000 });
+    return page.waitForFunction(
+        `!!document.title.includes('Sign In') || (!!document.querySelector('full-container full-container')
+        && ${query}('الحالات المؤكدة') && ${query}('حالة شفاء') && ${query}('تحت العلاج') && ${query}('حالة وفاة')
+        && !!document.querySelectorAll('nav.feature-list')[1])`
+        , { timeout: 45 * 1000 });
 }
 
 Apify.main(async () => {
@@ -36,10 +34,6 @@ Apify.main(async () => {
         handlePageTimeoutSecs: 90,
         launchPuppeteerFunction: () => {
             const options = { useApifyProxy: true, useChrome: true };
-            // if (Apify.isAtHome()) {
-            //     options.headless = true;
-            //     options.stealth = true;
-            // }
             return Apify.launchPuppeteer(options);
         },
         gotoFunction: async ({ page, request }) => {
@@ -49,42 +43,41 @@ Apify.main(async () => {
             return page.goto(request.url, { timeout: 1000 * 30 });
         },
         handlePageFunction: async ({ page, request }) => {
-            log.info(`Handling ${request.url}`);
+            log.info(`Handling ${request.url} `);
 
             await Apify.utils.puppeteer.injectJQuery(page);
             log.info('Waiting for content to load');
             await waitForContentToLoad(page);
             log.info('Content loaded');
 
+
             const extracted = await page.evaluate(async () => {
 
-                if ($('#appInfo').innerText) return;
+                if (document.title === 'Sign In') return;
 
                 async function strToInt(str) {
                     return parseInt(str.replace(/( |,)/g, ''), 10);
                 }
+                const text = $('full-container full-container').text().replace(/(\n|\r)/g, '').trim()
 
-                const fullContainer = $('full-container full-container').toArray();
+                const date = text.match(/(?<=Mise à jour(.)*)[\d\/]+/g)[0];
 
-                const date = $(fullContainer[2]).text().match(/(\d|\/)+/g)[0];
+                const hospitalized = await strToInt(text.match(/(?<=تحت العلاج\s*)[\d,]+/g)[0]);
+                const infected = await strToInt(text.match(/(?<=الحالات المؤكدة\s*)[\d,]+/g)[0]);
+                const recovered = await strToInt(text.match(/(?<=حالة شفاء\s*)[\d,]+/g)[0]);
+                const deceased = await strToInt(text.match(/(?<=حالة وفاة\s*)[\d,]+/g)[0]);
 
-                const hospitalized = await strToInt($(fullContainer[11]).text().match(/(\d|,)+/g)[0]);
-                const infected = await strToInt($(fullContainer[0]).text().match(/(\d|,)+/g)[0]);
-                const recovered = await strToInt($(fullContainer[10]).text().match(/(\d|,)+/g)[0]);
-                const deceased = await strToInt($(fullContainer[12]).text().match(/(\d|,)+/g)[0]);
-
-                const spans = $(fullContainer[3]).find('nav.feature-list span[id*="ember"]').toArray();
+                const spans = $($('nav.feature-list')[1]).find('span[class*="ember"]').toArray();
 
                 const infectedByRegion = [];
 
                 for (const span of spans) {
-                    const ps = $(span).find('p').toArray();
-                    const oldCases = ps[0].textContent.match(/(\d,*)+/g);
-                    const newCases = ps[1].textContent.match(/(\d,*)+/g);
+                    const innerText = $(span).text();
+                    const numbers = innerText.match(/(\d,*)+/g);
                     infectedByRegion.push({
-                        value: oldCases ? parseInt(oldCases[0].replace(/,/g, '')) : 0,
-                        region: ps[0].textContent.match(/([a-z '-]+)/gi).filter(el => el.trim() !== '')[0].replace(/-/g, ' ').trim(),
-                        newly: newCases ? parseInt(newCases[0].replace(/,/g, '')) : 0
+                        value: parseInt(numbers[0].replace(/,/g, '')) || 0,
+                        region: innerText.match(/([a-z ']+)/gi).join(' ').trim(),
+                        newly: numbers[1] ? parseInt(numbers[0].replace(/,/g, '')) : 0
                     })
                 }
 
@@ -93,7 +86,7 @@ Apify.main(async () => {
                 };
             });
             if (!extracted) {
-                log.info('Unavailable source data, maybe Update or maintenance purpose.')
+                log.info('Unavailable source data, maybe for update or maintenance purpose.')
                 return;
             }
 
@@ -147,5 +140,5 @@ Apify.main(async () => {
 
 async function formatDate(date) {
     [a, b, c] = date.split('/');
-    return `${b}/${a}/${c}`;
+    return `${b} /${a}/${c} `;
 }
