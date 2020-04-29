@@ -50,7 +50,7 @@ Apify.main(async () =>
         const totalInfected = $('div:contains("Total number of lab-confirmed UK cases")').last().next().text().trim();
         const dailyConfirmed = $('div:contains("Daily number of lab-confirmed UK cases")').last().next().text().trim();
         //const patientsRecovered = $("text[vector-effect='non-scaling-stroke']").eq(4).text();
-        const deceased = $('div:contains("Total number of COVID-19 associated UK deaths in hospital").govuk-heading-m').last().next().text().trim();
+        const deceased = $('div:contains("Total number of COVID-19 associated UK deaths").govuk-heading-m').last().next().text().trim()
         const englandConfirmed = $('td:contains("England")').next().eq(0).text().trim();
         const englandDeceased = $('td:contains("England")').next().next().eq(0).text().trim();
         const scotlandConfirmed = $('td:contains("Scotland")').next().eq(0).text().trim();
