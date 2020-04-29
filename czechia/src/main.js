@@ -51,32 +51,19 @@ Apify.main(async () => {
     const sourceOfInfectionData = JSON.parse($("#js-total-foreign-countries-data").attr("data-barchart"));
     const sexAgeData = JSON.parse($("#js-total-sex-age-data").attr("data-barchart"));
     const protectionSuppliesSummaryTable = $(".static-table__container table");
-    const hospitalizationTable = $(".static-table__container table.equipmentTable").eq(0);
+    const hospitalizationTable = JSON.parse($("#js-hospitalization-table-data").attr("data-table"));
 
-    // Table with supplies
-    const headers = [];
-    const hospitalizationTableData = [];
-    $(hospitalizationTable).find("thead th").each((idex, element) => {
-        headers.push($(element).text().trim())
-    });
-    hospitalizationTableData.push(headers);
 
-    $(hospitalizationTable).find("tbody tr").each((index, element) => {
-        const rowData = [];
-        $(element).find("td").each((i, el) => {
-            const text = $(el).text().trim();
-            if (i >= 1) {
-                rowData.push(text.includes("%") ? text : toNumber(text));
-            } else {
-                const split = text.split(".");
-                let reportDate = new Date(`${split[1]}.${split[0]}.${split[2]}`);
-                reportDate = new Date(Date.UTC(reportDate.getFullYear(), reportDate.getMonth(), reportDate.getDate()));
+    let hospitalizationTableData = [];
+    hospitalizationTableData.push(hospitalizationTable.header.map(h => h.title));
+    hospitalizationTableData=  hospitalizationTableData.concat(hospitalizationTable.body.map(row => {
+        const split = row[0].split(".");
+        let reportDate = new Date(`${split[1]}.${split[0]}.${split[2]}`);
+        reportDate = new Date(Date.UTC(reportDate.getFullYear(), reportDate.getMonth(), reportDate.getDate()));
 
-                rowData.push(reportDate.toISOString());
-            }
-        });
-        hospitalizationTableData.push(rowData);
-    });
+        row[0] = reportDate.toISOString();
+        return row;
+    }));
 
     const lastUpdated = $("#last-modified-datetime").text().trim().replace("k", "").replace(/\u00a0/g, "");
     const parts = lastUpdated.split("v");
