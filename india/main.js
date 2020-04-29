@@ -17,23 +17,24 @@ Apify.main(async () => {
     await Apify.utils.puppeteer.injectJQuery(page);
 
     console.log('Going to the website...');
-    await page.goto(sourceUrl), { waitUntil: 'networkidle0', timeout: 600000 };
+    await page.goto(sourceUrl, { waitUntil: 'networkidle0', timeout: 600000 });
 
     console.log('Getting data...');
 
     const result = await page.evaluate(() => {
         const now = new Date();
 
-        const activeCases = $('#site-dashboard > div > div > div > div > ul > li.bg-blue > strong').text();
-        const recovered = $("#site-dashboard > div > div > div > div > ul > li.bg-green > strong").text();
-        const deaths = $('#site-dashboard > div > div > div > div > ul > li.bg-red > strong').text();
+        const activeCases = Number($('#site-dashboard > div > div > div > div > ul > li.bg-blue > strong').text());
+        const recovered = Number($("#site-dashboard > div > div > div > div > ul > li.bg-green > strong").text());
+        const deaths = Number($('#site-dashboard > div > div > div > div > ul > li.bg-red > strong').text());
 
-        const regionsTableRows = Array.from(document.querySelectorAll("#state-data > div > div > div > div > table > tbody > tr"));
+        const rawTableRows = [...document.querySelectorAll("#state-data > div > div > div > div > table > tbody > tr")];
+        const regionsTableRows = rawTableRows.filter(row => row.querySelectorAll('td').length === 5);
         const regionData = [];
 
         for (const row of regionsTableRows) {
             const cells = Array.from(row.querySelectorAll("td")).map(td => td.textContent);
-            regionData.push({region: cells[1], totalInfected: cells[2], recovered: cells[3], deceased: cells[4] });
+            regionData.push({region: cells[1], totalInfected: Number(cells[2]), recovered: Number(cells[3]), deceased: Number(cells[4]) });
         }
         
         const data = {
@@ -92,5 +93,5 @@ Apify.main(async () => {
             },
             { waitSecs: 0 },
         );
-    };
+    }
 });
