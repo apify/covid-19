@@ -1,30 +1,3 @@
-Skip to content
-Search or jump to…
-
-Pull requests
-Issues
-Marketplace
-Explore
- 
-@katacek 
-katacek
-/
-covid-philippines
-1
-02
- Code
- Issues 0
- Pull requests 0 Actions
- Projects 0
- Wiki
- Security 0
- Insights
- Settings
-covid-philippines/main.js /
-@katacek katacek Update main.js
-fccb7fd 5 hours ago
-176 lines (138 sloc)  5.79 KB
-  
 const Apify = require('apify');
 const moment = require('moment');
 const fs = require('fs');
@@ -201,15 +174,3 @@ Apify.main(async () =>
         }
     }
 });
-© 2020 GitHub, Inc.
-Terms
-Privacy
-Security
-Status
-Help
-Contact GitHub
-Pricing
-API
-Training
-Blog
-About
