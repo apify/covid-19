@@ -71,7 +71,8 @@ Apify.main(async () => {
                 ...DATA,
                 sourceUrl: request.url,
                 lastUpdatedAtApify: new Date(new Date().toUTCString()).toISOString(),
-                lastUpdatedAtSource: "N/A" // currently unavailable
+                lastUpdatedAtSource: "N/A", // currently unavailable
+                readMe: 'https://apify.com/lukass/covid-az',
             }
 
             // Compare and save to history
