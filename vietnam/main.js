@@ -57,13 +57,13 @@ Apify.main(async () => {
             }
 
             const died = $('.fivecolumns:nth-child(1) div:nth-child(5) span').text().trim();
-            const deceased = $('.fivecolumns:nth-child(1) div:nth-child(3) span').text().trim();
+            const treated = $('.fivecolumns:nth-child(1) div:nth-child(3) span').text().trim();
             const recovered = $('.fivecolumns:nth-child(1) div:nth-child(4) span').text().trim();
             const infected = $('.fivecolumns:nth-child(1) div:nth-child(2) span').text().trim();
             data.infected = parseInt(infected);
-            data.deceased = parseInt(deceased);
+            data.treated = parseInt(treated);
             data.recovered = parseInt(recovered);
-            data.deaths = parseInt(died);
+            data.deceased = parseInt(died);
 
             // Compare and save to history
             const latest = await kvStore.getValue(LATEST) || {};
