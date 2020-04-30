@@ -56,7 +56,9 @@
         "tested": "tested"
     },
     "Finland": {
-        "infected": "confirmedCases"
+        "infected": "confirmedCases",
+        "tested": "tested",
+        "deceased": "deaths"
     },
     "France": {
         "deceased": "deceased",
