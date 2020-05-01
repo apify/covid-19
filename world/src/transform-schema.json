@@ -189,8 +189,9 @@
         "deceased": "deceased"
     },
     "Vietnam": {
-        "infected": "confirmedCases",
-        "deceased": "numberOfDeaths"
+        "infected": "infected",
+        "deceased": "deceased",
+        "recovered": "recovered",
     },
     "Belgium": {
         "deceased": "deaths",
