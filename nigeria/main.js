@@ -27,7 +27,7 @@ Apify.main(async () => {
         const infected = $("body > div.pcoded-main-container > div > div.page-header > div:nth-child(2) > div:nth-child(1) > div > div > h2 > span").text();
         const activeCases = $('body > div.pcoded-main-container > div > div.page-header > div:nth-child(2) > div:nth-child(2) > div > div > h2 > span').text();
         const recovered = $('body > div.pcoded-main-container > div > div.page-header > div:nth-child(2) > div:nth-child(3) > div > div > h2 > span').text();
-        const deceased = $('body > div.pcoded-main-container > div > div.page-header > div:nth-child(2) > div:nth-child(3) > div > div > h2 > span').text();
+        const deceased = $('body > div.pcoded-main-container > div > div.page-header > div:nth-child(2) > div:nth-child(4) > div > div > h2 > span').text();
 
         const regionsTableRows = Array.from(document.querySelectorAll("#custom1 > tbody > tr"));
         const regionData = [];
