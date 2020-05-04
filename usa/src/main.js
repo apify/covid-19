@@ -8,8 +8,8 @@ Apify.main(async () => {
     const url = 'https://www.cdc.gov/coronavirus/2019-ncov/cases-in-us.html';
     const kvStore = await Apify.openKeyValueStore('COVID-19-USA-CDC');
     const dataset = await Apify.openDataset('COVID-19-USA-CDC-HISTORY');
-
-    const browser = await Apify.launchPuppeteer();
+    
+    const browser = await Apify.launchPuppeteer({ useApifyProxy: true, apifyProxyGroups: ['SHADER'] });
     const page = await browser.newPage();
     await Apify.utils.puppeteer.injectJQuery(page);
     let casesByStateJson = '';
