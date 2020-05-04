@@ -9,7 +9,7 @@ Apify.main(async () => {
     const kvStore = await Apify.openKeyValueStore('COVID-19-USA-CDC');
     const dataset = await Apify.openDataset('COVID-19-USA-CDC-HISTORY');
 
-    const browser = await Apify.launchPuppeteer({ useApifyProxy: true, apifyProxyGroups: ['SHADER'] });
+    const browser = await Apify.launchPuppeteer();
     const page = await browser.newPage();
     await Apify.utils.puppeteer.injectJQuery(page);
     let casesByStateJson = '';
@@ -23,17 +23,17 @@ Apify.main(async () => {
     });
     await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
     const extracted = await page.evaluate(() => {
-        const totalCases = $('#covid-19-cases-total').text().replace('&#65279;', '').trim();
-        const totalDeaths = $('#covid-19-deaths-total').text().replace('&#65279;', '').trim();
+        const totalCases = $('body > div.container.d-flex.flex-wrap.body-wrapper.bg-white > main > div:nth-child(3) > div > div:nth-child(4) > div:nth-child(1) > div > div > div > section > div > div > div:nth-child(1) > span.count').text().replace(',', '').trim();
+        const totalDeaths = $('body > div.container.d-flex.flex-wrap.body-wrapper.bg-white > main > div:nth-child(3) > div > div:nth-child(4) > div:nth-child(1) > div > div > div > section > div > div > div:nth-child(2) > span.count').text().replace(',', '').trim();
         let dateUpdated = new Date();
         dateUpdated = new Date(Date.UTC(dateUpdated.getFullYear(), dateUpdated.getMonth(), dateUpdated.getDate())).toISOString();
 
         return { totalDeaths, totalCases, dateUpdated };
     });
 
-    const [dates, values] = json;
-    dates.splice(0, 1);
-    values.splice(0, 1);
+    // const [dates, values] = json;
+    // dates.splice(0, 1);
+    // values.splice(0, 1);
     const now = new Date();
     const data = {
         totalCases: parseNum(extracted.totalCases),
@@ -44,16 +44,17 @@ Apify.main(async () => {
             casesReported: row['Cases Reported'],
             communityTransmission: row['Community Transmission'],
         })),
-        casesByDays: dates.map((value, index) => {
-            const dataSplit = value.split('/');
-            return { date: new Date(Date.UTC(dataSplit[2], dataSplit[0], dataSplit[1])).toISOString(), value: values[index] };
-        }),
+        // casesByDays: dates.map((value, index) => {
+        //     const dataSplit = value.split('/');
+        //     return { date: new Date(Date.UTC(dataSplit[2], dataSplit[0], dataSplit[1])).toISOString(), value: values[index] };
+        // }),
         sourceUrl: url,
         lastUpdatedAtSource: extracted.dateUpdated,
         lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
         readMe: 'https://apify.com/petrpatek/covid-usa-cdc',
     };
 
+    console.log(data)
 
     let latest = await kvStore.getValue(LATEST);
     if (!latest) {
