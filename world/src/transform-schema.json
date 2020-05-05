@@ -191,7 +191,7 @@
     "Vietnam": {
         "infected": "infected",
         "deceased": "deceased",
-        "recovered": "recovered",
+        "recovered": "recovered"
     },
     "Belgium": {
         "deceased": "deaths",
