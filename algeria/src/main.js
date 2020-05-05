@@ -9,7 +9,7 @@ async function waitForContentToLoad(page) {
 
     return page.waitForFunction(
         `!!document.title.includes('Sign In') || (!!document.querySelector('full-container full-container')
-        && ${query}('الحالات المؤكدة') && ${query}('حالة شفاء') && ${query}('تحت العلاج') && ${query}('حالة وفاة')
+        && ${query}('الحالات المؤكدة') && ${query}('حالة شفاء') && ${query}('المستفيدون من العلاج') && ${query}('حالة وفاة')
         && !!document.querySelectorAll('nav.feature-list')[1])`
         , { timeout: 45 * 1000 });
 }
@@ -55,17 +55,17 @@ Apify.main(async () => {
 
                 if (document.title === 'Sign In') return;
 
-                async function strToInt(str) {
+                function strToInt(str) {
                     return parseInt(str.replace(/( |,)/g, ''), 10);
                 }
                 const text = $('full-container full-container').text().replace(/(\n|\r)/g, '').trim()
 
                 const date = text.match(/(?<=Mise à jour(.)*)[\d\/]+/g)[0];
 
-                const hospitalized = await strToInt(text.match(/(?<=تحت العلاج\s*)[\d,]+/g)[0]);
-                const infected = await strToInt(text.match(/(?<=الحالات المؤكدة\s*)[\d,]+/g)[0]);
-                const recovered = await strToInt(text.match(/(?<=حالة شفاء\s*)[\d,]+/g)[0]);
-                const deceased = await strToInt(text.match(/(?<=حالة وفاة\s*)[\d,]+/g)[0]);
+                const hospitalized = strToInt(text.match(/(?<=المستفيدون(\s+)من(\s+)العلاج\s*)[\d,]+/g)[0]);
+                const infected = strToInt(text.match(/(?<=الحالات(\s+)المؤكدة\s*)[\d,]+/g)[0]);
+                const recovered = strToInt(text.match(/(?<=حالة(\s+)شفاء\s*)[\d,]+/g)[0]);
+                const deceased = strToInt(text.match(/(?<=حالة(\s+)وفاة\s*)[\d,]+/g)[0]);
 
                 const spans = $($('nav.feature-list')[1]).find('span[class*="ember"]').toArray();
 
@@ -77,7 +77,7 @@ Apify.main(async () => {
                     infectedByRegion.push({
                         value: parseInt(numbers[0].replace(/,/g, '')) || 0,
                         region: innerText.match(/([a-z ']+)/gi).join(' ').trim(),
-                        newly: numbers[1] ? parseInt(numbers[0].replace(/,/g, '')) : 0
+                        // newly: numbers[1] ? parseInt(numbers[1].replace(/,/g, '')) : 0
                     })
                 }
 
