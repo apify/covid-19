@@ -15,22 +15,17 @@ Apify.main(async () => {
         useApifyProxy: true,
         apifyProxyGroups: ['SHADER'],
         handlePageTimeoutSecs: 60 * 2,
-        handlePageFunction: async ({ $ }) => {
+        handlePageFunction: async ({ $, body }) => {
             log.info('Page loaded.');
             const now = new Date();
 
-            const infected = parseInt($($('.view-diagrams .view-content').get(0)).find('.views-row-1 .number').text().trim()
-                .replace(/\s/g, ''), 10);
-            const recovered = parseInt($($('.view-diagrams .view-content').get(0)).find('.views-row-2 .number').text().trim()
-                .replace(/\s/g, ''), 10);
-            const deceased = parseInt($($('.view-diagrams .view-content').get(0)).find('.views-row-3 .number').text().trim()
-                .replace(/\s/g, ''), 10) || 0;
-            const quarantined = parseInt($($('.view-diagrams .view-content').get(0)).find('.views-row-4 .number').text().trim()
-                .replace(/\s/g, ''), 10);
-            const tested = parseInt($($('.view-diagrams .view-content').get(0)).find('.views-row-5 .number').text().trim()
-                .replace(/\s/g, ''), 10);
+            const infected = parseInt($("#api-fertozott-pest").text().trim().replace(/\s/g, ''), 10) + parseInt($("#api-fertozott-videk").text().trim().replace(/\s/g, ''), 10);
+            const recovered = parseInt($("#api-gyogyult-pest").text().trim().replace(/\s/g, ''), 10) + parseInt($("#api-gyogyult-videk").text().trim().replace(/\s/g, ''), 10);
+            const deceased = parseInt($("#api-elhunyt-pest").text().trim().replace(/\s/g, ''), 10) + parseInt($("#api-elhunyt-videk").text().trim().replace(/\s/g, ''), 10);
+            const quarantined = parseInt($("#api-karantenban").text().trim().replace(/\s/g, ''), 10);
+            const tested = parseInt($('#api-mintavetel').text().trim().replace(/\s/g, ''), 10);
 
-            const date = new Date($($('.view-diagrams .well-lg p').get(0)).text().replace('Legutolsó frissítés dátuma: ',''));
+            const date = new Date($($('.view-diagrams .well-lg p').get(0)).text().replace('Legutolsó frissítés dátuma: ', ''));
 
             const data = {
                 infected,
@@ -50,7 +45,7 @@ Apify.main(async () => {
             const actual = Object.assign({}, data);
             delete actual.lastUpdatedAtApify;
 
-            await Apify.pushData({...data});
+            await Apify.pushData({ ...data });
 
             if (JSON.stringify(latest) !== JSON.stringify(actual)) {
                 log.info('Data did change :( storing new to dataset.');
