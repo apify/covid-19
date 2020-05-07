@@ -9,7 +9,7 @@ Apify.main(async () =>
 
     const kvStore = await Apify.openKeyValueStore('COVID-19-CHINA');
     const dataset = await Apify.openDataset('COVID-19-CHINA-HISTORY');
-    //const { email } = await Apify.getValue('INPUT');
+    const { email } = await Apify.getValue('INPUT');
 
     const bodyResponse = (await Apify.utils.requestAsBrowser({ url: sourceUrl })).body;
     const jsonStats = JSON.parse(bodyResponse).results[0];
