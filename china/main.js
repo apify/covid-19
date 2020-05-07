@@ -1,6 +1,6 @@
 const Apify = require('apify');
 
-const sourceUrl = 'https://github.com/BlankerL/DXY-COVID-19-Data/blob/master/json/DXYOverall.json';
+const sourceUrl = 'https://raw.githubusercontent.com/BlankerL/DXY-COVID-19-Data/master/json/DXYOverall.json';
 const LATEST = 'LATEST';
 let check = false;
 
@@ -11,54 +11,25 @@ Apify.main(async () =>
     const dataset = await Apify.openDataset('COVID-19-CHINA-HISTORY');
     const { email } = await Apify.getValue('INPUT');
 
+    const bodyResponse = (await Apify.utils.requestAsBrowser({ url: sourceUrl })).body;
+    const jsonStats = JSON.parse(bodyResponse).results[0];
 
-    console.log('Launching Puppeteer...');
-    const browser = await Apify.launchPuppeteer();
-
-    const page = await browser.newPage();
-    
-    console.log('Going to the website...');
-    await page.goto('https://github.com/BlankerL/DXY-COVID-19-Data/blob/master/json/DXYOverall.json');
-
-    await Apify.utils.puppeteer.injectJQuery(page);
-      
-    await page.waitForSelector('tbody');
-    
-    console.log('Getting data...');
-    // page.evaluate(pageFunction[, ...args]), pageFunction <function|string> Function to be evaluated in the page context, returns: <Promise<Serializable>> Promise which resolves to the return value of pageFunction
-    const result = await page.evaluate(() =>
-    {
-     
-        const now = new Date();
-        // text() method sets or returns the text content of the selected elements
-                
-        const currentConfirmedCount = $('span:contains(currentConfirmedCount)').eq(0).next().text()
-        const confirmedCount = $('span:contains(confirmedCount)').eq(0).next().text()
-        const suspectedCount = $('span:contains(suspectedCount)').eq(0).next().text()
-        const curedCount = $('span:contains(curedCount)').eq(0).next().text()
-        const deadCount = $('span:contains(deadCount)').eq(0).next().text()
-        const seriousCount = $('span:contains(seriousCount)').eq(0).next().text()
-
-        const data = {
-            infected: confirmedCount,
-            recovered: curedCount,
-            tested: "N/A",
-            deceased: deadCount,
-            currentConfirmedCount: currentConfirmedCount,
-            suspectedCount: suspectedCount,
-            seriousCount: seriousCount,
-            country: "China",
-            historyData: "https://api.apify.com/v2/datasets/LQHrXhGe0EhnCFeei/items?format=json&clean=1",
-            sourceUrl:'https://github.com/BlankerL/DXY-COVID-19-Data/blob/master/json/DXYOverall.json',
-            lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
-            lastUpdatedAtSource: "N/A",
-            readMe: 'https://apify.com/katerinahronik/covid-china',
-            };
-        return data;
-        
-    });       
-
-    console.log(result)
+    const now = new Date();
+    const result = {
+        infected: jsonStats.confirmedCount,
+        recovered: jsonStats.curedCount,
+        tested: "N/A",
+        deceased: jsonStats.deadCount,
+        currentConfirmedCount: jsonStats.currentConfirmedCount,
+        suspectedCount: jsonStats.suspectedCount,
+        seriousCount: jsonStats.seriousCount,
+        country: "China",
+        historyData: "https://api.apify.com/v2/datasets/LQHrXhGe0EhnCFeei/items?format=json&clean=1",
+        sourceUrl:'https://github.com/BlankerL/DXY-COVID-19-Data/blob/master/json/DXYOverall.json',
+        lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
+        lastUpdatedAtSource: "N/A",
+        readMe: 'https://apify.com/katerinahronik/covid-china',
+        };    
        
     if ( !result.infected ) {
                  check = true;
@@ -82,9 +53,6 @@ Apify.main(async () =>
     await kvStore.setValue('LATEST', result);
     await Apify.pushData(result);
 
-
-    console.log('Closing browser...');
-    await browser.close();
     console.log('Done.');  
     
     //if there are no data for TotalInfected, send email, because that means something is wrong
