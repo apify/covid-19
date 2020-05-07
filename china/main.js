@@ -9,7 +9,7 @@ Apify.main(async () =>
 
     const kvStore = await Apify.openKeyValueStore('COVID-19-CHINA');
     const dataset = await Apify.openDataset('COVID-19-CHINA-HISTORY');
-    const { email } = await Apify.getValue('INPUT');
+    //const { email } = await Apify.getValue('INPUT');
 
     const bodyResponse = (await Apify.utils.requestAsBrowser({ url: sourceUrl })).body;
     const jsonStats = JSON.parse(bodyResponse).results[0];
@@ -53,9 +53,6 @@ Apify.main(async () =>
     await kvStore.setValue('LATEST', result);
     await Apify.pushData(result);
 
-
-    console.log('Closing browser...');
-    await browser.close();
     console.log('Done.');  
     
     //if there are no data for TotalInfected, send email, because that means something is wrong
