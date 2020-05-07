@@ -23,7 +23,7 @@ Apify.main(async () => {
     }
     const now = new Date();
 
-    const data = {
+    const result = {
         infected: infected,
         recovered: recovered,
         deceased: deceased,
@@ -32,7 +32,7 @@ Apify.main(async () => {
         lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
         readMe: 'https://github.com/zpelechova/covid-ps/blob/master/README.md'
     };
-    console.log(data)
+    console.log(result)
 
     let latest = await kvStore.getValue(LATEST);
     if (!latest) {
