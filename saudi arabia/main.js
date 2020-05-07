@@ -1,108 +1,145 @@
 const Apify = require('apify');
 
+const { requestAsBrowser, log } = Apify.utils;
+
 const sourceUrl = 'https://covid19.moh.gov.sa/';
 const LATEST = 'LATEST';
 let check = false;
+
+const REST_HTTP = 'https://services8.arcgis.com/uiAtN7dLXbrrdVL5/arcgis/rest/services';
+const CITIES_URL = `${REST_HTTP}/Saudi_COVID19_Statistics/FeatureServer/1/query?f=json&where=1=1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=Name%2CConfirmed_SUM%2CRecovered_SUM%2CDeaths_SUM%2CActive_SUM&orderByFields=Name%20asc&resultOffset=0&resultRecordCount=200&cacheHint=false`;
+const DAILY_URL = `${REST_HTTP}/COVID19_Daily_Progressive_Cases_V2/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=Name%2CDate%2CConfirmed%2CDeaths%2CRecovered%2CActive&orderByFields=Date%20asc&resultOffset=0&resultRecordCount=2000&cacheHint=false`;
 
 Apify.main(async () =>
 
 {
     const kvStore = await Apify.openKeyValueStore('COVID-19-SA');
     const dataset = await Apify.openDataset('COVID-19-SA-HISTORY');
-    const { email } = await Apify.getValue('INPUT');
+    
 
 try{
+    const { items } = await dataset.getData({ fields: ['lastUpdatedAtApify', 'lastUpdatedAtSource'] });
 
-    console.log('Launching Puppeteer...');
-    const browser = await Apify.launchPuppeteer();
+    // fill the gap in case it's missing historic data
+    const timestamps = items
+        .map(s => new Date(s.lastUpdatedAtSource !== 'N/A' ? s.lastUpdatedAtSource : s.lastUpdatedAtApify).getTime())
+        .filter(s => !Number.isNaN(s));
 
-    const page = await browser.newPage();
-   
-    console.log('Going to the website...');
-    
-    // the source url (html page source) is just a link to this page
-    await page.goto('https://esriksa-emapstc.maps.arcgis.com/apps/opsdashboard/index.html#/6cd8cdcc73ab43939709e12c19b64a19'), { waitUntil: 'networkidle2', timeout: 60000 };
-    await Apify.utils.puppeteer.injectJQuery(page);
-    
-    await page.waitForSelector("text[vector-effect='non-scaling-stroke']");
-    await page.waitFor(10000);
-    
-    console.log('Getting data...');
- 
-    // page.evaluate(pageFunction[, ...args]), pageFunction <function|string> Function to be evaluated in the page context, returns: <Promise<Serializable>> Promise which resolves to the return value of pageFunction
-    const result = await page.evaluate(() =>
-    {
+    const lowestTimestamp = Math.min(...timestamps);
+    const highestTimestamp = Math.max(...timestamps);
 
-        const getInt = (x)=>{
-            return x.split(' ').join('').replace(',','')};
-        const now = new Date();
-        
-        // eq() selector selects an element with a specific index number, text() method sets or returns the text content of the selected elements
-        const totalInfected = $("text[vector-effect='non-scaling-stroke']:contains(إجمالي )").closest("full-container").find("text[vector-effect='non-scaling-stroke']").eq(1).text();
-        const active = $("text[vector-effect='non-scaling-stroke']:contains(الحالات )").closest("full-container").find("text[vector-effect='non-scaling-stroke']").eq(1).text();
-        const patientsRecovered = $("text[vector-effect='non-scaling-stroke']:contains(المتعافين)").closest("full-container").find("text[vector-effect='non-scaling-stroke']").eq(1).text();
-        const deceased = $("text[vector-effect='non-scaling-stroke']:contains(الوفيات)").closest("full-container").find("text[vector-effect='non-scaling-stroke']").eq(1).text();
-                            
-        const data = {
-            infected: getInt(totalInfected),
-            tested: "N/A",
-            recovered: getInt(patientsRecovered),
-            deceased: getInt(deceased),
-            active: getInt(active),
-            country: "SA",
-            historyData: "https://api.apify.com/v2/datasets/OeaEEGdhvUSkXRrWU/items?format=json&clean=1",
-            sourceUrl:'https://covid19.moh.gov.sa/',
-            lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
-            lastUpdatedAtSource: "N/A",
-            readMe: 'https://apify.com/katerinahronik/covid-sa',
-        };
+    log.info('Timestamps', { lowestTimestamp: new Date(lowestTimestamp), highestTimestamp: new Date(highestTimestamp) });
 
-        //get string of cities from red box
-        citiesArray = [];
-        $("nav.feature-list").has("span[style='color:#e60000']").find('p>strong>span').next().each(function ()
-        {
-            citiesArray.push($(this).text().replace(':',''));
-            data[$(this).text().replace(':','')] = {};
+    const request = async (url) => {
+        const response = await requestAsBrowser({
+            url,
+            json: true,
+            abortFunction: () => false,
+            headers: {
+                Referer: 'https://esriksa-emapstc.maps.arcgis.com/apps/opsdashboard/index.html',
+                Origin: 'https://esriksa-emapstc.maps.arcgis.com'
+            }
         });
-        //fill numbers
-        citiesArray.forEach(x =>
-        {
-            data[x]['infected'] = $(`strong:contains(${x})`).closest('p').find("span[style='color:#e60000']").eq(0).text().replace(',','');
-            data[x]['active'] = $(`strong:contains(${x})`).closest('p').find("span[style='color:#e69800']").eq(0).text().replace(',','');
-            data[x]['recovered'] = $(`strong:contains(${x})`).closest('p').find("span[style='color:#70a800']").eq(0).text().replace(',','');
-        })
-        return data;
 
-    });       
-    
+        if (response.statusCode !== 200 || !response.body) {
+            throw new Error('Failed to download');
+        }
+
+        const { features } = response.body;
+
+        if (!features) {
+            throw new Error('Missing features property');
+        }
+
+        return features.map(({ attributes }) => attributes);
+    }
+
+    const [cities, daily] = await Promise.all([
+        request(CITIES_URL),
+        request(DAILY_URL)
+    ]);
+
+    const countTotals = (values, key) => values.reduce((total, o) => (total + (o[key] || 0)), 0);
+    const lastUpdatedAtSource = daily.reduce((currentTime, o) => (o.Date > currentTime ? o.Date : currentTime), -Infinity);
+
+    const result = {
+        infected: countTotals(cities, 'Confirmed_SUM'),
+        tested: "N/A",
+        recovered: countTotals(cities, 'Recovered_SUM'),
+        deceased: countTotals(cities, 'Deaths_SUM'),
+        active: countTotals(cities, 'Active_SUM'),
+        lastUpdatedAtSource: new Date(lastUpdatedAtSource).toISOString(),
+        country: "SA",
+        historyData: "https://api.apify.com/v2/datasets/OeaEEGdhvUSkXRrWU/items?format=json&clean=1",
+        sourceUrl,
+        lastUpdatedAtApify: new Date().toISOString(),
+        readMe: 'https://apify.com/katerinahronik/covid-sa',
+        ...cities.reduce((out, item) => ({
+            ...out,
+            [item.Name]: {
+                infected: item.Confirmed_SUM || 0,
+                deceased: item.Deaths_SUM || 0,
+                active: item.Active_SUM || 0,
+                recovered: item.Recovered_SUM || 0,
+            }
+        }), {})
+    };
+
     console.log(result)
-    
-
 
     if ( !result.infected || !result.recovered || !result.deceased|| !result.active) {
             throw "One of the output is null";
             }
     else {
+            const missing = daily.filter((item) => item.Date < lowestTimestamp).sort((a, b) => a.Date - b.Date).reduce((out, item) => {
+                out[item.Date] = (out[item.Date] || []).concat(item)
+                return out
+            }, {});
+
+            for (const [date, entries] of Object.entries(missing)) {
+                await dataset.pushData({
+                    infected: countTotals(entries, 'Confirmed'),
+                    tested: "N/A",
+                    recovered: countTotals(entries, 'Recovered'),
+                    deceased: countTotals(entries, 'Deaths'),
+                    active: countTotals(entries, 'Active'),
+                    lastUpdatedAtSource: new Date(+date).toISOString(),
+                    country: "SA",
+                    historyData: "https://api.apify.com/v2/datasets/OeaEEGdhvUSkXRrWU/items?format=json&clean=1",
+                    sourceUrl,
+                    lastUpdatedAtApify: new Date().toISOString(),
+                    readMe: 'https://apify.com/katerinahronik/covid-sa',
+                    ...entries.reduce((out, item) => ({
+                        ...out,
+                        [item.Name]: {
+                            infected: item.Confirmed || 0,
+                            deceased: item.Deaths || 0,
+                            active: item.Active || 0,
+                            recovered: item.Recovered || 0,
+                        }
+                    }), {})
+                })
+            }
+
             let latest = await kvStore.getValue(LATEST);
             if (!latest) {
-                await kvStore.setValue('LATEST', result);
+                await kvStore.setValue(LATEST, result);
                 latest = result;
             }
-            delete latest.lastUpdatedAtApify;
-            const actual = Object.assign({}, result);
-            delete actual.lastUpdatedAtApify;
-             if (JSON.stringify(latest) !== JSON.stringify(actual)) {
+
+            const { lastUpdatedAtApify: _1, lastUpdatedAtSource: _3, ...latestRest } = latest;
+            const { lastUpdatedAtApify: _2, lastUpdatedAtSource: _4, ...resultRest } = result;
+
+            if (JSON.stringify(latestRest) !== JSON.stringify(resultRest)) {
                 await dataset.pushData(result);
             }
 
-            await kvStore.setValue('LATEST', result);
+            await kvStore.setValue(LATEST, result);
             await Apify.pushData(result);
         }
 
-    console.log('Closing Puppeteer...');
-    await browser.close();
-    console.log('Done.');  
-    
+    console.log('Done.');
+
     // if there are no data for TotalInfected, send email, because that means something is wrong
     // const env = await Apify.getEnv();
     // if (check) {
@@ -112,7 +149,7 @@ try{
     //             to: email,
     //             subject: `Covid-19 SA from ${env.startedAt} failed `,
     //             html: `Hi, ${'<br/>'}
-    //                     <a href="https://my.apify.com/actors/${env.actorId}#/runs/${env.actorRunId}">this</a> 
+    //                     <a href="https://my.apify.com/actors/${env.actorId}#/runs/${env.actorRunId}">this</a>
     //                     run had 0 in some of the variables, check it out.`,
     //         },
     //         { waitSecs: 0 },
@@ -135,3 +172,4 @@ catch(err) {
     }
 }
 });
+
