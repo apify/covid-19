@@ -7,8 +7,8 @@ let check = false;
 Apify.main(async () =>
 
 {
-    const kvStore = await Apify.openKeyValueStore('COVID-19-SA-TEST');
-    const dataset = await Apify.openDataset('COVID-19-SA-HISTORY-TEST');
+    const kvStore = await Apify.openKeyValueStore('COVID-19-SA');
+    const dataset = await Apify.openDataset('COVID-19-SA-HISTORY');
     const { email } = await Apify.getValue('INPUT');
 
 try{
