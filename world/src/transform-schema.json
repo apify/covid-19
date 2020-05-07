@@ -218,5 +218,11 @@
         "recovered": "recovered",
         "infected": "infected",
         "tested": "tested"
-    }
+    },
+    "Russia": {
+        "deceased": "deathsTotal",
+        "recovered": "recoveredTotal",
+        "infected": "infectedTotal",
+        "tested": "testedCasesTotal"
+    } 
 }
