@@ -104,7 +104,7 @@ Apify.main(async () => {
                     for (const datum of body.features) {
                         const attributes = datum.attributes;
                         dataByDates.push({
-                            date: new Date(attributes.Datum),
+                            date: new Date(attributes.Datum).toISOString(),
                             infectedCount: attributes.celkom_pozitivni,
                             infectedNewCount: attributes.novi_pozitivni,
                             infectedCurrentlyCount: attributes.celkom_sucasne_pozitivni,
