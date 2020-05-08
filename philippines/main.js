@@ -92,7 +92,7 @@ Apify.main(async () =>
         await page.click(downloadButtonSelector);
 
         //wait for downloading
-        await page.waitFor(3000);
+        await page.waitFor(10000);
 
         //we dont know the filename, but it should be the only file in the directory (because they keep changing the list number)
         files = fs.readdirSync(dwnPath);
