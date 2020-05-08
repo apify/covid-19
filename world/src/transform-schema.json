@@ -1,54 +1,59 @@
 {
-    "Czech Republic": {
+    "Algeria": {
         "deceased": "deceased",
-        "tested": "totalTested",
-        "recovered": "recovered",
-        "infected": "infected"
+        "infected": "infected",
+        "recovered": "recovered"
     },
     "Austria": {
         "deceased": "deceased",
-        "tested": "tested",
         "infected": "infected",
-        "recovered": "recovered"
+        "recovered": "recovered",
+        "tested": "tested"
     },
     "Azerbaijan": {
         "deceased": "deceased",
-        "tested": "tested",
         "infected": "infected",
-        "recovered": "recovered"
-    },
-    "Iran": {
-        "deceased": "deceased",
-        "infected": "infected",
-        "recovered": "recovered"
-    },
-    "Philippines": {
-        "deceased": "deceased",
-        "infected": "infected",
-        "recovered": "recovered"
+        "recovered": "recovered",
+        "tested": "tested"
     },
     "Bahrain": {
         "deceased": "deceased",
-        "tested": "tested",
-        "infected": "infected"
+        "infected": "infected",
+        "tested": "tested"
+    },
+    "Belgium": {
+        "deceased": "deaths",
+        "infected": "infected",
+        "tested": "tested"
     },
     "Brazil": {
         "deceased": "deceased",
         "infected": "infected"
     },
-    "China": {
+    "Bulgaria": {
         "deceased": "deceased",
-        "recovered": "recovered",
-        "infected": "infected"
+        "infected": "infected",
+        "recovered": "recovered"
     },
     "Canada": {
         "deceased": "deceased",
         "infected": "infected"
     },
+    "China": {
+        "deceased": "deceased",
+        "infected": "infected",
+        "recovered": "recovered"
+    },
+    "Czech Republic": {
+        "deceased": "deceased",
+        "infected": "infected",
+        "recovered": "recovered",
+        "tested": "totalTested"
+    },
     "Denmark": {
         "deceased": "deceased",
-        "tested": "tested",
-        "infected": "infected"
+        "infected": "infected",
+        "tested": "tested"
     },
     "Estonia": {
         "deceased": "deceased",
@@ -56,9 +61,9 @@
         "tested": "tested"
     },
     "Finland": {
+        "deceased": "deaths",
         "infected": "confirmedCases",
-        "tested": "tested",
-        "deceased": "deaths"
+        "tested": "tested"
     },
     "France": {
         "deceased": "deceased",
@@ -70,52 +75,79 @@
     },
     "Hungary": {
         "deceased": "deceased",
-        "tested": "tested",
+        "infected": "infected",
         "recovered": "recovered",
-        "infected": "infected"
+        "tested": "tested"
+    },
+    "India": {
+        "deceased": "deaths",
+        "infected": "activeCases",
+        "recovered": "recovered"
+    },
+    "Iran": {
+        "deceased": "deceased",
+        "infected": "infected",
+        "recovered": "recovered"
     },
     "Italy": {
         "deceased": "deceased",
-        "recovered": "dischargedHealed",
-        "infected": "totalCases"
+        "infected": "totalCases",
+        "recovered": "dischargedHealed"
+    },
+    "Japan": {
+        "deceased": "deceased",
+        "infected": "infected"
     },
     "Kosovo": {
         "deceased": "deceased",
-        "recovered": "recovered",
-        "infected": "infected"
-    },
-    "Japan": {
         "infected": "infected",
-        "deceased": "deceased"
+        "recovered": "recovered"
     },
     "Lithuania": {
-        "tested": "testedCases",
         "deceased": "numberOfDeaths",
-        "infected": "confirmedCases"
+        "infected": "confirmedCases",
+        "tested": "testedCases"
     },
     "Luxembourg": {
-        "infected": "infected",
         "deceased": "deceased",
+        "infected": "infected",
         "tested": "tested"
     },
+    "Malaysia": {
+        "deceased": "deceased",
+        "infected": "testedPositive",
+        "recovered": "recovered",
+        "tested": "testedTotal"
+    },
     "Netherlands": {
+        "deceased": "deceased",
+        "infected": "infected"
+    },
+    "Nigeria": {
+        "deceased": "deceased",
         "infected": "infected",
-        "deceased": "deceased"
+        "recovered": "recovered"
     },
     "Norway": {
-        "infected": "infected",
         "deceased": "deaths",
+        "infected": "infected",
         "tested": "tested"
     },
     "Pakistan": {
         "deceased": "deceased",
+        "infected": "infected",
+        "recovered": "recovered"
+    },
+    "Palestine": {
+        "deceased": "deceased",
+        "infected": "infected",
         "recovered": "recovered",
-        "infected": "infected"
+        "tested": "tested"
     },
     "Philippines": {
         "deceased": "deceased",
-        "recovered": "recovered",
-        "infected": "infected"
+        "infected": "infected",
+        "recovered": "recovered"
     },
     "Poland": {
         "deceased": "deceased",
@@ -123,35 +155,57 @@
     },
     "Portugal": {
         "deceased": "deceased",
-        "tested": "totalTested",
+        "infected": "infected",
         "recovered": "recovered",
-        "infected": "infected"
+        "tested": "totalTested"
+    },
+    "Russia": {
+        "deceased": "deathsTotal",
+        "infected": "infectedTotal",
+        "recovered": "recoveredTotal",
+        "tested": "testedCasesTotal"
+    },
+    "Saudi Arabia": {
+        "deceased": "deceased",
+        "infected": "infected",
+        "recovered": "recovered"
     },
     "Singapore": {
         "deceased": "deceased",
-        "recovered": "recovered",
-        "infected": "infected"
+        "infected": "infected",
+        "recovered": "recovered"
     },
     "Slovakia": {
         "infected": "totalInfected"
     },
     "Slovenia": {
         "deceased": "numberOfDeath",
-        "tested": "testedCases",
-        "infected": "infectedCases"
+        "infected": "infectedCases",
+        "tested": "testedCases"
     },
     "South Korea": {
         "deceased": "deceased",
-        "tested": "testsPerformed",
-        "infected": "infected"
+        "infected": "infected",
+        "tested": "testsPerformed"
+    },
+    "Spain": {
+        "deceased": "deceased",
+        "infected": "infected",
+        "recovered": "recovered"
     },
     "Sweden": {
-        "infected": "infected",
-        "deceased": "deceased"
+        "deceased": "deceased",
+        "infected": "infected"
     },
     "Switzerland": {
         "deceased": "numberOfDeaths",
         "infected": "confirmedCases"
+    },
+    "Turkey": {
+        "deceased": "deceased",
+        "infected": "infected",
+        "recovered": "recovered",
+        "tested": "tested"
     },
     "United Kingdom": {
         "deceased": "deceased",
@@ -161,68 +215,9 @@
         "deceased": "totalDeaths",
         "infected": "totalCases"
     },
-    "India": {
-        "infected": "activeCases",
-        "deceased": "deaths",
-        "recovered": "recovered"
-    },
-    "Bulgaria": {
-        "deceased": "deceased",
-        "recovered": "recovered",
-        "infected": "infected"
-    },
-    "Turkey": {
-        "infected": "infected",
-        "deceased": "deceased",
-        "tested": "tested",
-        "recovered": "recovered"
-    },
-    "Spain": {
-        "infected": "infected",
-        "deceased": "deceased",
-        "recovered": "recovered"
-    },
-    "Malaysia": {
-        "infected": "testedPositive",
-        "tested": "testedTotal",
-        "recovered": "recovered",
-        "deceased": "deceased"
-    },
     "Vietnam": {
-        "infected": "infected",
         "deceased": "deceased",
+        "infected": "infected",
         "recovered": "recovered"
-    },
-    "Belgium": {
-        "deceased": "deaths",
-        "tested": "tested",
-        "infected": "infected"
-    },
-    "Nigeria": {
-        "deceased": "deceased",
-        "recovered": "recovered",
-        "infected": "infected"
-    },
-    "Saudi Arabia": {
-        "deceased": "deceased",
-        "recovered": "recovered",
-        "infected": "infected"
-    },
-    "Algeria": {
-        "deceased": "deceased",
-        "recovered": "recovered",
-        "infected": "infected"
-    },
-    "Palestine": {
-        "deceased": "deceased",
-        "recovered": "recovered",
-        "infected": "infected",
-        "tested": "tested"
-    },
-    "Russia": {
-        "deceased": "deathsTotal",
-        "recovered": "recoveredTotal",
-        "infected": "infectedTotal",
-        "tested": "testedCasesTotal"
-    } 
+    }
 }

@@ -2,6 +2,7 @@
 
 Actor gets an actual number of infected, deceased and recovered people in Palestine from https://corona.ps/details.
 
+https://api.apify.com/v2/key-value-stores/254szG2dal12iFz55/records/LATEST?disableRedirect=true
 Latest data are available at this URL: https://api.apify.com/v2/key-value-stores/wOx5Nd3uuoUiwt1os/records/LATEST?disableRedirect=true.
  or here? https://api.apify.com/v2/key-value-stores/SbribCOVf2wgR868y/records/LATEST?disableRedirect=true.
 
