@@ -5,8 +5,8 @@ const sourceUrl = 'https://corona.ps/details';
 const LATEST = 'LATEST';
 
 Apify.main(async () => {
-    const kvStore = await Apify.openKeyValueStore('COVID-19-PS');
-    const dataset = await Apify.openDataset('COVID-19-PS-HISTORY');
+    const kvStore = await Apify.openKeyValueStore('COVID-19-PALESTINE');
+    const dataset = await Apify.openDataset('COVID-19-PALESTINE-HISTORY');
 
     console.log('Getting data...');
     const { body } = await httpRequest({ url: sourceUrl });
