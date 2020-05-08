@@ -141,8 +141,7 @@
     "Palestine": {
         "deceased": "deceased",
         "infected": "infected",
-        "recovered": "recovered",
-        "tested": "tested"
+        "recovered": "recovered"
     },
     "Philippines": {
         "deceased": "deceased",
