@@ -197,8 +197,8 @@
         "infected": "infected"
     },
     "Switzerland": {
-        "deceased": "numberOfDeaths",
-        "infected": "confirmedCases"
+        "deceased": "deceased",
+        "infected": "infected"
     },
     "Turkey": {
         "deceased": "deceased",
