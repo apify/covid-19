@@ -33,6 +33,15 @@ Apify.main(async () => {
             userData: { label: LABELS.DATA }
         },
     ])
+
+    if (notificationEmail) {
+        await Apify.addWebhook({
+            eventTypes: ['ACTOR.RUN.FAILED', 'ACTOR.RUN.TIMED_OUT'],
+            requestUrl: `https://api.apify.com/v2/acts/mnmkng~email-notification-webhook/runs?token=${Apify.getEnv().token}`,
+            payloadTemplate: `{"notificationEmail": "${notificationEmail}", "eventType": {{eventType}}, "eventData": {{eventData}}, "resource": {{resource}} }`,
+        });
+    }
+
     let totalInfected = 0;
     let infectedNew = 0;
     let totalDeceased = 0;
@@ -151,7 +160,7 @@ Apify.main(async () => {
     if (latest && latest.lastUpdatedAtApify) {
         delete latest.lastUpdatedAtApify;
     }
-    if (data.infected === 0 || data.deceased === 0) {
+    if (latest.infected > data.infected || latest.deceased > data.deceased) {
         log.error('Latest data are higher than actual - probably wrong scrap');
         log.info('ACTUAL DATA');
         console.log(data);
