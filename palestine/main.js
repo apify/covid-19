@@ -1,53 +1,112 @@
 const Apify = require('apify');
-const httpRequest = require('@apify/http-request')
 const cheerio = require('cheerio');
-const sourceUrl = 'https://corona.ps/details';
+const { requestAsBrowser, log } = Apify.utils;
+
 const LATEST = 'LATEST';
+const now = new Date();
+const sourceUrl = 'http://site.moh.ps/index/covid19/LanguageVersion/1/Language/ar';
+
+const toNumber = (str) => parseInt(str.match(/[0-9]+/)[0]);
 
 Apify.main(async () => {
+    log.info('Starting actor.');
+
     const kvStore = await Apify.openKeyValueStore('COVID-19-PALESTINE');
     const dataset = await Apify.openDataset('COVID-19-PALESTINE-HISTORY');
 
-    console.log('Getting data...');
-    const { body } = await httpRequest({ url: sourceUrl });
-    const $ = cheerio.load(body);
-    const infected = $('body > div.top-container > div > div.header-div > div.all-stats > div.stats-div1 > div > div.total_cases > div').text()
-    const recovered = $('body > div.top-container > div > div.header-div > div.all-stats > div:nth-child(3) > div > div.stat-number-div > a > div').text()
-    const deceased = $('body > div.top-container > div > div.header-div > div.all-stats > div:nth-child(2) > div > div.stat-number-div > a > div').text()
+    const requestList = new Apify.RequestList({
+        sources: [{
+            url: sourceUrl,
+        }]
+    });
+    await requestList.initialize();
 
-    const regionsTableRows = Array.from($("#Table2 > tbody > tr"));
-    const regionData = [];
-    for (const row of regionsTableRows) {
-        const cells = Array.from($(row).find("td")).map(td => $(td).text());
-        regionData.push({ region: cells[0], total: cells[1], lastDay: cells[2], inc14d: cells[3] });
-    }
-    const now = new Date();
+    const basicCrawler = new Apify.BasicCrawler({
+        requestList,
+        useApifyProxy: true,
+        maxRequestRetries: 5,
+        requestTimeoutSecs: 60,
+        handleRequestFunction: async ({ request }) => {
+            const { url, headers } = request;
+            const response = await requestAsBrowser({
+                url,
+                headers: { ...headers },
+                ignoreSslErrors: false,
+                followRedirect: false,
+            });
+            const $ = cheerio.load(response.body);
 
-    const result = {
-        infected: infected,
-        recovered: recovered,
-        deceased: deceased,
-        regions: regionData,
-        sourceUrl: 'https://corona.ps/details',
-        lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
-        readMe: 'https://github.com/zpelechova/covid-ps/blob/master/README.md'
-    };
-    console.log(result)
+            log.info('Processing and saving data.')
+            const data = {};
 
-    let latest = await kvStore.getValue(LATEST);
-    if (!latest) {
-        await kvStore.setValue('LATEST', result);
-        latest = result;
-    }
-    delete latest.lastUpdatedAtApify;
-    const actual = Object.assign({}, result);
-    delete actual.lastUpdatedAtApify;
+            // ADD: infected, tested, recovered, deceased, active, newCases, newlyRecovered
+            data.infected = toNumber($('.table.table-bordered').eq(4).find('tfoot').text());
+            data.tested = toNumber($('.table.table-bordered').eq(21).find('tfoot').text())
+            data.recovered = toNumber($('.table.table-bordered').eq(3).find('tfoot').text());
+            data.deceased = toNumber($('.table.table-bordered').eq(1).find('tfoot').text());
+            data.active = toNumber($('.table.table-bordered').eq(5).find('tfoot').text())
+            data.newCases = toNumber($('.table.table-bordered').eq(0).find('tfoot').text());
+            data.newlyRecovered = toNumber($('.table.table-bordered').eq(2).find('tfoot').text())
+            data.atHome = toNumber($('.table.table-bordered').eq(15).find('tfoot').text())
 
-    if (JSON.stringify(latest) !== JSON.stringify(actual)) {
-        await dataset.pushData(result);
-    }
+            // ADD: infecterByRegion
+            let activeVlues = new Map()
+            $('.table.table-bordered').eq(6).find('tbody tr').toArray().forEach(tr => {
+                activeVlues.set(
+                    $(tr).find('td').eq(0).text().trim(),
+                    $(tr).find('td').eq(1).text().trim())
+            })
+            data.infecterByRegion = $('.table.table-bordered').eq(7).find('tbody tr').toArray().map(tr => {
+                const region = $(tr).find('td').eq(0).text().trim();
+                return {
+                    region,
+                    infected: $(tr).find('td').eq(1).text().trim(),
+                    active: activeVlues.get(region),
+                }
+            })
 
-    await kvStore.setValue('LATEST', result);
-    await Apify.pushData(result);
-}
-);
+            // ADD: country, historyData, sourceUrl, lastUpdatedAtSource, lastUpdatedAtApify, readMe
+            data.country = 'Palestine';
+            data.historyData = 'https://api.apify.com/v2/datasets/BKpHLQrJPmgXE51tf/items?format=json&clean=1';
+            data.sourceUrl = sourceUrl;
+            data.lastUpdatedAtApify = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString();
+            data.lastUpdatedAtSource = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString();
+            data.readMe = 'https://apify.com/onidivo/covid-ps';
+
+            // Push the data
+            let latest = await kvStore.getValue(LATEST);
+            if (!latest) {
+                await kvStore.setValue('LATEST', data);
+                latest = Object.assign({}, data);
+            }
+            delete latest.lastUpdatedAtApify;
+            const actual = Object.assign({}, data);
+            delete actual.lastUpdatedAtApify;
+
+            const { itemCount } = await dataset.getInfo();
+            if (JSON.stringify(latest) !== JSON.stringify(actual) || itemCount === 0) {
+                await dataset.pushData(data);
+            }
+
+            await kvStore.setValue('LATEST', data);
+            await Apify.pushData(data);
+
+            log.info('Data saved.');
+        },
+        handleFailedRequestFunction: async ({ request }) => {
+            console.log(`Request ${request.url} failed many times.`);
+            console.dir(request)
+        },
+    })
+    log.debug('Setting up crawler.');
+
+    // Run the crawler and wait for it to finish.
+    log.info('Starting the crawl.');
+    await basicCrawler.run();
+    log.info('Actor finished.');
+});
+
+
+
+
+
