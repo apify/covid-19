@@ -6,9 +6,9 @@ let check = false;
 
 Apify.main(async () => {
 
-    const kvStore = await Apify.openKeyValueStore('COVID-19-ES');
-    const dataset = await Apify.openDataset('COVID-19-ES-HISTORY');
-    const { email } = await Apify.getValue('INPUT');
+    // const kvStore = await Apify.openKeyValueStore('COVID-19-ES');
+    // const dataset = await Apify.openDataset('COVID-19-ES-HISTORY');
+    // const { email } = await Apify.getValue('INPUT');
 
     console.log('Launching Puppeteer...');
     const browser = await Apify.launchPuppeteer();
@@ -25,29 +25,35 @@ Apify.main(async () => {
         const now = new Date();
 
         // eq() selector selects an element with a specific index number, text() method sets or returns the text content of the selected elements
-        const infected = $('#casos').text();
-        const deceased = $('#defunciones').text();
-        const recovered = $("#recuperados").text();
-        const hospitalised = $("#hospitalizados").text();
+        const infected = $('#casos > div.inner > p.value').text();
+        const deceased = $('#fallecidos > div.inner > p.value').text();
+        const recovered = $("#recuperados > div.inner > p.value").text();
+        const hospitalised = $("#hospitalizados > div.inner > p.value").text();
+        const ICU = $("#uci > div.inner > p.value").text();
+        const updated = $('#fecha-de-actualización > div.inner > p.value').text()
 
-        const regionsTableRows = Array.from(document.querySelectorAll("table tbody tr"));
-        const regionData = [];
+        const getInt = (string) => (Number(string.replace('.', '')))
+        // const regionsTableRows = Array.from(document.querySelectorAll("table tbody tr"));
+        // const regionData = [];
 
-        for(const row of regionsTableRows){
-            const cells = Array.from(row.querySelectorAll("td")).map(td=> td.textContent);
-            regionData.push({region: cells[0], total: cells[1], lastDay: cells[2], inc14d: cells[3]});
-        }
+        // for(const row of regionsTableRows){
+        //     const cells = Array.from(row.querySelectorAll("td")).map(td=> td.textContent);
+        //     regionData.push({region: cells[0], total: cells[1], lastDay: cells[2], inc14d: cells[3]});
+        // }
+
 
 
         const data = {
-            infected: infected,
-            deceased: deceased,
-            recovered: recovered,
-            hospitalised: hospitalised,
+            infected: getInt(infected),
+            deceased: getInt(deceased),
+            recovered: getInt(recovered),
+            hospitalised: getInt(hospitalised),
+            ICU: getInt(ICU),
             sourceUrl: 'https://covid19.isciii.es/',
             lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
+            lastUpdatedAtSource: updated,
             readMe: 'https://github.com/zpelechova/covid-es/blob/master/README.md',
-            regions: regionData,
+            // regions: regionData,
         };
         return data;
 
