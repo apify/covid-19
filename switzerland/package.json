@@ -4,8 +4,7 @@
 	"description": "This is a boilerplate of an Apify actor.",
 	"dependencies": {
 		"apify": "^0.20.0",
-		"lodash": "^4.17.15",
-		"moment-timezone": "^0.5.28"
+		"xlsx": "^0.15.6"
 	},
 	"devDependencies": {},
 	"scripts": {
