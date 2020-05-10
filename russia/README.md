@@ -1,4 +1,4 @@
-# Coronavirus stats in the Russia
+# Coronavirus stats in Russia
 
 [Apify actor](https://www.apify.com) that gets Russia stats from https://www.rosminzdrav.ru/ministry/covid19
 
