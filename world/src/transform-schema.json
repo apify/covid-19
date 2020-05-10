@@ -236,4 +236,9 @@
     "infected": "infected",
     "recovered": "recovered"
   }
+  "Latvia": {
+    "deceased": "deceased",
+    "infected": "infected",
+    "tested": "tested"
+  }
 }
