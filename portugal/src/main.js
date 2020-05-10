@@ -12,6 +12,7 @@ async function waitForContentToLoad(page) {
         + ` && !!${query}[2].innerText.includes('Recuperados')`
         + ` && !!${query}[3].innerText.includes('Óbitos')`
         + ` && !!${query}[4].innerText.includes('Suspeitos')`
+        + ` && !!${query}[5].innerText.includes('Amostras')`
         + ` && !!${query}[6].innerText.includes('Dados relativos ao boletim da DGS')`
         + ` && !!${query}[13].innerText.includes('Casos Confirmados')`
         + ` && !!${query}[13].innerHTML.includes('<nav class="feature-list">')`, { timeout: 45 * 1000 });
@@ -74,6 +75,8 @@ Apify.main(async () => {
                     .trim());
                 const deceased = await strToInt($(fullContainer[3]).find('g').last().text()
                     .trim());
+                const tested = await strToInt($(fullContainer[5]).find('g').last().text()
+                    .trim());
 
                 const spans = $(fullContainer[13]).find('nav.feature-list span[id*="ember"]').toArray();
 
@@ -89,16 +92,15 @@ Apify.main(async () => {
 
 
                 return {
-                    date, infected, recovered, deceased, suspicious, infectedByRegion,
+                    date, infected, tested, recovered, deceased, suspicious, infectedByRegion,
                 };
             });
 
             const sourceDate = new Date(formatDate(extracted.date));
             delete extracted.date;
 
-            // ADD:  infected, recovered, deceased, suspicious, infectedByRegion
+            // ADD:  infected, tested, recovered, deceased, suspicious, infectedByRegion
             const data = {
-                tested: 'N/A',
                 ...extracted,
             };
 
