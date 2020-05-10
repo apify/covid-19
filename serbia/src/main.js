@@ -35,7 +35,7 @@ const toInt = (string) => Number(string.replace('.', ''))
         deceased24hours: toInt(deceased24hours),
         sourceUrl: 'https://covid19.rs/homepage-english/',
         lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
-        readMe: 'https://github.com/zpelechova/covid-ps/blob/master/README.md'
+        readMe: 'https://apify.com/krakorj/covid-serbia'
     };
     console.log(result)
 
