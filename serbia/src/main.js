@@ -24,7 +24,7 @@ const toInt = (string) => Number(string.replace('.', ''))
 
     const now = new Date();
 
-    const data = {
+    const result = {
         infected: toInt(infected),
         recovered: toInt(recovered),
         deceased: toInt(deceased),
