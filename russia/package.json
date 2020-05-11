@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"description": "Apify actor for Netherland. For more see info at COVID19cz.cz",
 	"dependencies": {
-		"apify": "^0.20.0"
+		"apify": "^0.20.4"
 	},
 	"devDependencies": {
 		"@apify/eslint-config": "0.0.3",
