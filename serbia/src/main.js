@@ -20,7 +20,7 @@ Apify.main(async () => {
     const infected24hours = $('#main > div > div > div > section.elementor-element.elementor-element-4953d8ff.elementor-section-full_width.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-top-section > div.elementor-container.elementor-column-gap-no > div > div > div > div > section.elementor-element.elementor-element-3847b70.elementor-hidden-desktop.elementor-hidden-tablet.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-inner-section > div > div > div.elementor-element.elementor-element-608ab178.elementor-column.elementor-col-16.elementor-inner-column > div > div > div.elementor-element.elementor-element-37b7aa3c.elementor-widget.elementor-widget-heading > div > p').text()
     const deceased24hours = $('#main > div > div > div > section.elementor-element.elementor-element-4953d8ff.elementor-section-full_width.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-top-section > div.elementor-container.elementor-column-gap-no > div > div > div > div > section.elementor-element.elementor-element-3847b70.elementor-hidden-desktop.elementor-hidden-tablet.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-inner-section > div > div > div.elementor-element.elementor-element-67a58fd.elementor-column.elementor-col-16.elementor-inner-column > div > div > div.elementor-element.elementor-element-aa6dae2.elementor-widget.elementor-widget-heading > div > p').text()
 
-const toInt = (string) => Number(string.replace('.', ''))
+const toInt = (string) => Number(string.replace(',', ''))
 
     const now = new Date();
 
