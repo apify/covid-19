@@ -6,15 +6,15 @@ const sourceUrl = 'https://covid19.moh.gov.sa/';
 const LATEST = 'LATEST';
 let check = false;
 
-const REST_HTTP = 'https://services8.arcgis.com/uiAtN7dLXbrrdVL5/arcgis/rest/services';
-const CITIES_URL = `${REST_HTTP}/Saudi_COVID19_Statistics/FeatureServer/1/query?f=json&where=1=1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=Name%2CConfirmed_SUM%2CRecovered_SUM%2CDeaths_SUM%2CActive_SUM&orderByFields=Name%20asc&resultOffset=0&resultRecordCount=200&cacheHint=false`;
-const DAILY_URL = `${REST_HTTP}/COVID19_Daily_Progressive_Cases_V2/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=Name%2CDate%2CConfirmed%2CDeaths%2CRecovered%2CActive&orderByFields=Date%20asc&resultOffset=0&resultRecordCount=2000&cacheHint=false`;
+const REST_HTTP = 'https://services6.arcgis.com/bKYAIlQgwHslVRaK/arcgis/rest/services';
+const CITIES_URL = `${REST_HTTP}/VWPlacesUniqueWithStatistics01/FeatureServer/1/query?where=Confirmed_SUM+is+not+null&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pjson&token=`;
+const DAILY_URL = `${REST_HTTP}/DailyCases_Cumulative_ViewLayer/FeatureServer/1/query?where=OBJECTID>0&objectIds=&time=&resultType=none&outFields=*&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&sqlFormat=none&f=pjson&token=`;
 
 Apify.main(async () =>
 
 {
-    const kvStore = await Apify.openKeyValueStore('COVID-19-SA');
-    const dataset = await Apify.openDataset('COVID-19-SA-HISTORY');
+    const kvStore = await Apify.openKeyValueStore('COVID-19-SA-TEST');
+    const dataset = await Apify.openDataset('COVID-19-SA-HISTORY-TEST');
     
 
 try{
@@ -45,7 +45,7 @@ try{
             throw new Error('Failed to download');
         }
 
-        const { features } = response.body;
+        const features = response.body.features;
 
         if (!features) {
             throw new Error('Missing features property');
@@ -59,12 +59,19 @@ try{
         request(DAILY_URL)
     ]);
 
+    cities.forEach(x =>
+    {
+        x.Active_SUM = x.Confirmed_SUM - x.Recovered_SUM - x.Deaths_SUM;
+        
+    });
+
     const countTotals = (values, key) => values.reduce((total, o) => (total + (o[key] || 0)), 0);
-    const lastUpdatedAtSource = daily.reduce((currentTime, o) => (o.Date > currentTime ? o.Date : currentTime), -Infinity);
+    const lastUpdatedAtSource = daily.reduce((currentTime, o) => (o.Reportdt > currentTime ? o.Reportdt : currentTime), -Infinity);
+
 
     const result = {
         infected: countTotals(cities, 'Confirmed_SUM'),
-        tested: "N/A",
+        tested: countTotals(cities, 'Tested_SUM'),
         recovered: countTotals(cities, 'Recovered_SUM'),
         deceased: countTotals(cities, 'Deaths_SUM'),
         active: countTotals(cities, 'Active_SUM'),
@@ -76,14 +83,16 @@ try{
         readMe: 'https://apify.com/katerinahronik/covid-sa',
         ...cities.reduce((out, item) => ({
             ...out,
-            [item.Name]: {
+            [item.PlaceName_AR]: {
                 infected: item.Confirmed_SUM || 0,
                 deceased: item.Deaths_SUM || 0,
                 active: item.Active_SUM || 0,
                 recovered: item.Recovered_SUM || 0,
+                tested: item.Tested_SUM || 0,
             }
         }), {})
     };
+
 
     console.log(result)
 
@@ -91,8 +100,8 @@ try{
             throw "One of the output is null";
             }
     else {
-            const missing = daily.filter((item) => item.Date < lowestTimestamp).sort((a, b) => a.Date - b.Date).reduce((out, item) => {
-                out[item.Date] = (out[item.Date] || []).concat(item)
+            const missing = daily.filter((item) => item.Reportdt < lowestTimestamp).sort((a, b) => a.Reportdt - b.Reportdt).reduce((out, item) => {
+                out[item.Reportdt] = (out[item.Reportdt] || []).concat(item)
                 return out
             }, {});
 
@@ -102,7 +111,6 @@ try{
                     tested: "N/A",
                     recovered: countTotals(entries, 'Recovered'),
                     deceased: countTotals(entries, 'Deaths'),
-                    active: countTotals(entries, 'Active'),
                     lastUpdatedAtSource: new Date(+date).toISOString(),
                     country: "SA",
                     historyData: "https://api.apify.com/v2/datasets/OeaEEGdhvUSkXRrWU/items?format=json&clean=1",
@@ -114,7 +122,6 @@ try{
                         [item.Name]: {
                             infected: item.Confirmed || 0,
                             deceased: item.Deaths || 0,
-                            active: item.Active || 0,
                             recovered: item.Recovered || 0,
                         }
                     }), {})
@@ -172,4 +179,3 @@ catch(err) {
     }
 }
 });
-
