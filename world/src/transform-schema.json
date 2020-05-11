@@ -167,10 +167,10 @@
     "tested": "tested"
   },
   "Russia": {
-    "deceased": "deathsTotal",
-    "infected": "infectedTotal",
-    "recovered": "recoveredTotal",
-    "tested": "testedCasesTotal"
+    "deceased": "deceased",
+    "infected": "infected",
+    "recovered": "recovered",
+    "tested": "tested"
   },
   "Saudi Arabia": {
     "deceased": "deceased",
