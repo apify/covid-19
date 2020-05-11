@@ -70,8 +70,9 @@ Apify.main(async () => {
     const splited = parts[0].split(".");
     let lastUpdatedParsed = new Date(`${splited[1]}.${splited[0]}.${splited[2]} ${parts[1].replace("h", "").replace(".", ":")}`);
     lastUpdatedParsed = new Date(Date.UTC(lastUpdatedParsed.getFullYear(), lastUpdatedParsed.getMonth(), lastUpdatedParsed.getDate(), lastUpdatedParsed.getHours() - 1, lastUpdatedParsed.getMinutes()));
-    console.log(hospitalizationTableData);
-    const critical = hospitalizationTableData[1][2];
+
+    const critical = hospitalizationTableData[hospitalizationTableData.length-1][2];
+
     const now = new Date();
     const data = {
         totalTested: toNumber(totalTested),
