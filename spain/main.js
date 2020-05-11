@@ -1,4 +1,5 @@
 const Apify = require('apify');
+const moment = require('moment');
 
 const sourceUrl = 'https://covid19.isciii.es/';
 const LATEST = 'LATEST';
@@ -72,6 +73,11 @@ Apify.main(async () => {
         return data;
 
     });
+    
+    const dateSpanish = result.lastUpdatedAtSource;
+    const dateWithoutDe = dateSpanish.replace('de', '');
+    var utcDate = moment(dateWithoutDe, 'DD MMM MMMM H:mm', 'es').locale('en').toISOString();
+    result.lastUpdatedAtSource = utcDate
 
     console.log(result)
 
