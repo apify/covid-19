@@ -76,7 +76,7 @@ Apify.main(async () => {
     
     const dateSpanish = result.lastUpdatedAtSource;
     const dateWithoutDe = dateSpanish.replace('de', '');
-    var utcDate = moment(dateWithoutDe, 'DD MMMM H:mm', 'es').locale('en').utc().format();
+    var utcDate = moment(dateWithoutDe, 'DD MMM MMMM H:mm', 'es').locale('en').utc().format();
     result.lastUpdatedAtSource = utcDate
 
     console.log(result)
