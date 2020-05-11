@@ -13,8 +13,8 @@ const DAILY_URL = `${REST_HTTP}/COVID19_Daily_Progressive_Cases_V2/FeatureServer
 Apify.main(async () =>
 
 {
-    const kvStore = await Apify.openKeyValueStore('COVID-19-SA-TEST');
-    const dataset = await Apify.openDataset('COVID-19-SA-HISTORY-TEST');
+    const kvStore = await Apify.openKeyValueStore('COVID-19-SA');
+    const dataset = await Apify.openDataset('COVID-19-SA-HISTORY');
     
 
 try{
