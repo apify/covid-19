@@ -32,8 +32,8 @@ Apify.main(async () => {
         const ICU = $("#uci > div.inner > p.value").text();
         const updated = $('#fecha-de-actualización > div.inner > p.value').text()
 
-        const getInt = (string) => (Number(string.replace('.', ''))),
-        const getFloat = (string) => (Number(string.replace(',', '.')))
+        const getInt = (string) => (Number(string.replace('.', '')));
+        const getFloat = (string) => (Number(string.replace(',', '.')));
         
         // const regionsTableRows = Array.from(document.querySelectorAll("table tbody tr"));
         // const regionData = [];
