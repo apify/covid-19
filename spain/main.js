@@ -32,7 +32,9 @@ Apify.main(async () => {
         const ICU = $("#uci > div.inner > p.value").text();
         const updated = $('#fecha-de-actualización > div.inner > p.value').text()
 
-        const getInt = (string) => (Number(string.replace('.', '')))
+        const getInt = (string) => (Number(string.replace('.', '')));
+        const getFloat = (string) => (Number(string.replace(',', '.')));
+        
         // const regionsTableRows = Array.from(document.querySelectorAll("table tbody tr"));
         // const regionData = [];
 
@@ -41,7 +43,18 @@ Apify.main(async () => {
         //     regionData.push({region: cells[0], total: cells[1], lastDay: cells[2], inc14d: cells[3]});
         // }
 
-
+        const regionsString = $('script:contains(Mancha)').text().match(/\[[^\[]*La Mancha.*?\]/)[0];
+        const regionsArrays = regionsString.match(/<strong>.*?(<br\/>|\d")/g)
+        const regionData = {}
+        for (let i = 0; i < regionsArrays.length; i += 4)
+        {
+            region = {};
+            let regionName = regionsArrays[i].replace(/<.*?strong>/g, "").replace(/<br\/>/, "");
+            region.total = getInt(regionsArrays[i + 1].replace(/<strong>.*?<\\\/strong>/g, "").replace(/<br\/>/, ""));
+            region.lastDay = getInt(regionsArrays[i + 2].replace(/<strong>.*?<\\\/strong>/g, "").replace(/<br\/>/, ""));
+            region.IA14d = getFloat(regionsArrays[i + 3].replace(/<strong>.*?<\\\/strong>/g, "").replace(/"/, ""));
+            regionData[regionName] = region;
+        }
 
         const data = {
             infected: getInt(infected),
@@ -49,6 +62,7 @@ Apify.main(async () => {
             recovered: getInt(recovered),
             hospitalised: getInt(hospitalised),
             ICU: getInt(ICU),
+            regionData: regionData,
             sourceUrl: 'https://covid19.isciii.es/',
             lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
             lastUpdatedAtSource: updated,
