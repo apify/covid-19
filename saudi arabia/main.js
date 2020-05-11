@@ -71,7 +71,7 @@ try{
 
     const result = {
         infected: countTotals(cities, 'Confirmed_SUM'),
-        tested: countTotals(cities, 'Tested_SUM'),
+        tested: 'N/A',
         recovered: countTotals(cities, 'Recovered_SUM'),
         deceased: countTotals(cities, 'Deaths_SUM'),
         active: countTotals(cities, 'Active_SUM'),
@@ -87,8 +87,7 @@ try{
                 infected: item.Confirmed_SUM || 0,
                 deceased: item.Deaths_SUM || 0,
                 active: item.Active_SUM || 0,
-                recovered: item.Recovered_SUM || 0,
-                tested: item.Tested_SUM || 0,
+                recovered: item.Recovered_SUM || 0
             }
         }), {})
     };
