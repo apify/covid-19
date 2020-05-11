@@ -33,10 +33,10 @@ Apify.main(async () => {
                 lastUpdatedAtApify: moment().utc().second(0).millisecond(0).toISOString(),
                 readMe: "https://apify.com/dtrungtin/covid-lt",
             };
-
+            const textUls = $('.text > ul');
             const [confirmed] = $('.text > ul > li:nth-child(1)').text().match(/\d+/);
-            const [died] = $('.text > ul > li:nth-child(4)').text().match(/\d+/);
-            const [tested] = $('.text > ul > li:nth-child(8)').text().match(/\d+/);
+            const [t, died] = $('.text > ul > li:nth-child(4)').text().match(/\d+/g);
+            const [tested] = textUls.eq(1).find(' > li:nth-child(2)').text().match(/\d+/);
             data.confirmedCases = parseInt(confirmed);
             data.testedCases = parseInt(tested);
             data.numberOfDeaths = parseInt(died);
