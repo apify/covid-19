@@ -3,6 +3,13 @@
   "description": "This actor scrapes data about COVID-19 from the Government Office of the Slovak Republic.",
   "type": "object",
   "schemaVersion": 1,
-  "properties": {},
+  "properties": {
+    "notificationEmail": {
+      "title": "Notification email",
+      "type": "string",
+      "description": "Email where will be send if actor failed",
+      "editor": "textfield"
+    }
+  },
   "required": []
 }

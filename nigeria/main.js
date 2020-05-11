@@ -23,23 +23,37 @@ Apify.main(async () => {
     const result = await page.evaluate(() => {
         const now = new Date();
 
-        const tested = $('#custom1 > tbody > tr:nth-child(1) > td:nth-child(2) > p > b').text();
-        const infected = $("#custom1 > tbody > tr:nth-child(2) > td:nth-child(2) > p > b").text();
-        const recovered = $('#custom1 > tbody > tr:nth-child(3) > td:nth-child(2) > p > b').text();
-        const deceased = $('#custom1 > tbody > tr:nth-child(4) > td:nth-child(2) > p > b').text();
+        const tested = $('body > div.pcoded-main-container > div > div.page-header > div.page-block > div > div.col-md-12.col-xl-3 > div > div > h2 > span').text();
+        const infected = $("body > div.pcoded-main-container > div > div.page-header > div:nth-child(2) > div:nth-child(1) > div > div > h2 > span").text();
+        const activeCases = $('body > div.pcoded-main-container > div > div.page-header > div:nth-child(2) > div:nth-child(2) > div > div > h2 > span').text();
+        const recovered = $('body > div.pcoded-main-container > div > div.page-header > div:nth-child(2) > div:nth-child(3) > div > div > h2 > span').text();
+        const deceased = $('body > div.pcoded-main-container > div > div.page-header > div:nth-child(2) > div:nth-child(4) > div > div > h2 > span').text();
+
+        const regionsTableRows = Array.from(document.querySelectorAll("#custom1 > tbody > tr"));
+        const regionData = [];
+
+        for (const row of regionsTableRows) {
+            const strip = (a) => Number(a.trim())
+            const cells = Array.from(row.querySelectorAll("td")).map(td => td.textContent);
+            regionData.push({ region: cells[0].trim(), labConfirmedCases: strip(cells[1]), onAdmissionCases: strip(cells[2]), discharged: strip(cells[3]), deaths: strip(cells[4]) });
+        }
+
+
+        const toInt = (a) => Number(a.replace(',', ''))
 
         const data = {
-            tested: tested,
-            infected: infected,
-            recovered: recovered,
-            deceased: deceased,
+            tested: toInt(tested),
+            infected: toInt(infected),
+            recovered: toInt(recovered),
+            deceased: toInt(deceased),
             country: 'Nigeria',
             historyData: 'https://api.apify.com/v2/datasets/ccY329O0ng68poTiX/items?format=json&clean=1',
             sourceUrl: 'https://covid19.ncdc.gov.ng/',
             lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
             lastUpdatedAtSource: 'N/A',
             readMe: 'https://github.com/zpelechova/covid-ng/blob/master/README.md',
-            // regions: regionData,
+            activeCases: toInt(activeCases),
+            regions: regionData,
         };
         return data;
 

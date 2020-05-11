@@ -12,24 +12,28 @@ Apify.main(async () => {
     await requestQueue.addRequest({ url: sourceUrl });
     const crawler = new Apify.CheerioCrawler({
         requestQueue,
-        useApifyProxy: true,
-        apifyProxyGroups: ['SHADER'],
         handlePageTimeoutSecs: 60 * 2,
         handlePageFunction: async ({ $ }) => {
             log.info('Page loaded.');
             const now = new Date();
 
-            const infected  = $('.page-text .box-content').text().split('\n').filter(text => text.includes('positif:')).map(text => parseInt(text.toLowerCase().split('positif')[1].replace(/\D/g,''),10))[0];
-            const tested = $('.page-text .box-content').text().split('\n').filter(text => text.includes('la crise:')).map(text => parseInt(text.toLowerCase().split('la crise')[1].replace(/\D/g,''),10))[0];
-            const  deceased = $('.page-text .box-content').text().split('\n').filter(text => text.includes('Décès')).map(text => parseInt(text.split('Décès')[1].replace(/\D/g,''),10))[0];
+            const mainSection = $('.page-text section').eq(1);
+            const accordion = mainSection.find('.accordion > details')
+
+            const infectedRow = accordion.eq(0);
+            const infected = infectedRow.find('summary > span:first-child').text().trim().replace('.','');
+            const testedRow = accordion.eq(1);
+            const tested = testedRow.find('summary > span:first-child').text().trim().replace('.','');
+            const deceasedRow = accordion.eq(2);
+            const deceased = deceasedRow.find('summary > span:first-child').text().trim().replace('.','');
 
             const [day,month,year] =$('.page-text .box-content .date').text().replace(/\(|\)/g,'').split('.');
             let lastUpdatedParsed = new Date(`${month}.${day}.${year}`);
 
             const data = {
-                infected,
-                deceased,
-                tested,
+                infected: parseInt(infected),
+                deceased: parseInt(deceased),
+                tested: parseInt(tested),
                 sourceUrl,
                 lastUpdatedAtSource: lastUpdatedParsed.toISOString(),
                 lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),

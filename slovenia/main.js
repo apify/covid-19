@@ -3,9 +3,9 @@ const moment = require('moment-timezone');
 const _ = require('lodash');
 
 const { log } = Apify.utils;
-log.setLevel(log.LEVELS.WARNING);
+// log.setLevel(log.LEVELS.WARNING);
 
-const LATEST ='LATEST';
+const LATEST = 'LATEST';
 
 Apify.main(async () => {
     const sourceUrl = 'https://www.gov.si/en/topics/coronavirus-disease-covid-19/';
@@ -27,6 +27,7 @@ Apify.main(async () => {
         handlePageFunction: async ({ request, $ }) => {
             log.info(`Processing ${request.url}...`);
 
+            log.info('Processing and saving data')
             const data = {
                 sourceUrl,
                 lastUpdatedAtApify: moment().utc().second(0).millisecond(0).toISOString(),
@@ -40,7 +41,8 @@ Apify.main(async () => {
                 const positive = parseInt($(columns[2]).text());
                 const hospitalized = parseInt($(columns[3]).text());
                 const intensiveCare = parseInt($(columns[4]).text());
-                const died = parseInt($(columns[5]).text());
+                const discharged = parseInt($(columns[5]).text());
+                const died = parseInt($(columns[6]).text());
 
                 const infected = positive + hospitalized + intensiveCare;
 
@@ -59,10 +61,11 @@ Apify.main(async () => {
                 } else {
                     throw new Error('lastUpdatedAtSource not found');
                 }
-    
+
                 data.testedCases = tested;
                 data.infectedCases = infected;
                 data.numberOfDeath = died;
+                data.discharged = discharged;
             }
 
             // Compare and save to history
@@ -73,6 +76,7 @@ Apify.main(async () => {
 
             await kvStore.setValue(LATEST, data);
             await Apify.pushData(data);
+            log.info('data saved')
         },
 
         handleFailedRequestFunction: async ({ request }) => {

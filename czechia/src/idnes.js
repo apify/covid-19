@@ -9,11 +9,11 @@ const getDataFromIdnes = async ()=>{
             abortFunction: () => false,
         });
         const $ = await cheerio.load(response.body);
-        const liList = $("#megapruh ul.megapruh-counts li");
-        const totalInfected = $(liList).eq(1).find("b").html();
-        const totalDeaths = $(liList).eq(3).find("b").html();
-        const totalCured = $(liList).eq(2).find("b").html();
-        const totalTested = $(liList).eq(0).find("b").html();
+        const liList = $("ul.megapruh-counts li");
+        const totalInfected = $(liList).eq(1).find("a").html();
+        const totalDeaths = $(liList).eq(3).find("a").html();
+        const totalCured = $(liList).eq(2).find("a").html();
+        const totalTested = $(liList).eq(0).find("a").html();
 
         const localeTextNumberToInt = txt => parseInt(txt.replace("&#xFFFD;", ""), 10);
         infectedByBabisNewspapers = {

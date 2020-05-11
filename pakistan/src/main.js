@@ -1,6 +1,6 @@
 const Apify = require('apify');
 const cheerio = require("cheerio");
-const {log} = Apify.utils;
+const { log } = Apify.utils;
 
 const LATEST = "LATEST";
 
@@ -22,10 +22,13 @@ Apify.main(async () => {
     });
 
     const $ = await cheerio.load(response.body);
-    const infected = $("#app > div.covid-statistics div.hd-box-main > h5").text().trim();
-    const tested = $("#app > div.covid-statistics > div > div > div.col-md-8 > div:nth-child(4) > h4").text().trim();
-    const recovered = $("#app > div.covid-statistics div.covid-number-box.revovered > h3").text().trim();
-    const deceased = $("#app > div.covid-statistics div.covid-number-box.deaths > h3").text().trim();
+
+    log.info('Processing and saving data...');
+
+    const infected = $(".numanimate").text();
+    const tested = $('h6:contains("Total Tests")').next().text();
+    const recovered = $('div.revovered.covid-number-box').text();
+    const deceased = $('div.deaths.covid-number-box').text();
     const lastLocal = $("#date")
         .text()
         .trim()

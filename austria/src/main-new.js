@@ -6,39 +6,7 @@ const parseNum = (str) => {
     return parseInt(extractNumbers(str)[0].replace('.', ''), 10);
 };
 const MAIN_STATS = 'MAIN_STATS';
-const HOSPITALIZATION = 'HOSPITALIZATION';
 
-const getNameAndValue = (str) => {
-    const split = str.split(' (');
-    return { name: split[0].trim(), value: parseNum(split[1].replace(')', '').trim(), 10) };
-};
-const processInfoString = (str) => {
-    const split = str.split(',');
-    const info = [];
-    split.forEach((region) => {
-        const regionString = region.replace('nach Bundesländern:', '').trim();
-        if (regionString.includes('und')) {
-            const [first, second] = regionString.split('und');
-            info.push(getNameAndValue(first));
-            info.push(getNameAndValue(second));
-        } else {
-            info.push(getNameAndValue(regionString));
-        }
-    });
-    return info;
-};
-const extractDataFromParagraph = (paragraphText) => {
-    const split = paragraphText.split(': ');
-    const introSplit = split[0].split(', ');
-    const dateSplit = introSplit[1].replace('Stand ', '').split('.');
-    const date = new Date(`${dateSplit[1]}/${dateSplit[0]}/${dateSplit[2]} ${introSplit[2].replace(' Uhr', '')}`);
-    return {
-        total: parseNum(extractNumbers(split[1])[0]),
-        byRegion: processInfoString(split[2]),
-        date: new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() - 2, date.getMinutes())).toISOString(),
-
-    };
-};
 Apify.main(async () => {
     const kvStore = await Apify.openKeyValueStore('COVID-19-AUSTRIA');
     const dataset = await Apify.openDataset('COVID-19-AUSTRIA-HISTORY');
@@ -50,13 +18,6 @@ Apify.main(async () => {
             label: MAIN_STATS,
         },
     });
-
-    await requestQueue.addRequest({
-        url: 'https://www.sozialministerium.at/Informationen-zum-Coronavirus/Dashboard/Zahlen-zur-Hospitalisierung',
-        userData: {
-            label: HOSPITALIZATION,
-        },
-    });
     const data = {};
 
     const crawler = new Apify.CheerioCrawler({
@@ -66,40 +27,71 @@ Apify.main(async () => {
 
             switch (label) {
                 case MAIN_STATS:
-                    const confirmedCasesParagraph = $('p:contains(Bestätigte Fälle)').text();
-                    const deathsParagraph = $('p:contains(Todesfälle)').text();
-                    const recoveredParagraph = $('p:contains(Genesen)').text();
-                    const testedParagraph = $('p:contains(Bisher durchgeführte Testungen in Österreich)').text();
-
-                    const extratedInfected = extractDataFromParagraph(confirmedCasesParagraph);
-                    const extratedDeaths = extractDataFromParagraph(deathsParagraph);
-                    const recovered = parseNum(recoveredParagraph.split(': ')[1].trim());
-                    const tested = parseNum(testedParagraph.split(': ')[1].trim());
-
-                    data.infected = extratedInfected.total;
-                    data.infectedByRegion = extratedInfected.byRegion;
-                    data.deceased = extratedDeaths.total;
-                    data.deceasedByRegion = extratedDeaths.byRegion;
-                    data.recovered = recovered;
-                    data.tested = tested;
-                    data.lastudpatedAtSource = extratedInfected.date;
-                    break;
-                case HOSPITALIZATION:
-                    const tableData = [];
-                    $('table tbody tr').each((index, element) => {
-                        tableData.push({
-                            region: $(element).find('td').eq(0).text(),
-                            icu: parseNum($(element).find('td').eq(2).text()),
-                            hospitalized: parseNum($(element).find('td').eq(1).text()),
-                        });
+                    const table = $('.table-responsive table');
+                    const headers = [];
+                    let infected;
+                    let tested;
+                    let deceased;
+                    let recovered;
+                    let icu;
+                    let hospitalized;
+                    let lastUpdatedAtSource;
+                    $(table).find('thead th').each((index, element) => {
+                        headers.push($(element).text().trim());
                     });
-                    tableData.splice(tableData.length - 1, 1);
-                    data.hospitalizationData = tableData;
-                    data.totalIcu = tableData.reduce((total, val) => total + val.icu, 0);
-                    data.totalHospitalized = tableData.reduce((total, val) => total + val.hospitalized, 0);
 
+                    const processRow = (element) => {
+                        const byRegion = [];
+                        let total;
+                        $(element).find('td').each((index, el) => {
+                            if (index >= 1) {
+                                const value = parseNum($(el).text());
+                                if (index === 9) {
+                                    total = value;
+                                } else {
+                                    byRegion.push({ name: headers[index], value });
+                                }
+                            }
+                        });
+                        return { byRegion, total };
+                    };
+                    $(table).find('tbody tr').each((index, element) => {
+                        if (index === 0) {
+                            const text = $(element).find('th').text();
+                            const dateString = text.split('(Stand ')[1].replace(' Uhr)', '');
+                            const split = dateString.split(', ');
+                            const dateSplit = split[0].split('.');
+                            const date = new Date(`${dateSplit[1]}/${dateSplit[0]}/${dateSplit[2]} ${split[1]}`);
+                            lastUpdatedAtSource = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() - 2, date.getMinutes())).toISOString();
+
+                            infected = processRow(element);
+                        } else if (index === 1) {
+                            deceased = processRow(element);
+                        } else if (index === 2) {
+                            recovered = processRow(element);
+                        } else if (index === 3) {
+                            hospitalized = processRow(element);
+                        } else if (index === 4) {
+                            icu = processRow(element);
+                        } else if (index === 5) {
+                            tested = processRow(element);
+                        }
+                    });
+
+                    data.infected = infected.total;
+                    data.infectedByRegion = infected.byRegion;
+                    data.deceased = deceased.total;
+                    data.deceasedByRegion = deceased.byRegion;
+                    data.recovered = recovered.total;
+                    data.recoveredByRegion = recovered.byRegion;
+                    data.tested = tested.total;
+                    data.testedByRegion = tested.byRegion;
+                    data.totalIcu = icu.total;
+                    data.icuByRegion = icu.byRegion;
+                    data.totalHospitalized = hospitalized.total;
+                    data.hospitalizedByRegion = hospitalized.byRegion;
+                    data.lastudpatedAtSource = lastUpdatedAtSource;
                     break;
-
                 default:
                     break;
             }

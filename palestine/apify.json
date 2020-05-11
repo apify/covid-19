@@ -3,5 +3,5 @@
 	"version": "0.0",
 	"buildTag": "latest",
 	"env": null,
-	"template": "apify_project"
+	"template": "puppeteer_crawler"
 }

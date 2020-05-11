@@ -33,8 +33,8 @@ Apify.main(async () => {
             for (const region of countryData) {
                 const regionName = region.Wojewodztwo;
                 const city = region['Powiat/Miasto'];
-                const infectedCount = region.Liczba ? parseInt(region.Liczba) : 0;
-                const deceasedCount = region['Liczba zgonow'] ? parseInt(region['Liczba zgonow']) : 0;
+                const infectedCount = region.Liczba ? parseInt(region.Liczba.replace(/ /g, '')) : 0;
+                const deceasedCount = region['Liczba zgonow'] ? parseInt(region['Liczba zgonow'].replace(/ /g, '')) : 0;
 
                 if (regionName === 'Cala Polska') {
                     infectedCountTotal = infectedCount;

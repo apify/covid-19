@@ -3,10 +3,9 @@
 	"version": "0.0.1",
 	"description": "This is a boilerplate of an Apify actor.",
 	"dependencies": {
-		"apify": "^0.20.0",
+		"apify": "^0.20.3",
 		"lodash": "^4.17.15",
-		"moment": "^2.24.0",
-		"tesseract.js": "^2.1.1"
+		"moment": "^2.24.0"
 	},
 	"devDependencies": {},
 	"scripts": {

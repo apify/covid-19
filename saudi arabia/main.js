@@ -7,15 +7,15 @@ const LATEST = 'LATEST';
 let check = false;
 
 const REST_HTTP = 'https://services8.arcgis.com/uiAtN7dLXbrrdVL5/arcgis/rest/services';
-const CITIES_URL = `${REST_HTTP}/Saudi_COVID19_Statistics/FeatureServer/1/query?f=json&where=1=1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=Name%2CConfirmed_SUM%2CRecovered_SUM%2CDeaths_SUM%2CActive_SUM&orderByFields=Name%20asc&resultOffset=0&resultRecordCount=100&cacheHint=true`;
-const DAILY_URL = `${REST_HTTP}/COVID19_Daily_Progressive_Cases_V2/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=Name%2CDate%2CConfirmed%2CDeaths%2CRecovered%2CActive&orderByFields=Date%20asc&resultOffset=0&resultRecordCount=2000&cacheHint=true`;
+const CITIES_URL = `${REST_HTTP}/Saudi_COVID19_Statistics/FeatureServer/1/query?f=json&where=1=1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=Name%2CConfirmed_SUM%2CRecovered_SUM%2CDeaths_SUM%2CActive_SUM&orderByFields=Name%20asc&resultOffset=0&resultRecordCount=200&cacheHint=false`;
+const DAILY_URL = `${REST_HTTP}/COVID19_Daily_Progressive_Cases_V2/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=Name%2CDate%2CConfirmed%2CDeaths%2CRecovered%2CActive&orderByFields=Date%20asc&resultOffset=0&resultRecordCount=2000&cacheHint=false`;
 
 Apify.main(async () =>
 
 {
     const kvStore = await Apify.openKeyValueStore('COVID-19-SA');
     const dataset = await Apify.openDataset('COVID-19-SA-HISTORY');
-    const { email } = await Apify.getValue('INPUT');
+    
 
 try{
     const { items } = await dataset.getData({ fields: ['lastUpdatedAtApify', 'lastUpdatedAtSource'] });

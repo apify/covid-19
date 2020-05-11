@@ -1,6 +1,6 @@
 const Apify = require('apify');
 
-const sourceUrl = 'https://www.gov.uk/government/publications/covid-19-track-coronavirus-cases';
+const sourceUrl = 'https://coronavirus.data.gov.uk/';
 const LATEST = 'LATEST';
 let check = false;
 
@@ -47,18 +47,18 @@ Apify.main(async () =>
         const now = new Date();
         
         // eq() selector selects an element with a specific index number, text() method sets or returns the text content of the selected elements
-        const totalInfected = $('div:contains("Total number of lab-confirmed UK cases")').last().next().text().trim();
-        const dailyConfirmed = $('div:contains("Latest daily number of lab-confirmed UK cases")').last().next().text().trim();;
+        const totalInfected = $('h2:contains("Total number of lab-confirmed UK cases")').next().text().trim();
+        const dailyConfirmed = $('h2:contains("Daily number of lab-confirmed UK cases")').next().text().trim();
         //const patientsRecovered = $("text[vector-effect='non-scaling-stroke']").eq(4).text();
-        const deceased = $('div:contains("Total number of COVID-19 associated UK deaths in hospital").govuk-caption-s').last().next().text().trim();
+        const deceased = $('h2:contains("Total number of COVID-19 associated UK deaths")').next().text().trim();
         const englandConfirmed = $('td:contains("England")').next().eq(0).text().trim();
-        const englandDeceased = $('td:contains("England")').next().next().eq(0).text().trim();
-        const scottlandConfirmed = $('td:contains("Scotland")').next().eq(0).text().trim();
-        const scottlandDeceased = $('td:contains("Scotland")').next().next().eq(0).text().trim();
+        const englandDeceased = $('h3:contains("England").govuk-caption-m').next().text().trim();
+        const scotlandConfirmed = $('td:contains("Scotland")').next().eq(0).text().trim();
+        const scotlandDeceased = $('h3:contains("Scotland").govuk-caption-m').next().text().trim();
         const walesConfirmed =$('td:contains("Wales")').next().eq(0).text().trim();
-        const walesDeceased = $('td:contains("Wales")').next().next().eq(0).text().trim();
+        const walesDeceased = $('h3:contains("Wales").govuk-caption-m').next().text().trim();
         const irelandConfirmed = $('td:contains("Northern Ireland")').next().eq(0).text().trim();
-        const irelandDeceased = $('td:contains("Northern Ireland")').next().next().eq(0).text().trim();
+        const irelandDeceased = $('h3:contains("Northern Ireland").govuk-caption-m').next().text().trim();
                      
         
         const data = {
@@ -69,8 +69,8 @@ Apify.main(async () =>
             dailyConfirmed: getInt(dailyConfirmed),
             englandConfirmed: getInt(englandConfirmed),
             englandDeceased: getInt(englandDeceased),
-            scottlandConfirmed: getInt(scottlandConfirmed),
-            scottlandDeceased: getInt(scottlandDeceased),
+            scotlandConfirmed: getInt(scotlandConfirmed),
+            scotlandDeceased: getInt(scotlandDeceased),
             walesConfirmed: getInt(walesConfirmed),
             walesDeceased: getInt(walesDeceased),
             northenIrelandConfirmed: getInt(irelandConfirmed),
@@ -88,7 +88,7 @@ Apify.main(async () =>
     
     console.log(result)
     
-    if ( !result.infected || !result.dailyConfirmed || !result.deceased || !result.englandConfirmed || !result.scottlandConfirmed|| !result.walesConfirmed|| !result.northenIrelandConfirmed ) {
+    if ( !result.infected || !result.dailyConfirmed || !result.deceased || !result.englandConfirmed || !result.scotlandConfirmed|| !result.walesConfirmed|| !result.northenIrelandConfirmed ) {
                 throw "One of the output is null";
             }
     else {
