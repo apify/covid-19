@@ -158,7 +158,8 @@
   "Portugal": {
     "deceased": "deceased",
     "infected": "infected",
-    "recovered": "recovered"
+    "recovered": "recovered",
+    "tested": "tested"
   },
   "Romania": {
     "deceased": "deceased",
@@ -235,5 +236,10 @@
     "deceased": "deceased",
     "infected": "infected",
     "recovered": "recovered"
+  }
+  "Latvia": {
+    "deceased": "deceased",
+    "infected": "infected",
+    "tested": "tested"
   }
 }

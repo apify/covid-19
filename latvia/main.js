@@ -1,120 +1,119 @@
 const Apify = require('apify');
 
-// Apify.utils contains various utilities, e.g. for logging.
-// Here we turn off the logging of unimportant messages.
+const LATEST = 'LATEST';
+const now = new Date();
 const { log } = Apify.utils;
-log.setLevel(log.LEVELS.WARNING);
 
-// Apify.main() function wraps the crawler logic (it is optional).
+async function waitForContentToLoad(page) {
+    const query = 'document.querySelector(\'full-container\').innerText.includes';
+
+    return page.waitForFunction(
+        `!!document.querySelector('full-container full-container')
+        && ${query}('Veikto analīžu skaits') && ${query}('Saslimušo skaits')
+        && ${query}('Mirušo skaits') && ${query}('Informācija atjaunota')`
+        , { timeout: 45 * 1000 });
+}
+
 Apify.main(async () => {
-	const kv = await Apify.openKeyValueStore('COVID-19-LATVIA');
-	const history = await Apify.openDataset('COVID-19-LATVIA-HISTORY');
-	
-    // Create and initialize an instance of the RequestList class that contains
-    // a list of URLs to crawl. Here we use just a few hard-coded URLs.
-    const requestList = new Apify.RequestList({
-        sources: [
-            { url: 'https://arkartassituacija.gov.lv/' },
-        ],
-    });
+    const url = 'https://spkc.maps.arcgis.com/apps/opsdashboard/index.html#/4469c1fb01ed43cea6f20743ee7d5939';
+
+    const kvStore = await Apify.openKeyValueStore('COVID-19-LATVIA');
+    const dataset = await Apify.openDataset('COVID-19-LATVIA-HISTORY');
+
+    const requestList = new Apify.RequestList({ sources: [{ url }] });
     await requestList.initialize();
-	
-	const DATA_INDEX = {
-		TESTED: 3,
-		INFECTED: 4,
-	};
 
-    // Create an instance of the CheerioCrawler class - a crawler
-    // that automatically loads the URLs and parses their HTML using the cheerio library.
-    const crawler = new Apify.CheerioCrawler({
-        // Let the crawler fetch URLs from our list.
+    let criticalErrors = 0;
+
+    const crawler = new Apify.PuppeteerCrawler({
         requestList,
-
-        // The crawler downloads and processes the web pages in parallel, with a concurrency
-        // automatically managed based on the available system memory and CPU (see AutoscaledPool class).
-        // Here we define some hard limits for the concurrency.
-        minConcurrency: 10,
-        maxConcurrency: 50,
-
-        // On error, retry each page at most once.
-        maxRequestRetries: 1,
-
-        // Increase the timeout for processing of each page.
-        handlePageTimeoutSecs: 60,
-
-        // This function will be called for each URL to crawl.
-        // It accepts a single parameter, which is an object with the following fields:
-        // - request: an instance of the Request class with information such as URL and HTTP method
-        // - html: contains raw HTML of the page
-        // - $: the cheerio object containing parsed HTML
-	    
-        handlePageFunction: async ({ request, html, $ }) => {
-            console.log(`Processing ${request.url}...`);
-	
-	        let matched = Array;
-	        let lastUpdatedAtSource = "";
-	        
-	        const regepx = /([\d]+)/g;
-	        $('.article.text p').each((index, el) => {
-	        	let t = $(el).text();
-	        	
-	        	// Date
-	        	if (index === 0) {
-			        const [, day, time] = t.match(/Aktualizēts ([\S]+) plkst ([\S]+)/);
-			        lastUpdatedAtSource = new Date(`${day.split('.').reverse().join('-')}T${time}:00+00:00`).toISOString();
-		        }
-		        
-	        	// Not interested
-	        	if (index !== 3) {
-	        		return
-		        }
-	        	
-	        	t = t.replace(/\s+/g, '');
-		        matched = t.match(regepx);
-	        });
-	        
-	        const tested = parseInt(matched[DATA_INDEX.TESTED]);
-	        const infected = parseInt(matched[DATA_INDEX.INFECTED]);
-	        const notInfected = tested - infected;
-
-            // Store the results to the default dataset. In local configuration,
-            // the data will be stored as JSON files in ./apify_storage/datasets/default
-	        const data = {
-		        url: request.url,
-		        lastUpdatedAtSource,
-		        tested,
-		        infected,
-		        notInfected,
-	        };
-	        
-            await kv.setValue('LATEST', data)
-	
-	        const info = await history.getInfo();
-	        if (info && info.itemCount > 0) {
-		        const currentData = await history.getData({
-			        limit: 1,
-			        offset: info.itemCount - 1
-		        });
-		
-		        if (currentData && currentData.items[0] && currentData.items[0].lastUpdatedAtSource !== lastUpdatedAtSource) {
-			        await history.pushData(data);
-		        }
-	        } else {
-		        await history.pushData(data);
-	        }
-	
-	        // always push data to default dataset
-	        await Apify.pushData(data);
+        useApifyProxy: true,
+        puppeteerPoolOptions: {
+            retireInstanceAfterRequestCount: 1,
         },
+        handlePageTimeoutSecs: 90,
+        launchPuppeteerFunction: () => {
+            const options = { useApifyProxy: true, useChrome: true };
+            return Apify.launchPuppeteer(options);
+        },
+        gotoFunction: async ({ page, request }) => {
+            await Apify.utils.puppeteer.blockRequests(page, {
+                urlPatterns: ['.jpg', '.jpeg', '.png', '.svg', '.gif', '.woff', '.pdf', '.zip', '.pbf', '.woff2', '.woff'],
+            });
+            return page.goto(request.url, { timeout: 1000 * 30 });
+        },
+        handlePageFunction: async ({ page, request }) => {
+            log.info(`Handling ${request.url} `);
 
-        // This function is called if the page processing failed more than maxRequestRetries+1 times.
-        handleFailedRequestFunction: async ({ request }) => {
-            console.log(`Request ${request.url} failed twice.`);
+            await Apify.utils.puppeteer.injectJQuery(page);
+            log.info('Waiting for content to load');
+            await waitForContentToLoad(page);
+            log.info('Content loaded');
+
+
+            const extracted = await page.evaluate(async () => {
+
+                const toNumber = (str) => parseInt(str.replace(/\D/g, ""));
+
+                const infected = toNumber($('div:contains(Saslimušo skaits)').last().text());
+                const tested = toNumber($('div:contains(Veikto analīžu skaits)').last().text());
+                const deceased = toNumber($('div:contains(Mirušo skaits)').last().text());
+
+                const date = $('div:contains(Informācija)').last().text();
+
+                return {
+                    date, infected, tested, recovered: "N/A", deceased
+                };
+            });
+
+            let sourceDate = new Date(formatDate(extracted.date));
+            delete extracted.date;
+
+            // ADD: infected, tested, recovered: "N/A", deceased
+            const data = {
+                ...extracted,
+            };
+
+            // ADD: lastUpdatedAtApify, lastUpdatedAtSource
+            data.country = 'Latvia';
+            // data.historyData = '';
+            data.sourceUrl = 'https://arkartassituacija.gov.lv/';
+            data.lastUpdatedAtApify = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString();
+            data.lastUpdatedAtSource = new Date(Date.UTC(sourceDate.getFullYear(), sourceDate.getMonth(), sourceDate.getDate(), sourceDate.getHours(), sourceDate.getMinutes())).toISOString();
+            // data.readMe = '';
+
+            // Push the data
+            let latest = await kvStore.getValue(LATEST);
+            if (!latest) {
+                await kvStore.setValue('LATEST', data);
+                latest = Object.assign({}, data);
+            }
+            delete latest.lastUpdatedAtApify;
+            const actual = Object.assign({}, data);
+            delete actual.lastUpdatedAtApify;
+
+            const { itemCount } = await dataset.getInfo();
+            if (JSON.stringify(latest) !== JSON.stringify(actual) || itemCount === 0) {
+                await dataset.pushData(data);
+            }
+
+            await kvStore.setValue('LATEST', data);
+            await Apify.pushData(data);
+
+            log.info('Data saved.');
+        },
+        handleFailedRequestFunction: ({ requst, error }) => {
+            criticalErrors++;
         },
     });
-
-    // Run the crawler and wait for it to finish.
     await crawler.run();
-
-    console.log('Crawler finished.');
+    if (criticalErrors > 0) {
+        throw new Error('Some essential requests failed completely!');
+    }
+    log.info('Done.');
 });
+function formatDate(str) {
+    [d, m, y] = str.match(/\d{1,2}.\d{1,2}.\d{4}/)[0].split('.');
+    const h = str.match(/(?<=plkst.*)\d{1,2}.\d{2}/g)[0].replace('.', ':');
+    return `${m}/${d}/${y} ${h}`;
+}
