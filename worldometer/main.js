@@ -24,11 +24,12 @@ Apify.main(async () => {
 
         const regionsTableRows = Array.from(document.querySelectorAll("#main_table_countries_today > tbody > tr"));
         const regionData = [];
-        const toInt = (a) => Number(a.replace(',',''))
+        // replace ALL , in the string, not only first occurence of ,
+        const toInt = (a) => Number(a.replace(/,/g, ''))
 
         for (const row of regionsTableRows) {
             const cells = Array.from(row.querySelectorAll("td")).map(td => td.textContent);
-            regionData.push({ country: cells[0], totalCases: toInt(cells[1]), newCases: toInt(cells[2]), totalDeaths: toInt(cells[3]), newDeaths: toInt(cells[4]), totalRecovered: toInt(cells[5]), activeCases: toInt(cells[6]), seriousCritical: toInt(cells[7]), casesPerMil: toInt(cells[8]), deathsPerMil: toInt(cells[9]), totalTests: toInt(cells[10]), testsPerMil: toInt(cells[11]) });
+            regionData.push({ country: cells[0].trim(), totalCases: toInt(cells[1]), newCases: toInt(cells[2]), totalDeaths: toInt(cells[3]), newDeaths: toInt(cells[4]), totalRecovered: toInt(cells[5]), activeCases: toInt(cells[6]), seriousCritical: toInt(cells[7]), casesPerMil: toInt(cells[8]), deathsPerMil: toInt(cells[9]), totalTests: toInt(cells[10]), testsPerMil: toInt(cells[11]) });
         }
 
         const data = {
