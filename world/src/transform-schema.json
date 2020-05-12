@@ -105,6 +105,11 @@
     "infected": "infected",
     "recovered": "recovered"
   },
+  "Latvia": {
+    "deceased": "deceased",
+    "infected": "infected",
+    "tested": "tested"
+  },
   "Lithuania": {
     "deceased": "numberOfDeaths",
     "infected": "confirmedCases",
@@ -158,8 +163,7 @@
   "Portugal": {
     "deceased": "deceased",
     "infected": "infected",
-    "recovered": "recovered",
-    "tested": "tested"
+    "recovered": "recovered"
   },
   "Romania": {
     "deceased": "deceased",
@@ -236,10 +240,5 @@
     "deceased": "deceased",
     "infected": "infected",
     "recovered": "recovered"
-  },
-  "Latvia": {
-    "deceased": "deceased",
-    "infected": "infected",
-    "tested": "tested"
   }
 }
