@@ -25,7 +25,7 @@ Apify.main(async () => {
         const now = new Date();
 
         // eq() selector selects an element with a specific index number, text() method sets or returns the text content of the selected elements
-        const infected = $('#casos > div.inner > p.value').text();
+        const infected = $('#casos-pcr > div.inner > p.value').text();
         const deceased = $('#fallecidos > div.inner > p.value').text();
         const recovered = $("#recuperados > div.inner > p.value").text();
         const hospitalised = $("#hospitalizados > div.inner > p.value").text();
