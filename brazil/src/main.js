@@ -24,42 +24,24 @@ Apify.main(async () => {
         }
     }
 
-    const regionMapping = {
-        Acre: 'AC',
-        Alagoas: 'AL',
-        'Amapá': 'AP',
-        Amazonas: 'AM',
-        Bahia: 'BA',
-        'Ceará': 'CE',
-        'Distrito Federal': 'DF',
-        'Espírito Santo': 'ES',
-        'Goiás': 'GO',
-        'Maranhão': 'MA',
-        'Mato Grosso': 'MT',
-        'Mato Grosso do Sul': 'MS',
-        'Minas Gerais': 'MG',
-        'Paraná': 'PR',
-        'Paraíba': 'PB',
-        'Pará': 'PA',
-        Pernambuco: 'PE',
-        'Piauí': 'PI',
-        'Rio Grande do Norte': 'RN',
-        'Rio Grande do Sul': 'RS',
-        'Rio de Janeiro': 'RJ',
-        'Rondônia': 'RO',
-        Roraima: 'RR',
-        'Santa Catarina': 'SC',
-        Sergipe: 'SE',
-        'São Paulo': 'SP',
-        Tocantins: 'TO',
+    const commonHeaders = {
+        'X-Parse-Application-Id': 'unAFkcaNDeXajurGB7LChj8SgQYS2ptm',
+        Origin: sourceUrl.slice(0, -1),
+        Referer: sourceUrl,
     };
 
     const requestList = await Apify.openRequestList('mapa', [{
-        url: 'https://xx9p7hp1p7.execute-api.us-east-1.amazonaws.com/prod/PortalMapa',
+        url: 'https://xx9p7hp1p7.execute-api.us-east-1.amazonaws.com/prod/PortalGeralApi',
         headers: {
-            'X-Parse-Application-Id': 'unAFkcaNDeXajurGB7LChj8SgQYS2ptm',
-            Origin: sourceUrl.slice(0, -1),
-            Referer: sourceUrl,
+            ...commonHeaders
+        },
+        userData: {
+            LABEL: 'geral',
+        },
+    }, {
+        url: 'https://xx9p7hp1p7.execute-api.us-east-1.amazonaws.com/prod/PortalEstado',
+        headers: {
+            ...commonHeaders
         },
         userData: {
             LABEL: 'regions',
@@ -70,7 +52,7 @@ Apify.main(async () => {
 
     /**
      * @param {any[]} values
-     * @param {'qtd_obito'|'qtd_confirmado'} key
+     * @param {'casosAcumulado'|'obitosAcumulado'} key
      */
     const countTotals = (values, key) => {
         return values.reduce((out, i) => (out + (i[key] || 0)), 0);
@@ -78,13 +60,13 @@ Apify.main(async () => {
 
     /**
      * @param {any[]} values
-     * @param {'qtd_obito'|'qtd_confirmado'} key
+     * @param {string} key
      */
     const mapRegions = (values, key) => {
-        return values.map(s => ({ state: regionMapping[s.nome], count: s[key] || 0 }));
-    };
+        return values.reduce((out, i) => (out.concat({ state: i.nome, count: i[key] || 0 })), []);
+    }
 
-    const version = 3;
+    const version = 4;
     let data = {
         version,
         sourceUrl,
@@ -93,7 +75,7 @@ Apify.main(async () => {
         historyData: 'https://api.apify.com/v2/datasets/3S2T1ZBxB9zhRJTBB/items?format=json&clean=1',
         readMe: 'https://apify.com/pocesar/covid-brazil',
         tested: 'N/A',
-        recovered: 'N/A',
+        recovered: 0,
     };
 
     let lastUpdatedAtSource;
@@ -109,27 +91,33 @@ Apify.main(async () => {
         useSessionPool: true,
         maxConcurrency: 1,
         useApifyProxy: true,
+        maxRequestRetries: 3,
         handlePageTimeoutSecs: 180,
         handlePageFunction: async ({ request, json }) => {
-            const { results } = json;
             const { LABEL } = request.userData;
 
-
-            if (!results || !results[0]) {
-                await Apify.setValue(`results-${Math.random()}`, { results });
+            if (!json || (LABEL === 'regions' && (!Array.isArray(json) || json.length < 27))) {
+                await Apify.setValue(`results-${Math.random()}`, { json });
                 throw new Error('Results are empty');
             }
 
-            if (LABEL === 'regions') {
-                const dateModified = latestDate(results);
+            if (LABEL === 'geral') {
+                const { dt_updated, confirmados } = json;
+
+                if (!dt_updated || !confirmados) {
+                    throw new Error('Missing "dt_updated" or "confirmados" on data');
+                }
+
+                const dateModified = new Date(dt_updated);
 
                 if (Number.isNaN(dateModified.getTime())) {
-                    log.warning('Invalid date', { dateModified, results });
+                    log.warning('Invalid date', { dateModified, dt_updated });
 
                     throw new Error('Invalid date');
                 }
 
                 if (dateModified.getTime() <= lastUpdate.getTime()) {
+                    log.debug('Last modified update not greater', { lastUpdate, dateModified });
                     return;
                 }
 
@@ -138,23 +126,28 @@ Apify.main(async () => {
                 }
 
                 if (lastUpdatedAtSource.getTime() <= lastUpdate.getTime()) {
+                    log.debug('Last source update not greater', { lastUpdatedAtSource, lastUpdate });
                     return;
                 }
 
-                hasNewData = true;
+                data.recovered = +`${confirmados.recuperados}`.replace(/[^\d]+/g, '');
+                data.lastUpdatedAtSource = lastUpdatedAtSource.toISOString();
 
+                hasNewData = true;
+            } else if (LABEL === 'regions' && hasNewData) {
                 data = {
                     ...data,
                     lastUpdatedAtSource: lastUpdatedAtSource.toISOString(),
-                    infected: countTotals(results, 'qtd_confirmado'),
-                    deceased: countTotals(results, 'qtd_obito'),
-                    infectedByRegion: mapRegions(results, 'qtd_confirmado'),
-                    deceasedByRegion: mapRegions(results, 'qtd_obito'),
+                    infected: countTotals(json, 'casosAcumulado'),
+                    deceased: countTotals(json, 'obitosAcumulado'),
+                    infectedByRegion: mapRegions(json, 'casosAcumulado'),
+                    deceasedByRegion: mapRegions(json, 'obitosAcumulado'),
                 };
             }
         },
         handleFailedRequestFunction: ({ error }) => {
             log.exception(error, 'Failed after all retries');
+            process.exit(1);
         },
     });
 

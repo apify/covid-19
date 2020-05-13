@@ -1,9 +1,9 @@
 {
 	"name": "apify-covid19-brazil",
-	"version": "2.1.0",
+	"version": "2.2.0",
 	"description": "Gets an actual number of infected people and deaths per region by COVID-19 in Brazil from https://covid.saude.gov.br/",
 	"dependencies": {
-		"apify": "^0.20.2"
+		"apify": "^0.20.4"
 	},
 	"repository": {
 		"type": "git",
@@ -11,7 +11,7 @@
 	},
 	"devDependencies": {
 		"@apify/eslint-config": "^0.0.3",
-		"eslint": "^6.8.0"
+		"eslint": "^7.0.0"
 	},
 	"scripts": {
 		"start": "node src/main.js",
