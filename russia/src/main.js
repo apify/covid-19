@@ -31,19 +31,20 @@ Apify.main(async () => {
             const { Items: items } = json;
 
             data.infected = items.reduce((sum, val) => sum += val.Confirmed, 0);
-            data.tested = items.pop().Observations;
+            data.tested = items.find(item => item.LocationName === "No region speified").Observations;
             data.recovered = items.reduce((sum, val) => sum += val.Recovered, 0)
             data.deceased = items.reduce((sum, val) => sum += val.Deaths, 0)
 
-            data.infectedByRegion = items.splice(0, items.length).map(item => {
-                return {
-                    region: item.LocationName,
-                    isoCode: item.IsoCode,
-                    infected: item.Confirmed,
-                    recovered: item.Recovered,
-                    deceased: item.Deaths
-                }
-            })
+            data.infectedByRegion = items.filter(item => item.LocationName !== "No region speified")
+                .map(item => {
+                    return {
+                        region: item.LocationName,
+                        isoCode: item.IsoCode,
+                        infected: item.Confirmed,
+                        recovered: item.Recovered,
+                        deceased: item.Deaths
+                    }
+                })
 
             data.country = 'Russia';
             data.historyData = 'https://api.apify.com/v2/datasets/5JO5GL1h8Qv1CnG0m/items?format=json';
