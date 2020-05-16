@@ -21,6 +21,7 @@ Apify.main(async () => {
     });
     await requestList.initialize();
 
+    let requestFailedCompletely = false;
     const basicCrawler = new Apify.BasicCrawler({
         requestList,
         useApifyProxy: true,
@@ -94,6 +95,7 @@ Apify.main(async () => {
             log.info('Data saved.');
         },
         handleFailedRequestFunction: async ({ request }) => {
+            requestFailedCompletely = true;
             console.log(`Request ${request.url} failed many times.`);
             console.dir(request)
         },
@@ -103,6 +105,9 @@ Apify.main(async () => {
     // Run the crawler and wait for it to finish.
     log.info('Starting the crawl.');
     await basicCrawler.run();
+    if (requestFailedCompletely) {
+        throw new Error('The request failed completely. See the log for info.');
+    }  
     log.info('Actor finished.');
 });
 
