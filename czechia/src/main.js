@@ -42,7 +42,7 @@ Apify.main(async () => {
     const numberOfTestedData = JSON.parse($("#js-cummulative-total-tests-data").attr("data-linechart"));
     const infectedByRegionData = JSON.parse($("#js-total-isin-regions-data").attr("data-barchart"));
     const deathsByRegionData = JSON.parse($("#js-total-region-died-data").attr("data-barchart"));
-    // const infectedDailyData = JSON.parse($("#js-total-persons-data").attr("data-barchart"));
+    const infectedDailyData = JSON.parse($("#js-total-persons-data").attr("data-barchart"));
     const regionQuarantineData = JSON.parse($("#js-region-quarantine-data").attr("data-barchart") || "[]");
     const regionQuarantine = regionQuarantineData.map(val => ({
         reportDate: parseDateToUTC(val.key.replace("Hlášení k ", "")).toISOString(),
@@ -50,7 +50,7 @@ Apify.main(async () => {
     }));
     const sourceOfInfectionData = JSON.parse($("#js-total-foreign-countries-data").attr("data-barchart"));
     const sexAgeData = JSON.parse($("#js-total-sex-age-data").attr("data-barchart"));
-    const protectionSuppliesSummaryTable = $(".static-table__container table");
+    // const protectionSuppliesSummaryTable = $(".static-table__container table");
     const hospitalizationTable = JSON.parse($("#js-hospitalization-table-data").attr("data-table"));
 
 
@@ -85,7 +85,7 @@ Apify.main(async () => {
         numberOfTestedGraph: connectDataFromGraph(numberOfTestedData),
         infectedByRegion: infectedByRegionData.values.map(({x, y}) => ({name: x, value: y})),
         deceasedByRegion: deathsByRegionData.values.map(({x, y}) => ({name: x, value: y})),
-        // infectedDaily: connectDataFromGraph(infectedDailyData),
+        infectedDaily: connectDataFromGraph(infectedDailyData),
         regionQuarantine,
         countryOfInfection: sourceOfInfectionData.values.map((value) => ({countryName: value.x, value: value.y})),
         infectedByAgeSex: sexAgeData.map((sexData) => ({
