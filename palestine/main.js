@@ -21,6 +21,7 @@ Apify.main(async () => {
     });
     await requestList.initialize();
 
+    let requestFailedCompletely = false;
     const basicCrawler = new Apify.BasicCrawler({
         requestList,
         useApifyProxy: true,
@@ -40,23 +41,25 @@ Apify.main(async () => {
             const data = {};
 
             // ADD: infected, tested, recovered, deceased, active, newCases, newlyRecovered
-            data.infected = toNumber($('.table.table-bordered').eq(4).find('tfoot').text());
-            data.tested = toNumber($('.table.table-bordered').eq(21).find('tfoot').text())
-            data.recovered = toNumber($('.table.table-bordered').eq(3).find('tfoot').text());
-            data.deceased = toNumber($('.table.table-bordered').eq(1).find('tfoot').text());
-            data.active = toNumber($('.table.table-bordered').eq(5).find('tfoot').text())
-            data.newCases = toNumber($('.table.table-bordered').eq(0).find('tfoot').text());
-            data.newlyRecovered = toNumber($('.table.table-bordered').eq(2).find('tfoot').text())
-            data.atHome = toNumber($('.table.table-bordered').eq(15).find('tfoot').text())
+            const $values = $('.table.table-bordered').eq(0).find('tbody tr').eq(0).find('td');
+
+            data.infected = toNumber($($values[1]).text());
+            data.tested = toNumber($('.table.table-bordered').eq(14).find('tfoot').text())
+            data.recovered = toNumber($($values[2]).text());
+            data.deceased = toNumber($($values[3]).text())
+            data.active = toNumber($($values[4]).text())
+            data.newCases = toNumber($('.table.table-bordered').eq(1).find('tfoot').text());
+            data.newlyRecovered = toNumber($('.table.table-bordered').eq(3).find('tfoot').text())
+            data.atHome = toNumber($('.table.table-bordered').eq(16).find('tfoot').text())
 
             // ADD: infecterByRegion
             let activeVlues = new Map()
-            $('.table.table-bordered').eq(6).find('tbody tr').toArray().forEach(tr => {
+            $('.table.table-bordered').eq(7).find('tbody tr').toArray().forEach(tr => {
                 activeVlues.set(
                     $(tr).find('td').eq(0).text().trim(),
                     $(tr).find('td').eq(1).text().trim())
             })
-            data.infecterByRegion = $('.table.table-bordered').eq(7).find('tbody tr').toArray().map(tr => {
+            data.infecterByRegion = $('.table.table-bordered').eq(8).find('tbody tr').toArray().map(tr => {
                 const region = $(tr).find('td').eq(0).text().trim();
                 return {
                     region,
@@ -94,6 +97,7 @@ Apify.main(async () => {
             log.info('Data saved.');
         },
         handleFailedRequestFunction: async ({ request }) => {
+            requestFailedCompletely = true;
             console.log(`Request ${request.url} failed many times.`);
             console.dir(request)
         },
@@ -103,10 +107,8 @@ Apify.main(async () => {
     // Run the crawler and wait for it to finish.
     log.info('Starting the crawl.');
     await basicCrawler.run();
+    if (requestFailedCompletely) {
+        throw new Error('The request failed completely. See the log for info.');
+    }
     log.info('Actor finished.');
 });
-
-
-
-
-
