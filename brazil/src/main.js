@@ -9,7 +9,7 @@ Apify.main(async () => {
     const sourceUrl = 'https://covid.saude.gov.br/';
 
     const info = await history.getInfo();
-    let lastUpdate = new Date();
+    let lastUpdate = null;
     let currentData;
 
     if (info && info.itemCount > 0) {
@@ -48,7 +48,9 @@ Apify.main(async () => {
         },
     }]);
 
-    log.info(`Last update ${lastUpdate.toISOString()}`);
+    if (lastUpdate) {
+        log.info(`Last update ${lastUpdate.toISOString()}`);
+    }
 
     /**
      * @param {any[]} values
@@ -85,6 +87,8 @@ Apify.main(async () => {
         .map(s => new Date(s.updatedAt))
         .reduce((updated, s) => (s.getTime() > updated ? s : updated), new Date(0));
 
+    const castInt = (str) => +(`${str}`.replace(/[^\d]+/g, ''));
+
     const crawler = new Apify.CheerioCrawler({
         requestList,
         additionalMimeTypes: ['application/json'],
@@ -102,13 +106,16 @@ Apify.main(async () => {
             }
 
             if (LABEL === 'geral') {
-                const { dt_updated, confirmados } = json;
+                const { dt_updated, confirmados, total } = json;
 
                 if (!dt_updated || !confirmados) {
                     throw new Error('Missing "dt_updated" or "confirmados" on data');
                 }
 
+                const recovered = castInt(confirmados.recuperados);
+                const intTotal = castInt(confirmados.total);
                 const dateModified = new Date(dt_updated);
+                hasNewData = currentData && (intTotal > currentData.infected || recovered > currentData.recovered);
 
                 if (Number.isNaN(dateModified.getTime())) {
                     log.warning('Invalid date', { dateModified, dt_updated });
@@ -116,28 +123,20 @@ Apify.main(async () => {
                     throw new Error('Invalid date');
                 }
 
-                if (dateModified.getTime() <= lastUpdate.getTime()) {
-                    log.debug('Last modified update not greater', { lastUpdate, dateModified });
-                    return;
-                }
+                lastUpdatedAtSource = dateModified;
 
-                if (!lastUpdatedAtSource || dateModified.getTime() > lastUpdatedAtSource.getTime()) {
-                    lastUpdatedAtSource = dateModified;
-                }
-
-                if (lastUpdatedAtSource.getTime() <= lastUpdate.getTime()) {
+                if (!hasNewData && lastUpdate && lastUpdatedAtSource && lastUpdatedAtSource.getTime() <= lastUpdate.getTime()) {
                     log.debug('Last source update not greater', { lastUpdatedAtSource, lastUpdate });
                     return;
                 }
 
-                data.recovered = +`${confirmados.recuperados}`.replace(/[^\d]+/g, '');
+                data.recovered = recovered;
                 data.lastUpdatedAtSource = lastUpdatedAtSource.toISOString();
 
                 hasNewData = true;
             } else if (LABEL === 'regions' && hasNewData) {
                 data = {
                     ...data,
-                    lastUpdatedAtSource: lastUpdatedAtSource.toISOString(),
                     infected: countTotals(json, 'casosAcumulado'),
                     deceased: countTotals(json, 'obitosAcumulado'),
                     infectedByRegion: mapRegions(json, 'casosAcumulado'),
@@ -195,7 +194,7 @@ Apify.main(async () => {
 
     await kv.setValue('LATEST', data);
 
-    if (lastUpdate.toISOString() !== lastUpdatedAtSource) {
+    if (!lastUpdate || (lastUpdate && lastUpdate.toISOString() !== lastUpdatedAtSource)) {
         await history.pushData(data);
     }
 
