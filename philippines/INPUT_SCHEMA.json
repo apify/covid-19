@@ -1,16 +1,8 @@
 {
-  "title": "Philippines COVID-19 Statistics",
-  "description": "This actor scrapes data about COVID-19 from the Department of Health, Republic of the Philippines.",
+  "title": "Norway public health of institute COVID-19",
+  "description": "This actor scrapes data about COVID-19 from the Norway public health institute.",
   "type": "object",
   "schemaVersion": 1,
-  "properties": {
-    "email": {
-      "title": "Email for alerts",
-      "type": "string",
-      "description": "Email where we should send email if there are no data, which means something is wrong.",
-      "prefill": "example@example.com",
-      "editor": "textfield"
-    }
-  },
-  "required": ["email"]
+  "properties": {},
+  "required": []
 }
