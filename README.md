@@ -1,7 +1,7 @@
 # covid-19
 Open APIs with statistics about Covid-19
 
-**APIs with appropriate documentation will be uploaded soon. The APIs and data are also available at https://apify.com/covid-19**
+**Each folder represents one country, documentation for each country could be found in respective folder. The APIs and data are also available at https://apify.com/covid-19**
 
 ## Contributing
 
