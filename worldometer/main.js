@@ -31,7 +31,7 @@ Apify.main(async () => {
         }
 
         const result = {
-            regionData: regionData[0]
+            regionData: regionData
         };
         return result;
     });
