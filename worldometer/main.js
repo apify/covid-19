@@ -27,7 +27,7 @@ Apify.main(async () => {
 
         for (const row of regionsTableRows) {
             const cells = Array.from(row.querySelectorAll("td")).map(td => td.textContent);
-            regionData.push({ country: cells[1].trim(), totalCases: toInt(cells[2]), newCases: toInt(cells[3]), totalDeaths: toInt(cells[4]), newDeaths: toInt(cells[5]), totalRecovered: toInt(cells[6]), activeCases: toInt(cells[7]), seriousCritical: toInt(cells[8]), casesPerMil: toInt(cells[9]), deathsPerMil: toInt(cells[10]), totalTests: toInt(cells[11]), testsPerMil: toInt(cells[12]) });
+            regionData.push({ country: cells[1].trim(), totalCases: toInt(cells[2]), newCases: toInt(cells[3]), totalDeaths: toInt(cells[4]), newDeaths: toInt(cells[5]), totalRecovered: toInt(cells[6]), activeCases: toInt(cells[7]), seriousCritical: toInt(cells[8]), casesPerMil: toInt(cells[9]), deathsPerMil: toInt(cells[10]), totalTests: toInt(cells[11]), testsPerMil: toInt(cells[12]), population: toInt(cells[13]) });
         }
 
         const result = {
