@@ -1,5 +1,4 @@
-
-//const Apify = require('apify');
+const Apify = require('apify');
 
 const sourceUrl = 'http://covid-19.moh.gov.my/';
 const LATEST = 'LATEST';
@@ -12,13 +11,15 @@ Apify.main(async () => {
     // const { email } = await Apify.getValue('INPUT');
 
     console.log('Launching Puppeteer...');
-    const browser = await Apify.launchPuppeteer();
+    const browser = await Apify.launchPuppeteer({
+        args: ['--disable-web-security', '--disable-features=site-per-process'],
+    });
 
     const page = await browser.newPage();
     await Apify.utils.puppeteer.injectJQuery(page);
 
     console.log('Going to the website...');
-    await page.goto(sourceUrl), { waitUntil: 'networkidle0', timeout: 60000 };
+    await page.goto(sourceUrl, { waitUntil: 'networkidle0', timeout: 60000 });
 
     console.log('Getting data...');
 
@@ -30,16 +31,25 @@ Apify.main(async () => {
 
         // const recovered = $("#container_content > div.editable > center:nth-child(11) > table > tbody > tr:nth-child(1) > td:nth-child(2) > span").text();
         // const inICU = $("#container_content > div.editable > center:nth-child(11) > table > tbody > tr:nth-child(2) > td:nth-child(2) > span").text();
-        const deceased = document.querySelector('#a910930a-dc88-4531-b24f-e12919c906f5 > div.ContentBlock__ContentWrapper-sizwox-2.haiZJd > div > div:nth-child(18) > div > div > div > div > div > div > div > div > div > h2 > div > span > span').textContent;
+
+        const iframeDocument = document.querySelector('#g-header .g-content > iframe').contentDocument;
+        const testedPositive = iframeDocument.querySelector('.InfographicEditor-Contents-Item:nth-child(19) span[data-text=true]').innerText;
+        const recovered = iframeDocument.querySelector('.InfographicEditor-Contents-Item:nth-child(17) span[data-text=true]').innerText;
+        const activeCases = iframeDocument.querySelector('.InfographicEditor-Contents-Item:nth-child(21) span[data-text=true]').innerText;
+        const inICU = iframeDocument.querySelector('.InfographicEditor-Contents-Item:nth-child(37) .__ig-alignCenter:nth-child(2) span[data-text=true]').innerText;
+        const respiratoryAid = iframeDocument.querySelector('.InfographicEditor-Contents-Item:nth-child(38) .__ig-alignCenter:nth-child(2) span[data-text=true]').innerText;
+        const deceased = iframeDocument.querySelector('.InfographicEditor-Contents-Item:nth-child(18) span[data-text=true]').innerText;
 
         const data = {
-            // testedPositive: testedPositive,
             // testedNegative: testedNegative,
             // testedTotal: Number(testedPositive) + Number(testedNegative),
-            // recovered: recovered,
-            // inICU: inICU,
-            deceased: deceased,
-            sourceUrl: 'http://www.moh.gov.my/index.php/pages/view/2019-ncov-wuhan',
+            testedPositive: Number(testedPositive),
+            recovered: Number(recovered),
+            activeCases: Number(activeCases),
+            inICU: Number(inICU),
+            respiratoryAid: Number(respiratoryAid),
+            deceased: Number(deceased),
+            sourceUrl: 'http://covid-19.moh.gov.my/',
             lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
             readMe: 'https://github.com/zpelechova/covid-my/blob/master/README.md',
         };
