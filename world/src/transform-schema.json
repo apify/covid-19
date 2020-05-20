@@ -123,8 +123,7 @@
   "Malaysia": {
     "deceased": "deceased",
     "infected": "testedPositive",
-    "recovered": "recovered",
-    "tested": "testedTotal"
+    "recovered": "recovered"
   },
   "Netherlands": {
     "deceased": "deceased",
