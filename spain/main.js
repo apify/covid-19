@@ -36,7 +36,7 @@ Apify.main(async () => {
     const onlyDigits = (string) => Number(string.replace(/\D/g, ''));
 
 
-    const data = {
+    const result = {
         infected: onlyDigits(infected),
         // recovered: toInt(recovered),
         deceased: onlyDigits(deceased),
@@ -48,7 +48,7 @@ Apify.main(async () => {
         // lastUpdatedAtSource: updated.trim(),
         readMe: 'https://apify.com/zuzka/covid-es'
     };
-    console.log(data)
+    console.log(result)
 
     // const dateSpanish = result.lastUpdatedAtSource;
     // const dateWithoutDe = dateSpanish.replace('de', '');
