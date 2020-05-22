@@ -1,7 +1,7 @@
 const Apify = require('apify');
 
 const { log } = Apify.utils;
-const sourceUrl = 'https://www.ssi.dk/aktuelt/sygdomsudbrud/coronavirus';
+const sourceUrl = 'https://www.ssi.dk/sygdomme-beredskab-og-forskning/sygdomsovervaagning/c/covid19-overvaagning';
 const LATEST = 'LATEST';
 
 Apify.main(async () => {
@@ -19,10 +19,12 @@ Apify.main(async () => {
             log.info('Page loaded.');
             const now = new Date();
 
-            const tested = parseInt($($($($(".rte table tbody tr")).get(0)).find("td").get(1)).text().replace(',','').replace('.','').match(/\d+/), 10)
-            const infected = parseInt($($($($(".rte table tbody tr")).get(0)).find("td").get(2)).text().replace(',','').replace('.','').match(/\d+/), 10)
-            const recovered = parseInt($($($($(".rte table tbody tr")).get(0)).find("td").get(3)).text().replace(',','').replace('.','').match(/\d+/), 10)
-            const deceased = parseInt($($($($(".rte table tbody tr")).get(0)).find("td").get(4)).text().replace(',','').replace('.','').match(/\d+/), 10)
+            let [title, samples, tested, infected, recovered, deceased] = $($('table').get(0)).find('tr:nth-child(2) td').get().map(el => $(el).text());
+            console.log(title, tested, infected, recovered, deceased)
+            tested = parseInt(tested.replace('.',''),10);
+            infected = parseInt(infected.replace('.',''),10);
+            recovered = parseInt(recovered.replace('.',''),10);
+            deceased = parseInt(deceased.replace('.','').split('(')[0],10);
 
             const data = {
                 tested,

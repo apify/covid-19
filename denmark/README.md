@@ -1,5 +1,5 @@
 # Coronavirus stats in the Denmark
-Actor gets an actual number of tested, infected and deceased people in the Denmark from https://www.ssi.dk/aktuelt/sygdomsudbrud/coronavirus
+Actor gets an actual number of tested, infected and deceased people in the Denmark from "https://www.ssi.dk/sygdomme-beredskab-og-forskning/sygdomsovervaagning/c/covid19-overvaagning"
 
 Latest data are available at this URL: https://api.apify.com/v2/key-value-stores/EAlpwScH29Qa5m60g/records/LATEST?disableRedirect=true
 
