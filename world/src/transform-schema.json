@@ -210,8 +210,7 @@
   },
   "Spain": {
     "deceased": "deceased",
-    "infected": "infected",
-    "recovered": "recovered"
+    "infected": "infected"
   },
   "Sweden": {
     "deceased": "deceased",
