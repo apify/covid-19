@@ -1,7 +1,7 @@
 const Apify = require('apify');
 
 const { log } = Apify.utils;
-const sourceUrl = 'https://www.fhi.no/en/id/infectious-diseases/coronavirus/daily-reports/daily-reports-COVID19/';
+const sourceUrl = 'https://www.fhi.no/sv/smittsomme-sykdommer/corona/dags--og-ukerapporter/dags--og-ukerapporter-om-koronavirus/';
 const LATEST = 'LATEST';
 const toNumber = (str) => parseInt(str.replace(/\D/g, ""));
 
@@ -12,46 +12,60 @@ Apify.main(async () => {
     const dataset = await Apify.openDataset('COVID-19-NORWAY-HISTORY');
 
     await requestQueue.addRequest({
-        url: 'https://www.fhi.no/sv/smittsomme-sykdommer/corona/',
+        url: 'https://www.fhi.no/api/chartdata/api/91322',
         userData: {
-            label: 'INFECTED&TESTED'
+            label: 'INFECTED_BY_REGION'
         }
-
     });
 
     const crawler = new Apify.CheerioCrawler({
         requestQueue,
         useApifyProxy: true,
-        apifyProxyGroups: ['SHADER'],
         handlePageTimeoutSecs: 60 * 2,
         additionalMimeTypes: ['application/json'],
         handlePageFunction: async ({ request, $, json }) => {
-            log.info(`Getting ${request.userData.label} cases from ${request.url} `)
             const { label } = request.userData;
+            log.info(`Getting ${request.userData.label} from ${request.url} `)
 
             switch (label) {
-                case 'INFECTED&TESTED':
-                    const infected = toNumber($('.fhi-key-figure-number').eq(1).text());
-                    const tested = toNumber($('.fhi-key-figure-number').eq(0).text());
-                    requestQueue.addRequest({
-                        url: 'https://www.fhi.no/en/id/infectious-diseases/coronavirus/daily-reports/daily-reports-COVID19/',
-                        userData: {
-                            label: 'DEATHS', infected, tested
+                case 'INFECTED_BY_REGION':
+                    const infectedByRegion = json.splice(1, json.length).map(item => {
+                        [region, infectedCount] = item;
+                        return {
+                            region: item[0],
+                            infectedCount: item[1]
                         }
-                    })
+                    });
+                    await requestQueue.addRequest({
+                        url: 'https://www.fhi.no/api/chartdata/api/91672',
+                        userData: {
+                            label: 'OTHER_DATA',
+                            infectedByRegion
+                        }
+                    });
                     break;
-                case 'DEATHS':
+                case 'OTHER_DATA':
                     log.info('Processing and saving data')
+                    const { figures } = json;
 
-                    const sourceDate = new Date($('.fhi-date').first().find('time').last().attr('datetime'));
-                    delete request.userData.label;
-                    const deaths = parseInt($('tbody').eq(1).find('tr td').last().text());
+                    const infected = figures.find(item => item.key === 'cum_n_msis').number;
+                    const tested = figures.find(item => item.key === 'n_lab').number;
+                    const deaths = figures.find(item => item.key === 'cum_n_deaths').number;
+                    const admittedToHospital = figures.find(item => item.key === 'cum_n_hospital_any_cause').number;
+                    const admittedToICU = figures.find(item => item.key === 'cum_n_icu').number;
+
+                    [d, m, y] = figures[0].updated.split('/')
+                    const sourceDate = new Date(`${m}/${d}/${y}`);
                     const now = new Date();
 
                     const data = {
-                        ...request.userData,
+                        infected,
+                        tested,
                         recovered: 'N/A',
                         deaths,
+                        admittedToHospital,
+                        admittedToICU,
+                        infectedByRegion: request.userData.infectedByRegion,
                         sourceUrl,
                         country: 'Norway',
                         historyData: 'https://api.apify.com/v2/datasets/6tpTe4Z2TBePRWYti/items?format=json&clean=1',
@@ -75,6 +89,8 @@ Apify.main(async () => {
 
                     await kvStore.setValue(LATEST, data);
                     log.info('Data stored, finished.');
+
+                    break;
             }
         },
 
