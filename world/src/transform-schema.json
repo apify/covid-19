@@ -111,9 +111,9 @@
     "tested": "tested"
   },
   "Lithuania": {
-    "deceased": "numberOfDeaths",
-    "infected": "confirmedCases",
-    "tested": "testedCases"
+    "deceased": "deceased",
+    "infected": "infected",
+    "recovered": "recovered"
   },
   "Luxembourg": {
     "deceased": "deceased",
