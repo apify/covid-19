@@ -9,7 +9,7 @@ async function waitForContentToLoad(page) {
 
     return page.waitForFunction(
         `!!document.title.includes('Sign In') || (!!document.querySelector('full-container full-container')
-        && ${query}('الحالات المؤكدة') && ${query}('حالة شفاء') && ${query}('المستفيدون من العلاج') && ${query}('حالة وفاة')
+        && ${query}('الحالات المؤكدة') && ${query}('حالة شفاء') && ${query}('تحت العناية المركزة') && ${query}('حالة وفاة')
         && !!document.querySelectorAll('nav.feature-list')[1])`
         , { timeout: 45 * 1000 });
 }
@@ -62,7 +62,7 @@ Apify.main(async () => {
 
                 const date = text.match(/(?<=Mise à jour(.)*)[\d\/]+/g)[0];
 
-                const hospitalized = strToInt(text.match(/(?<=المستفيدون(\s+)من(\s+)العلاج\s*)[\d,]+/g)[0]);
+                const hospitalized = strToInt(text.match(/(?<=تحت(\s+)العناية(\s+)المركزة\s*)[\d,]+/g)[0]);
                 const infected = strToInt(text.match(/(?<=الحالات(\s+)المؤكدة\s*)[\d,]+/g)[0]);
                 const recovered = strToInt(text.match(/(?<=حالة(\s+)شفاء\s*)[\d,]+/g)[0]);
                 const deceased = strToInt(text.match(/(?<=حالة(\s+)وفاة\s*)[\d,]+/g)[0]);
