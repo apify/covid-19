@@ -21,7 +21,6 @@ Apify.main(async () => {
   const crawler = new Apify.CheerioCrawler({
     requestQueue,
     useApifyProxy: true,
-    apifyProxyGroups: ['GERMANY'],
     handlePageTimeoutSecs: 120,
     handlePageFunction: async ({$, body}) => {
       const now = new Date();
@@ -45,7 +44,7 @@ Apify.main(async () => {
       const row = tableRows[tableRows.length - 1];
       const columns = $(row).find('td');
       const secondColumn = columns.eq(1).text().trim();
-      const deathColumn = columns.eq(4).text().trim();
+      const deathColumn = columns.eq(5).text().trim();
 
       const data = {
         infected: parseInt(secondColumn.replace('.', ''), 10),

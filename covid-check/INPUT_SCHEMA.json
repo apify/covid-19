@@ -1,13 +1,13 @@
 {
-  "title": "NG COVID-19 Statistics",
-  "description": "This actor scrapes data about COVID-19 from Nigerian CDC.",
+  "title": "COVID-19 Statistics Checker",
+  "description": "",
   "type": "object",
   "schemaVersion": 1,
   "properties": {
     "email": {
       "title": "Email for alerts",
       "type": "string",
-      "description": "Email where we should send email if there are no data about Total Infected, which means something is wrong.",
+      "description": "Email where we should send email",
       "prefill": "zuzka@apify.com",
       "editor": "textfield"
     }

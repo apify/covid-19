@@ -1,9 +1,10 @@
 {
-	"name": "covid-ng",
+	"name": "covid-check",
 	"version": "0.0.1",
-	"description": "This is a boilerplate of an Apify actor.",
+	"description": "",
 	"dependencies": {
-		"apify": "^0.20.2"
+		"apify": "^0.20.4",
+		"@apify/http-request": "^1.2.0"
 	},
 	"devDependencies": {},
 	"scripts": {
