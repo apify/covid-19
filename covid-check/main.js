@@ -45,15 +45,13 @@ Apify.main(async () => {
         if (result[key].deviation && Math.abs(result[key].deviation) >= 5) highDeviation = true;
     }
     
-    // // that's it, let's save the file
-    // await Apify.setValue('result', result);
-    // // await Apify.setValue('OUTPUT', result.filter(x => (x.deviation > 0 || x.deviation < 0 )));
     // await Apify.pushData('result');
 
     // if there's at least one country with deviation over 5%
     if (highDeviation) {
         // Then we save report to OUTPUT
-        await Apify.setValue('OUTPUT', result);
+        // await Apify.setValue('OUTPUT', result);
+        await Apify.setValue('OUTPUT', result.filter(x => (x.deviation > 0 || x.deviation < 0 )));
         try {
             const env = Apify.getEnv();
             // And send email with the link to this report
