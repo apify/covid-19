@@ -2,7 +2,6 @@ const Apify = require('apify');
 
 const sourceUrl = 'https://www.mohfw.gov.in/';
 const LATEST = 'LATEST';
-let check = false;
 
 Apify.main(async () => {
 
@@ -34,9 +33,9 @@ Apify.main(async () => {
 
         for (const row of regionsTableRows) {
             const cells = Array.from(row.querySelectorAll("td")).map(td => td.textContent);
-            regionData.push({region: cells[1], totalInfected: Number(cells[2]), recovered: Number(cells[3]), deceased: Number(cells[4]) });
+            regionData.push({ region: cells[1], totalInfected: Number(cells[2]), recovered: Number(cells[3]), deceased: Number(cells[4]) });
         }
-        
+
         const data = {
             activeCases: activeCases,
             recovered: recovered,
@@ -53,45 +52,23 @@ Apify.main(async () => {
 
     console.log(result)
 
-    if (!result.activeCases || !result.deaths || !result.recovered) {
-        check = true;
-    }
-    else {
-        let latest = await kvStore.getValue(LATEST);
-        if (!latest) {
-            await kvStore.setValue('LATEST', result);
-            latest = result;
-        }
-        delete latest.lastUpdatedAtApify;
-        const actual = Object.assign({}, result);
-        delete actual.lastUpdatedAtApify;
-
-        if (JSON.stringify(latest) !== JSON.stringify(actual)) {
-            await dataset.pushData(result);
-        }
-
+    let latest = await kvStore.getValue(LATEST);
+    if (!latest) {
         await kvStore.setValue('LATEST', result);
-        await Apify.pushData(result);
+        latest = result;
+    }
+    delete latest.lastUpdatedAtApify;
+    const actual = Object.assign({}, result);
+    delete actual.lastUpdatedAtApify;
+
+    if (JSON.stringify(latest) !== JSON.stringify(actual)) {
+        await dataset.pushData(result);
     }
 
+    await kvStore.setValue('LATEST', result);
+    await Apify.pushData(result);
 
     console.log('Closing Puppeteer...');
     await browser.close();
     console.log('Done.');
-
-    // if there are no data for activeCases etc., send email, because that means something is wrong
-    const env = await Apify.getEnv();
-    if (check) {
-        await Apify.call(
-            'apify/send-mail',
-            {
-                to: email,
-                subject: `Covid-19 IN from ${env.startedAt} failed `,
-                html: `Hi, ${'<br/>'}
-                        <a href="https://my.apify.com/actors/${env.actorId}#/runs/${env.actorRunId}">this</a> 
-                        run had 0 TotalInfected, check it out.`,
-            },
-            { waitSecs: 0 },
-        );
-    }
 });

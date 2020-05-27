@@ -83,7 +83,7 @@
   },
   "India": {
     "deceased": "deaths",
-    "infected": "activeCases",
+    "infected": "totalCases",
     "recovered": "recovered"
   },
   "Iran": {
