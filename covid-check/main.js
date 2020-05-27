@@ -48,7 +48,7 @@ Apify.main(async () => {
     // that's it, let's save the file
     await Apify.setValue('result', result);
     // await Apify.setValue('OUTPUT', result.filter(x => (x.deviation > 0 || x.deviation < 0 )));
-    await Apify.pushData();
+    await Apify.pushData('result');
 
     // if there's at least one country with deviation over 5%
     if (highDeviation) {
