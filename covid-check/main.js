@@ -43,4 +43,5 @@ Apify.main(async () => {
     
     // that's it, let's save the file
     await Apify.setValue('result', result);
+    await Apify.pushData();
 });
