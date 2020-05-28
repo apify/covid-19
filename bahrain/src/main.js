@@ -23,7 +23,8 @@ Apify.main(async () => {
 
             const data = {
                 tested: parseInt($($('table').get(0)).find('th span').text(),10),
-                infected,
+                activeCases: infected,
+                infected: infected + recipients + deceased,
                 stable,
                 undercare,
                 recipients,
