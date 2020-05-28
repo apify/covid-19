@@ -2,7 +2,7 @@ const Apify = require('apify');
 const httpRequest = require('@apify/http-request');
 
 Apify.main(async () => {
-    const { email } = await Apify.getInput();
+    // const { email } = await Apify.getInput();
     // get aggregatorData and assign it to respective variable
     const { body: aggregatorData } = await httpRequest({
         url: 'https://api.apify.com/v2/key-value-stores/tVaYRsPHLjNdNBu7S/records/LATEST?disableRedirect=true',
@@ -50,16 +50,17 @@ Apify.main(async () => {
     // if there's at least one country with deviation over 5%
     if (highDeviation) {
         // Then we save report to OUTPUT
-        // await Apify.setValue('OUTPUT', result);
-        await Apify.setValue('OUTPUT', result.filter(x => (x.deviation > 0 || x.deviation < 0 )));
-        try {
-            const env = Apify.getEnv();
-            // And send email with the link to this report
-            await Apify.call('apify/send-mail', {
-                to: email,
-                subject: 'COVID-19 Statistics Checker found deviation over 5% for some countries',
-                html: `H!.${'<br/>'}Some countries have deviation over 5% between Aggregator and Worldometer Data.${'<br/>'}Details <a href="https://api.apify.com/v2/key-value-stores/${env.defaultKeyValueStoreId}/records/OUTPUT?disableRedirect=true">here</a>.`,
-            }, { waitSecs: 0 });
-        } catch (e) {}
+        await Apify.setValue('OUTPUT', result);
+        // const output = result.filter(x => (x.deviation > 0 || x.deviation < 0 ))
+        // await Apify.setValue('OUTPUT', output);
+        // try {
+        //     const env = Apify.getEnv();
+        //     // And send email with the link to this report
+        //     await Apify.call('apify/send-mail', {
+        //         to: email,
+        //         subject: 'COVID-19 Statistics Checker found deviation over 5% for some countries',
+        //         html: `H!.${'<br/>'}Some countries have deviation over 5% between Aggregator and Worldometer Data.${'<br/>'}Details <a href="https://api.apify.com/v2/key-value-stores/${env.defaultKeyValueStoreId}/records/OUTPUT?disableRedirect=true">here</a>.`,
+        //     }, { waitSecs: 0 });
+        // } catch (e) {}
     }
 });
