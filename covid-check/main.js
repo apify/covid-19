@@ -32,6 +32,7 @@ Apify.main(async () => {
     }
 
     let highDeviation = false;
+    const resultWithoutZeroDeviation = {}
     // let's iterate through each key and save the deviation if entry was present in both files
     for (const key of Object.keys(result)) {
         if (result[key].totalCases && result[key].infected) {
@@ -43,24 +44,48 @@ Apify.main(async () => {
         }
         // mark if the deviation is over 5% for at least one of the counties
         if (result[key].deviation && Math.abs(result[key].deviation) >= 5) highDeviation = true;
+        if (result[key].deviation && result[key].deviation !== 0)
+        {resultWithoutZeroDeviation[key] = result[key]}
     }
-    
-    // await Apify.pushData('result');
-
-    // if there's at least one country with deviation over 5%
     if (highDeviation) {
-        // Then we save report to OUTPUT
-        await Apify.setValue('OUTPUT', result);
-        // const output = result.filter(x => (x.deviation > 0 || x.deviation < 0 ))
-        // await Apify.setValue('OUTPUT', output);
-        // try {
-        //     const env = Apify.getEnv();
-        //     // And send email with the link to this report
-        //     await Apify.call('apify/send-mail', {
-        //         to: email,
-        //         subject: 'COVID-19 Statistics Checker found deviation over 5% for some countries',
-        //         html: `H!.${'<br/>'}Some countries have deviation over 5% between Aggregator and Worldometer Data.${'<br/>'}Details <a href="https://api.apify.com/v2/key-value-stores/${env.defaultKeyValueStoreId}/records/OUTPUT?disableRedirect=true">here</a>.`,
-        //     }, { waitSecs: 0 });
-        // } catch (e) {}
+        // Then we save report to OUTPUT        await Apify.setValue('OUTPUT', resultWithoutZeroDeviation);
+        // Or create a dataset
+        await Apify.pushData(resultWithoutZeroDeviation);
     }
+
+    // let highDeviation = false;
+    // // let's iterate through each key and save the deviation if entry was present in both files
+    // for (const key of Object.keys(result)) {
+    //     if (result[key].totalCases && result[key].infected) {
+    //         // that's just a rough calculation - difference vs one of the values
+    //         result[key].deviation = (result[key].totalCases - result[key].infected) / result[key].infected * 100;
+    //     } else {
+    //         // or just save null
+    //         result[key].deviation = null;
+    //     }
+    //     // mark if the deviation is over 5% for at least one of the counties
+    //     if (result[key].deviation && Math.abs(result[key].deviation) >= 5) highDeviation = true;
+    // }
+    
+    // // await Apify.pushData('result');
+
+    // // if there's at least one country with deviation over 5%
+
+
+
+    // if (highDeviation) {
+    //     // Then we save report to OUTPUT
+    //     await Apify.setValue('OUTPUT', result);
+    //     // const output = result.filter(x => (x.deviation > 0 || x.deviation < 0 ))
+    //     // await Apify.setValue('OUTPUT', output);
+    //     // try {
+    //     //     const env = Apify.getEnv();
+    //     //     // And send email with the link to this report
+    //     //     await Apify.call('apify/send-mail', {
+    //     //         to: email,
+    //     //         subject: 'COVID-19 Statistics Checker found deviation over 5% for some countries',
+    //     //         html: `H!.${'<br/>'}Some countries have deviation over 5% between Aggregator and Worldometer Data.${'<br/>'}Details <a href="https://api.apify.com/v2/key-value-stores/${env.defaultKeyValueStoreId}/records/OUTPUT?disableRedirect=true">here</a>.`,
+    //     //     }, { waitSecs: 0 });
+    //     // } catch (e) {}
+    // }
 });
