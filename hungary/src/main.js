@@ -28,7 +28,8 @@ Apify.main(async () => {
             const date = new Date($($('.view-diagrams .well-lg p').get(0)).text().replace('Legutolsó frissítés dátuma: ', ''));
 
             const data = {
-                infected,
+                infected: infected + recovered + deceased,
+                activeInfected: infected,
                 deceased,
                 recovered,
                 quarantined,
@@ -38,6 +39,8 @@ Apify.main(async () => {
                 lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
                 readMe: 'https://apify.com/tugkan/covid-hu',
             };
+
+            console.log(data)
 
             // Compare and save to history
             const latest = await kvStore.getValue(LATEST) || {};
