@@ -32,7 +32,8 @@ Apify.main(async () => {
     }
 
     let highDeviation = false;
-    const resultWithoutZeroDeviation = {}
+    const resultWithoutZeroDeviation = {};
+    const resultWithHighDeviation = {};
     // let's iterate through each key and save the deviation if entry was present in both files
     for (const key of Object.keys(result)) {
         if (result[key].totalCases && result[key].infected) {
@@ -44,13 +45,18 @@ Apify.main(async () => {
         }
         // mark if the deviation is over 5% for at least one of the counties
         if (result[key].deviation && Math.abs(result[key].deviation) >= 5) highDeviation = true;
-        if (result[key].deviation && result[key].deviation !== 0)
-        {resultWithoutZeroDeviation[key] = result[key]}
+
+        // save Object with all countries which are different at all or null
+        if ((result[key].deviation && result[key].deviation !== 0) || (result[key].deviation === null)) { resultWithoutZeroDeviation[key] = result[key] }
+
+        // save Object with all countries which are different by more then 5%
+        if ((result[key].deviation && Math.abs(result[key].deviation) >= 5) || (result[key].deviation === null)) { resultWithHighDeviation[key] = result[key] };
     }
     if (highDeviation) {
-        // Then we save report to OUTPUT        await Apify.setValue('OUTPUT', resultWithoutZeroDeviation);
+        // Then we save report to OUTPUT        
+        await Apify.setValue('OUTPUT', resultWithoutZeroDeviation);
         // Or create a dataset
-        await Apify.pushData(resultWithoutZeroDeviation);
+        await Apify.pushData(resultWithHighDeviation);
     }
 
     // let highDeviation = false;
@@ -66,7 +72,7 @@ Apify.main(async () => {
     //     // mark if the deviation is over 5% for at least one of the counties
     //     if (result[key].deviation && Math.abs(result[key].deviation) >= 5) highDeviation = true;
     // }
-    
+
     // // await Apify.pushData('result');
 
     // // if there's at least one country with deviation over 5%
