@@ -19,15 +19,17 @@ Apify.main(async () => {
             log.info('Page loaded.');
             const now = new Date();
 
-            const activeCases = parseInt($($('#ContentPlaceHolder_contentPlaceholder_C072_Col00 tr td').get(1)).text().trim().replace(/\D/,''), 10);
-            const stableHospitalized = parseInt($($('#ContentPlaceHolder_contentPlaceholder_C073_Col01 tr td').get(1)).text().trim().replace(/\D/,''), 10);
-            const criticalHospitalized = parseInt($($('#ContentPlaceHolder_contentPlaceholder_C073_Col02 tr td').get(1)).text().trim().replace(/\D/,''), 10);
-            const deaths = parseInt($($('#ContentPlaceHolder_contentPlaceholder_C073_Col03 tr td').get(1)).text().trim().replace(/\D/,''), 10);
-            const discharged = parseInt($($('#ContentPlaceHolder_contentPlaceholder_C072_Col01 tr td').get(1)).text().trim().replace(/\D/,''), 10);
-            const dischargeToIsolation = parseInt($($('#ContentPlaceHolder_contentPlaceholder_C073_Col00 tr td').get(1)).text().trim().replace(/\D/,''), 10);
+            const activeCases = parseInt($($('#ContentPlaceHolder_contentPlaceholder_C072_Col00 tr td').get(1)).text().trim().replace(/\D/, ''), 10);
+            const stableHospitalized = parseInt($($('#ContentPlaceHolder_contentPlaceholder_C073_Col01 tr td').get(1)).text().trim().replace(/\D/, ''), 10);
+            const criticalHospitalized = parseInt($($('#ContentPlaceHolder_contentPlaceholder_C073_Col02 tr td').get(1)).text().trim().replace(/\D/, ''), 10);
+            const deaths = parseInt($($('#ContentPlaceHolder_contentPlaceholder_C073_Col03 tr td').get(1)).text().trim().replace(/\D/, ''), 10);
+            const discharged = parseInt($($('#ContentPlaceHolder_contentPlaceholder_C072_Col01 tr td').get(1)).text().trim().replace(/\D/, ''), 10);
+            const inCommunityFacilites = parseInt($($('#ContentPlaceHolder_contentPlaceholder_C073_Col00 tr td').get(1)).text().trim().replace(/\D/, ''), 10);
 
             const data = {
-                infected: deaths + discharged + dischargeToIsolation + activeCases,
+                infected: deaths + discharged + activeCases,
+                discharged,
+                inCommunityFacilites,
                 stableHospitalized,
                 criticalHospitalized,
                 activeCases,
@@ -38,13 +40,15 @@ Apify.main(async () => {
                 readMe: 'https://apify.com/tugkan/covid-sg',
             };
 
+            console.log(data);
+
             // Compare and save to history
             const latest = await kvStore.getValue(LATEST) || {};
             delete latest.lastUpdatedAtApify;
             const actual = Object.assign({}, data);
             delete actual.lastUpdatedAtApify;
 
-            await Apify.pushData({...data});
+            await Apify.pushData({ ...data });
 
             if (JSON.stringify(latest) !== JSON.stringify(actual)) {
                 log.info('Data did change :( storing new to dataset.');
