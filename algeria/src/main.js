@@ -62,10 +62,10 @@ Apify.main(async () => {
 
                 const date = text.match(/(?<=Mise à jour(.)*)[\d\/]+/g)[0];
 
-                const hospitalized = strToInt(text.match(/(?<=تحت(\s+)العناية(\s+)المركزة\s*)[\d,]+/g)[0]);
+                const hospitalized = strToInt($('div:contains(تحت العناية المركزة)').last().parent().text().match(/[\d,]+/g)[0]);
                 const infected = strToInt(text.match(/(?<=الحالات(\s+)المؤكدة\s*)[\d,]+/g)[0]);
-                const recovered = strToInt(text.match(/(?<=حالة(\s+)شفاء\s*)[\d,]+/g)[0]);
-                const deceased = strToInt(text.match(/(?<=حالة(\s+)وفاة\s*)[\d,]+/g)[0]);
+                const recovered = strToInt($('div:contains(حالة شفاء)').last().parent().text().match(/[\d,]+/g)[0]);
+                const deceased = strToInt($('div:contains(حالة وفاة)').last().parent().text().match(/[\d,]+/g)[0]);
 
                 const spans = $($('nav.feature-list')[1]).find('span[class*="ember"]').toArray();
 
