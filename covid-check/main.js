@@ -23,9 +23,16 @@ Apify.main(async () => {
 
     // for each key (country from the set we created)
     for (const key of keys) {
+        const countries = {
+            "Czech Republic": "Czechia",
+            "United Kingdom": "UK",
+            "United States": "USA",
+            "South Korea": "S. Korea"
+        }
         result[key] = {}; // create an object first with a selected key
         const adItem = aggregatorData.find(item => item.country === key);
-        const wmItem = worldometerData.find(item => item.country === key);
+        // const adItem = aggregatorData.find(item => item.country === key || item.country === countries[key]);
+        const wmItem = worldometerData.find(item => item.country === key  || item.country === countries[key]);
         // now let's save the found values (if found, otherwise null)
         result[key].infected = adItem ? adItem.infected : null;
         result[key].totalCases = wmItem ? wmItem.totalCases : null;
