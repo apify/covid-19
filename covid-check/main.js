@@ -41,6 +41,7 @@ Apify.main(async () => {
     let highDeviation = false;
     const resultWithoutZeroDeviation = {};
     const resultWithHighDeviation = {};
+    const resultForWorldometer = {};
     // let's iterate through each key and save the deviation if entry was present in both files
     for (const key of Object.keys(result)) {
         if (result[key].totalCases && result[key].infected) {
@@ -58,10 +59,15 @@ Apify.main(async () => {
 
         // save Object with all countries which are different by more then 5%
         if ((result[key].deviation && Math.abs(result[key].deviation) >= 5) || (result[key].deviation === null)) { resultWithHighDeviation[key] = result[key] };
+
+        // save Object with all countries where we are forward from WM
+        if ((result[key].deviation && result[key].deviation < 0)) { resultForWorldometer[key] = result[key] };
+
     }
     if (highDeviation) {
         // Then we save report to OUTPUT        
         await Apify.setValue('OUTPUT', resultWithoutZeroDeviation);
+        await Apify.setValue('WM', resultForWorldometer);
         // Or create a dataset
         await Apify.pushData(resultWithHighDeviation);
     }
