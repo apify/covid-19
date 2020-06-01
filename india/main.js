@@ -28,12 +28,18 @@ Apify.main(async () => {
         const deaths = Number($('#site-dashboard > div > div > div > div > ul > li.bg-red > strong').text());
 
         const rawTableRows = [...document.querySelectorAll("#state-data > div > div > div > div > table > tbody > tr")];
-        const regionsTableRows = rawTableRows.filter(row => row.querySelectorAll('td').length === 5);
+        const regionsTableRows = rawTableRows.filter(row => row.querySelectorAll('td').length === 6);
         const regionData = [];
 
         for (const row of regionsTableRows) {
             const cells = Array.from(row.querySelectorAll("td")).map(td => td.textContent);
-            regionData.push({ region: cells[1], totalInfected: Number(cells[2]), recovered: Number(cells[3]), deceased: Number(cells[4]) });
+            if (cells[1] !== 'Total#') regionData.push({
+                region: cells[1],
+                totalInfected: Number(cells[2]),
+                recovered: Number(cells[3]),
+                deceased: Number(cells[4]),
+                totalCases: Number(cells[5]),
+            });
         }
 
         const data = {
