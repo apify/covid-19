@@ -24,13 +24,13 @@ Apify.main(async () => {
     const result = await page.evaluate(() => {
         const now = new Date();
 
-        const iframeDocument = document.querySelector('#g-header .g-content > iframe').contentDocument;
-        const testedPositive = iframeDocument.querySelector('.InfographicEditor-Contents-Item:nth-child(19) span[data-text=true]').innerText;
-        const recovered = iframeDocument.querySelector('.InfographicEditor-Contents-Item:nth-child(17) span[data-text=true]').innerText;
-        const activeCases = iframeDocument.querySelector('.InfographicEditor-Contents-Item:nth-child(21) span[data-text=true]').innerText;
-        const inICU = iframeDocument.querySelector('.InfographicEditor-Contents-Item:nth-child(37) .__ig-alignCenter:nth-child(2) span[data-text=true]').innerText;
-        const respiratoryAid = iframeDocument.querySelector('.InfographicEditor-Contents-Item:nth-child(38) .__ig-alignCenter:nth-child(2) span[data-text=true]').innerText;
-        const deceased = iframeDocument.querySelector('.InfographicEditor-Contents-Item:nth-child(18) span[data-text=true]').innerText;
+        const iframeDocument = document.querySelector('#g-header .g-content iframe').contentDocument;
+        const testedPositive = iframeDocument.querySelector('.InfographicEditor-Contents-Item:nth-child(29) span[data-text=true]').innerText;
+        const recovered = iframeDocument.querySelector('.InfographicEditor-Contents-Item:nth-child(19) span[data-text=true]').innerText;
+        const activeCases = iframeDocument.querySelector('.InfographicEditor-Contents-Item:nth-child(22) span[data-text=true]').innerText;
+        const inICU = iframeDocument.querySelector('.InfographicEditor-Contents-Item:nth-child(35) .__ig-alignCenter:nth-child(2) span[data-text=true]').innerText;
+        const respiratoryAid = iframeDocument.querySelector('.InfographicEditor-Contents-Item:nth-child(36) .__ig-alignCenter:nth-child(2) span[data-text=true]').innerText;
+        const deceased = iframeDocument.querySelector('.InfographicEditor-Contents-Item:nth-child(20) span[data-text=true]').innerText;
 
         const data = {
             testedPositive: Number(testedPositive),
