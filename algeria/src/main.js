@@ -60,7 +60,8 @@ Apify.main(async () => {
                 }
                 const text = $('full-container full-container').text().replace(/(\n|\r)/g, '').trim()
 
-                const date = text.match(/(?<=Mise à jour(.)*)[\d\/]+/g)[0];
+                const date = $('div:contains(اخر تحديث)').last().text()
+                    .match(/[0-2]{1,2}\/[0-9]{1,2}\/[0-9]{4}.*[0-9]{1,2}:[0-9]{1,2}/)[0];
 
                 const hospitalized = strToInt($('div:contains(تحت العناية المركزة)').last().parent().text().match(/[\d,]+/g)[0]);
                 const infected = strToInt(text.match(/(?<=الحالات(\s+)المؤكدة\s*)[\d,]+/g)[0]);
@@ -90,7 +91,7 @@ Apify.main(async () => {
                 return;
             }
 
-            let sourceDate = new Date(await formatDate(extracted.date));
+            let sourceDate = new Date(formatDate(extracted.date));
             delete extracted.date;
 
             // ADD:  infected, hospitalized, recovered, deceased, infectedByRegion
@@ -138,7 +139,7 @@ Apify.main(async () => {
     log.info('Done.');
 });
 
-async function formatDate(date) {
+function formatDate(date) {
     [a, b, c] = date.split('/');
-    return `${b} /${a}/${c} `;
+    return `${b} /${a}/${c} `.replace(/,/g, '');
 }
