@@ -1,0 +1,11 @@
+{
+  "infected": "",
+  "recovered": "",
+  "deceased": "",
+  "newInfected": "",
+  "isolated": "",
+  "connectedDeaths": "",
+  "stillSick": "",
+  "sourceUrl": "http://sam.lrv.lt/lt/naujienos/koronavirusas",
+  "readMe": "https://apify.com/dtrungtin/covid-lt"
+}
