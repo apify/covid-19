@@ -1,5 +1,5 @@
 const Apify = require('apify');
-const moment = require('moment-timezone');
+// const moment = require('moment-timezone');
 const _ = require('lodash');
 
 const { log } = Apify.utils;
@@ -30,7 +30,7 @@ Apify.main(async () => {
             log.info('Processing and saving data')
             const data = {
                 sourceUrl,
-                lastUpdatedAtApify: moment().utc().second(0).millisecond(0).toISOString(),
+                // lastUpdatedAtApify: moment().utc().second(0).millisecond(0).toISOString(),
                 readMe: "https://apify.com/dtrungtin/covid-si",
             };
 
@@ -38,7 +38,7 @@ Apify.main(async () => {
             if (columns.length > 0) {
                 const confirmedDateText = $(columns[0]).text();
                 const tested = parseInt($(columns[1]).text());
-                const positive = parseInt($(columns[2]).text());
+                const positive = parseInt($(columns[3]).text());
                 const hospitalized = parseInt($(columns[3]).text());
                 const intensiveCare = parseInt($(columns[4]).text());
                 const discharged = parseInt($(columns[5]).text());
@@ -46,24 +46,24 @@ Apify.main(async () => {
 
                 const infected = positive + hospitalized + intensiveCare;
 
-                const matchUpadatedAt = confirmedDateText.match(/(\d+).\s+(\d+).\s+(\d+)/);
+                // const matchUpadatedAt = confirmedDateText.match(/(\d+).\s+(\d+).\s+(\d+)/);
 
-                if (matchUpadatedAt && matchUpadatedAt.length > 3) {
-                    data.lastUpdatedAtSource = moment({
-                        year: parseInt(matchUpadatedAt[3]),
-                        month: parseInt(matchUpadatedAt[2]) - 1,
-                        date: parseInt(matchUpadatedAt[1]),
-                        hour: 0,
-                        minute: 0,
-                        second: 0,
-                        millisecond: 0
-                    }).toISOString();
-                } else {
-                    throw new Error('lastUpdatedAtSource not found');
-                }
+                // if (matchUpadatedAt && matchUpadatedAt.length > 3) {
+                //     data.lastUpdatedAtSource = moment({
+                //         year: parseInt(matchUpadatedAt[3]),
+                //         month: parseInt(matchUpadatedAt[2]) - 1,
+                //         date: parseInt(matchUpadatedAt[1]),
+                //         hour: 0,
+                //         minute: 0,
+                //         second: 0,
+                //         millisecond: 0
+                //     }).toISOString();
+                // } else {
+                //     throw new Error('lastUpdatedAtSource not found');
+                // }
 
                 data.testedCases = tested;
-                data.infectedCases = infected;
+                data.infectedCases = positive;
                 data.numberOfDeath = died;
                 data.discharged = discharged;
             }

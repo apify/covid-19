@@ -55,7 +55,7 @@ Apify.main(async () => {
         if (result[key].deviation_percent && Math.abs(result[key].deviation_percent) >= 5) highDeviation = true;
 
         // save Object with all countries which are different at all or null
-        if ((result[key].deviation_percent && result[key].deviation_percent !== 0) || (result[key].deviation_percent === null)) { resultWithoutZeroDeviation[key] = result[key] }
+        if ((result[key].deviation_percent && result[key].deviation_percent > 0) || (result[key].deviation_percent && result[key].deviation_percent < 0) || (result[key].deviation_percent === null)) { resultWithoutZeroDeviation[key] = result[key] }
 
         // save Object with all countries which are different by more then 5%
         if ((result[key].deviation_percent && Math.abs(result[key].deviation_percent) >= 5) || (result[key].deviation_percent === null)) { resultWithHighDeviation[key] = result[key] };
@@ -65,9 +65,9 @@ Apify.main(async () => {
 
     }
     if (highDeviation) {
-        // Then we save report to OUTPUT        
-        await Apify.setValue('OUTPUT', resultWithoutZeroDeviation);
-        await Apify.setValue('WM', resultForWorldometer);
+        // Then we save report to KVS        
+        await Apify.setValue('ALL_DEVIATIONS', resultWithoutZeroDeviation);
+        await Apify.setValue('APIFY_MORE_THEN_WM', resultForWorldometer);
         // Or create a dataset
         await Apify.pushData(resultWithHighDeviation);
     }
