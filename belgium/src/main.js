@@ -26,7 +26,7 @@ Apify.main(async () => {
     const cheerioCrawler = new Apify.CheerioCrawler({
         requestQueue,
         maxRequestRetries: 5,
-        requestTimeoutSecs: 60,
+        requestTimeoutSecs: 90,
         useApifyProxy: true,
         additionalMimeTypes: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/plain'],
         prepareRequestFunction: async ({ request }) => {
@@ -41,7 +41,8 @@ Apify.main(async () => {
                 case 'GET_XLSX_LINK':
                     log.info(`Proccecing ${request.url}`)
                     log.info(`Getting xlsx download link.`)
-                    const $xlsxLink = $("#Data li").first().find('a').attr('href');
+                    const $xlsxLink = $("td:contains(Complete dataset)").next().find('a').attr('href');
+
                     await requestQueue.addRequest({
                         url: $xlsxLink,
                         userData: {
