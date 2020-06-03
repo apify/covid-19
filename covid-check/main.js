@@ -34,8 +34,8 @@ Apify.main(async () => {
         // const adItem = aggregatorData.find(item => item.country === key || item.country === countries[key]);
         const wmItem = worldometerData.find(item => item.country === key  || item.country === countries[key]);
         // now let's save the found values (if found, otherwise null)
-        result[key].infected = adItem ? adItem.infected : null;
-        result[key].totalCases = wmItem ? wmItem.totalCases : null;
+        result[key].infected_Apify = adItem ? adItem.infected : null;
+        result[key].infected_WM = wmItem ? wmItem.totalCases : null;
     }
 
     let highDeviation = false;
@@ -44,24 +44,24 @@ Apify.main(async () => {
     const resultForWorldometer = {};
     // let's iterate through each key and save the deviation if entry was present in both files
     for (const key of Object.keys(result)) {
-        if (result[key].totalCases && result[key].infected) {
+        if (result[key].infected_WM && result[key].infected_Apify) {
             // that's just a rough calculation - difference vs one of the values
-            result[key].deviation = (result[key].totalCases - result[key].infected) / result[key].infected * 100;
+            result[key].deviation_percent = ((result[key].infected_WM - result[key].infected_Apify) / result[key].infected_Apify * 100).toFixed(2);
         } else {
             // or just save null
-            result[key].deviation = null;
+            result[key].deviation_percent = null;
         }
-        // mark if the deviation is over 5% for at least one of the counties
-        if (result[key].deviation && Math.abs(result[key].deviation) >= 5) highDeviation = true;
+        // mark if the deviation_percent is over 5% for at least one of the counties
+        if (result[key].deviation_percent && Math.abs(result[key].deviation_percent) >= 5) highDeviation = true;
 
         // save Object with all countries which are different at all or null
-        if ((result[key].deviation && result[key].deviation !== 0) || (result[key].deviation === null)) { resultWithoutZeroDeviation[key] = result[key] }
+        if ((result[key].deviation_percent && result[key].deviation_percent !== 0) || (result[key].deviation_percent === null)) { resultWithoutZeroDeviation[key] = result[key] }
 
         // save Object with all countries which are different by more then 5%
-        if ((result[key].deviation && Math.abs(result[key].deviation) >= 5) || (result[key].deviation === null)) { resultWithHighDeviation[key] = result[key] };
+        if ((result[key].deviation_percent && Math.abs(result[key].deviation_percent) >= 5) || (result[key].deviation_percent === null)) { resultWithHighDeviation[key] = result[key] };
 
         // save Object with all countries where we are forward from WM
-        if ((result[key].deviation && result[key].deviation < 0)) { resultForWorldometer[key] = result[key] };
+        if ((result[key].deviation_percent && result[key].deviation_percent < 0)) { resultForWorldometer[key] = result[key] };
 
     }
     if (highDeviation) {
@@ -75,9 +75,9 @@ Apify.main(async () => {
     // let highDeviation = false;
     // // let's iterate through each key and save the deviation if entry was present in both files
     // for (const key of Object.keys(result)) {
-    //     if (result[key].totalCases && result[key].infected) {
+    //     if (result[key].infected_WM && result[key].infected_Apify) {
     //         // that's just a rough calculation - difference vs one of the values
-    //         result[key].deviation = (result[key].totalCases - result[key].infected) / result[key].infected * 100;
+    //         result[key].deviation = (result[key].infected_WM - result[key].infected_Apify) / result[key].infected_Apify * 100;
     //     } else {
     //         // or just save null
     //         result[key].deviation = null;
