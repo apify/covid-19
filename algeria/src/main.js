@@ -61,7 +61,7 @@ Apify.main(async () => {
                 const text = $('full-container full-container').text().replace(/(\n|\r)/g, '').trim()
 
                 const date = $('div:contains(اخر تحديث)').last().text()
-                    .match(/[0-2]{1,2}\/[0-9]{1,2}\/[0-9]{4}.*[0-9]{1,2}:[0-9]{1,2}/)[0];
+                    .match(/[0-9]{1,2}\/[0-9]{1,2}\/[0-9]{4}.*[0-9]{1,2}:[0-9]{1,2}/)[0];
 
                 const hospitalized = strToInt($('div:contains(تحت العناية المركزة)').last().parent().text().match(/[\d,]+/g)[0]);
                 const infected = strToInt(text.match(/(?<=الحالات(\s+)المؤكدة\s*)[\d,]+/g)[0]);
