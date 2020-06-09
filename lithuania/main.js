@@ -13,13 +13,13 @@ Apify.main(async () => {
     console.log('Getting data...');
     const { body } = await httpRequest({ url: sourceUrl });
     const $ = cheerio.load(body);
-    const infected = $('#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul:nth-child(5) > li:nth-child(1) > span > span > span > b').text();
-    const deceased = $('#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul:nth-child(5) > li:nth-child(4) > span > span > span > b').text();
-    const recovered = $("#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul:nth-child(5) > li:nth-child(6) > span > span > span > b").text();
-    const newInfected = $("#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul:nth-child(5) > li:nth-child(3) > span > span > span > b").text();
-    const isolated = $("#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul:nth-child(5) > li:nth-child(7) > span > span > span > b").text();
-    const connectedDeaths = $('#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul:nth-child(5) > li:nth-child(5) > span > span > span > b').text();
-    const stillSick = $('#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul:nth-child(5) > li:nth-child(2) > span > span > span > b').text();
+    const infected = $('#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(1) > strong').text();
+    const deceased = $('#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(4) > strong').text();
+    const recovered = $("#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(6) > strong").text();
+    const newInfected = $("#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(3) > strong").text();
+    const isolated = $("#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(3) > strong").text();
+    const connectedDeaths = $('#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(5) > strong').text();
+    const stillSick = $('#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(2) > strong').text();
     
     const now = new Date();
 
