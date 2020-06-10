@@ -127,7 +127,7 @@ Apify.main(async () => {
     if (latest) {
         delete latest.lastUpdatedAtApify;
     }
-    if (data.infected > 0 || data.deceased === 0) {
+    if (data.infected === 0 || data.deceased === 0) {
         failedBefore = failedBefore + 1;
         await Apify.setValue('COVID-19-JAPAN-FAILD', failedBefore);
         log.error('Latest data are high then actual - probably wrong scrap');
