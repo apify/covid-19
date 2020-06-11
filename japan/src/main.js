@@ -11,8 +11,9 @@ const LABELS = {
 };
 
 Apify.main(async () => {
-    const { notificationEmail } = await Apify.getInput();
+    const { notificationEmail, failedLimit = 5 } = await Apify.getInput();
     const requestQueue = await Apify.openRequestQueue();
+    let failedBefore = (await Apify.getValue('COVID-19-JAPAN-FAILD')) || 0;
     const kvStore = await Apify.openKeyValueStore('COVID-19-JAPAN');
     const dataset = await Apify.openDataset("COVID-19-JAPAN-HISTORY");
     const requestList = await Apify.openRequestList('LIST', [
@@ -24,7 +25,7 @@ Apify.main(async () => {
         { url: 'https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Japan', userData: { label: LABELS.WIKI }}
     ])
 
-    if (notificationEmail) {
+    if (notificationEmail && failedLimit < failedBefore) {
         await Apify.addWebhook({
             eventTypes: ['ACTOR.RUN.FAILED', 'ACTOR.RUN.TIMED_OUT'],
             requestUrl: `https://api.apify.com/v2/acts/mnmkng~email-notification-webhook/runs?token=${Apify.getEnv().token}`,
@@ -127,6 +128,8 @@ Apify.main(async () => {
         delete latest.lastUpdatedAtApify;
     }
     if (data.infected === 0 || data.deceased === 0) {
+        failedBefore = failedBefore + 1;
+        await Apify.setValue('COVID-19-JAPAN-FAILD', failedBefore);
         log.error('Latest data are high then actual - probably wrong scrap');
         log.info('ACTUAL DATA');
         console.log(data);
@@ -143,6 +146,7 @@ Apify.main(async () => {
         await dataset.pushData(data);
     }
 
+    await Apify.setValue('COVID-19-JAPAN-FAILD', 0);
     await kvStore.setValue(LATEST, data);
     log.info('Data stored, finished.')
 });
