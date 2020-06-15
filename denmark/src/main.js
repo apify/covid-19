@@ -11,13 +11,13 @@ Apify.main(async () => {
     console.log('Getting data...');
     const { body } = await httpRequest({ url: sourceUrl });
     const $ = cheerio.load(body);
-    const infected = $('#top > div.main-content > section.rte.w-max > div:nth-child(4) > table > tbody > tr:nth-child(2) > td:nth-child(4)').text()
-    const recovered = $('#top > div.main-content > section.rte.w-max > div:nth-child(4) > table > tbody > tr:nth-child(2) > td:nth-child(5)').text()
-    const deceased_long = $('#top > div.main-content > section.rte.w-max > div:nth-child(4) > table > tbody > tr:nth-child(2) > td:nth-child(6)').text();
+    const infected = $('#top > div.main-content > section.rte.w-max > div:nth-child(5) > table > tbody > tr:nth-child(2) > td:nth-child(4)').text()
+    const recovered = $('#top > div.main-content > section.rte.w-max > div:nth-child(5) > table > tbody > tr:nth-child(2) > td:nth-child(5)').text()
+    const deceased_long = $('#top > div.main-content > section.rte.w-max > div:nth-child(5) > table > tbody > tr:nth-child(2) > td:nth-child(6)').text();
     const deceased_split = deceased_long.split(' ');
     const deceased = deceased_split[0];
-    const tested = $('#top > div.main-content > section.rte.w-max > div:nth-child(4) > table > tbody > tr:nth-child(2) > td:nth-child(3)').text()
-    const tests = $('#top > div.main-content > section.rte.w-max > div:nth-child(4) > table > tbody > tr:nth-child(2) > td:nth-child(2)').text()
+    const tested = $('#top > div.main-content > section.rte.w-max > div:nth-child(5) > table > tbody > tr:nth-child(2) > td:nth-child(3)').text()
+    const tests = $('#top > div.main-content > section.rte.w-max > div:nth-child(5) > table > tbody > tr:nth-child(2) > td:nth-child(2)').text()
 
     const now = new Date();
 

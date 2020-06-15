@@ -21,13 +21,13 @@ Apify.main(async () => {
             const accordion = mainSection.find('.accordion > details')
 
             const infectedRow = accordion.eq(0);
-            const infected = infectedRow.find('summary > span:first-child').text().trim().replace('.','');
+            const infected = infectedRow.find('summary > span:first-child').text().trim().replace('.', '');
             const testedRow = accordion.eq(1);
-            const tested = testedRow.find('summary > span:first-child').text().trim().replace('.','');
+            const tested = testedRow.find('summary > span:first-child').text().trim().replace('.', '');
             const deceasedRow = accordion.eq(2);
-            const deceased = deceasedRow.find('summary > span:first-child').text().trim().replace('.','');
+            const deceased = deceasedRow.find('summary > span:first-child').text().trim().replace('.', '');
 
-            const [day,month,year] =$('.page-text .box-content .date').text().replace(/\(|\)/g,'').split('.');
+            const [day, month, year] = $('.page-text .box-content .date').text().replace(/\(|\)/g, '').split('.');
             let lastUpdatedParsed = new Date(`${month}.${day}.${year}`);
 
             const data = {
@@ -39,6 +39,7 @@ Apify.main(async () => {
                 lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
                 readMe: 'https://apify.com/tugkan/covid-lu',
             };
+            console.log(data);
 
             // Compare and save to history
             const latest = await kvStore.getValue(LATEST) || {};
@@ -46,7 +47,7 @@ Apify.main(async () => {
             const actual = Object.assign({}, data);
             delete actual.lastUpdatedAtApify;
 
-            await Apify.pushData({...data});
+            await Apify.pushData({ ...data });
 
             if (JSON.stringify(latest) !== JSON.stringify(actual)) {
                 log.info('Data did change :( storing new to dataset.');
