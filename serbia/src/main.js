@@ -31,7 +31,7 @@ const activeCases = toInt(active);
         infected,
         deceased,
         recovered: infected - deceased - activeCases,
-        tested: toInt(tested),
+        tested: tested.replace(',', ''),
         tested24hours: toInt(tested24hours),
         infected24hours: toInt(infected24hours),
         deceased24hours: toInt(deceased24hours),
