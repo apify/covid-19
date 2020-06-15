@@ -1,8 +1,10 @@
 const Apify = require('apify');
 
 const { log } = Apify.utils;
-const sourceUrl = 'https://gouvernement.lu/fr/dossiers.gouv_msan+fr+dossiers+2020+corona-virus.html#bloub-0';
+const sourceUrl = 'https://gouvernement.lu/fr/dossiers.gouv_msan+fr+dossiers+2020+corona-virus.html';
 const LATEST = 'LATEST';
+
+const toNumber = (text => parseInt(text.replace(/\D/g, ''), 10));
 
 Apify.main(async () => {
     const requestQueue = await Apify.openRequestQueue();
@@ -14,32 +16,29 @@ Apify.main(async () => {
         requestQueue,
         handlePageTimeoutSecs: 60 * 2,
         handlePageFunction: async ({ $ }) => {
+
             log.info('Page loaded.');
+            log.info('Processing and saving data.');
             const now = new Date();
 
-            const mainSection = $('.page-text section').eq(1);
-            const accordion = mainSection.find('.accordion > details')
+            const accordion = $('div.page-text section div.accordion').find('details')
 
-            const infectedRow = accordion.eq(0);
-            const infected = infectedRow.find('summary > span:first-child').text().trim().replace('.', '');
-            const testedRow = accordion.eq(1);
-            const tested = testedRow.find('summary > span:first-child').text().trim().replace('.', '');
-            const deceasedRow = accordion.eq(2);
-            const deceased = deceasedRow.find('summary > span:first-child').text().trim().replace('.', '');
+            const infected = toNumber($(accordion).eq(0).find('span').first().text());
+            const tested = toNumber($(accordion).eq(1).find('span').first().text());
+            const deceased = toNumber($(accordion).eq(2).find('span').first().text());
 
             const [day, month, year] = $('.page-text .box-content .date').text().replace(/\(|\)/g, '').split('.');
-            let lastUpdatedParsed = new Date(`${month}.${day}.${year}`);
+            let srcDate = new Date(`${month}.${day}.${year}`);
 
             const data = {
-                infected: parseInt(infected),
-                deceased: parseInt(deceased),
-                tested: parseInt(tested),
+                infected,
+                deceased,
+                tested,
                 sourceUrl,
-                lastUpdatedAtSource: lastUpdatedParsed.toISOString(),
+                lastUpdatedAtSource: new Date(Date.UTC(srcDate.getFullYear(), srcDate.getMonth(), srcDate.getDate(), srcDate.getHours(), srcDate.getMinutes())).toISOString(),
                 lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
                 readMe: 'https://apify.com/tugkan/covid-lu',
             };
-            console.log(data);
 
             // Compare and save to history
             const latest = await kvStore.getValue(LATEST) || {};
