@@ -66,10 +66,10 @@ Apify.main(async () => {
     }
     if (highDeviation) {
         // Then we save report to KVS        
-        await Apify.setValue('ALL_DEVIATIONS', resultWithoutZeroDeviation);
+        await Apify.setValue('CRITICAL_DEVIATIONS', resultWithHighDeviation);
         await Apify.setValue('APIFY_MORE_THEN_WM', resultForWorldometer);
         // Or create a dataset
-        await Apify.pushData(resultWithHighDeviation);
+        await Apify.pushData(resultWithoutZeroDeviation);
     }
 
     // let highDeviation = false;
