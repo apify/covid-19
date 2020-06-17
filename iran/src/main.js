@@ -42,11 +42,12 @@ Apify.main(async () => {
             const $values = $("div.MainContainercounter div.mainCounternew h2").toArray();
             if ($values.length !== 4) throw new Error('Page content changed');
 
-            data.infected = parseInt($($values[1]).text().replace(/( |,)/g, ''));
+            data.activeCases = parseInt($($values[1]).text().replace(/( |,)/g, ''));
             data.tested = 'N/A'
             data.recovered = parseInt($($values[2]).text().replace(/( |,)/g, ''));
             data.deceased = parseInt($($values[3]).text().replace(/( |,)/g, ''));
             data.newCases = parseInt($($values[0]).text().replace(/( |,)/g, ''));
+            data.infected = activeCases + recovered + deceased;
 
             // ADD: country, historyData, sourceUrl, lastUpdatedAtSource, lastUpdatedAtApify, readMe
             data.country = 'Iran';
