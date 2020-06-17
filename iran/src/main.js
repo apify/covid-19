@@ -38,24 +38,32 @@ Apify.main(async () => {
             const $ = cheerio.load(response.body);
 
             log.info('Processing and saving data.')
-            const data = {};
+
             const $values = $("div.MainContainercounter div.mainCounternew h2").toArray();
             if ($values.length !== 4) throw new Error('Page content changed');
 
-            data.activeCases = parseInt($($values[1]).text().replace(/( |,)/g, ''));
-            data.tested = 'N/A'
-            data.recovered = parseInt($($values[2]).text().replace(/( |,)/g, ''));
-            data.deceased = parseInt($($values[3]).text().replace(/( |,)/g, ''));
-            data.newCases = parseInt($($values[0]).text().replace(/( |,)/g, ''));
-            data.infected = activeCases + recovered + deceased;
 
-            // ADD: country, historyData, sourceUrl, lastUpdatedAtSource, lastUpdatedAtApify, readMe
-            data.country = 'Iran';
-            data.historyData = 'https://api.apify.com/v2/datasets/PJEXhmQM0hkN8K3BK/items?format=json&clean=1';
-            data.sourceUrl = sourceUrl;
-            data.lastUpdatedAtApify = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString();
-            data.lastUpdatedAtSource = 'N/A';
-            data.readMe = 'https://apify.com/onidivo/covid-ir';
+            const activeCases = parseInt($($values[1]).text().replace(/( |,)/g, ''));
+            const recovered = parseInt($($values[2]).text().replace(/( |,)/g, ''));
+            const deceased = parseInt($($values[3]).text().replace(/( |,)/g, ''));
+            const newCases = parseInt($($values[0]).text().replace(/( |,)/g, ''));
+
+            const data = {
+                activeCases,
+                recovered,
+                deceased,
+                newCases,
+                infected: activeCases + recovered + deceased,
+                // ADD: country, historyData, sourceUrl, lastUpdatedAtSource, lastUpdatedAtApify, readMe
+                country: 'Iran',
+                historyData: 'https://api.apify.com/v2/datasets/PJEXhmQM0hkN8K3BK/items?format=json&clean=1',
+                sourceUrl,
+                lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
+                lastUpdatedAtSource: 'N/A',
+                readMe: 'https://apify.com/onidivo/covid-ir',
+            };
+
+            console.log(data);
 
             // Push the data
             let latest = await kvStore.getValue(LATEST);
