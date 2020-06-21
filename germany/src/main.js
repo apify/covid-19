@@ -73,8 +73,10 @@ Apify.main(async () => {
         await dataset.pushData(data);
       }
 
-      if (latest.infected > data.infected || latest.deceased > data.deceased) {
+      if (latest.infected > data.infected || (latest.deceased - data.deceased) > 10) {
         log.error('Latest data are high then actual - probably wrong scrap');
+        log.info('latest');
+        console.log(latest);
         process.exit(1);
       }
 
