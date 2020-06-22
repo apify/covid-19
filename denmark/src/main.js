@@ -1,39 +1,46 @@
 const Apify = require('apify');
 const httpRequest = require('@apify/http-request')
 const cheerio = require('cheerio');
+const { log } = Apify.utils;
+
 const sourceUrl = 'https://www.ssi.dk/sygdomme-beredskab-og-forskning/sygdomsovervaagning/c/covid19-overvaagning';
 const LATEST = 'LATEST';
+
+const toInt = (num) => Number(num.replace(/\D/g, ''));
+const now = new Date();
 
 Apify.main(async () => {
     const kvStore = await Apify.openKeyValueStore('COVID-19-DENMARK');
     const dataset = await Apify.openDataset('COVID-19-DENMARK-HISTORY');
 
-    console.log('Getting data...');
+    log.info(`Getting data, URL: ${sourceUrl}`);
     const { body } = await httpRequest({ url: sourceUrl });
     const $ = cheerio.load(body);
-    const infected = $('#top > div.main-content > section.rte.w-max > div:nth-child(5) > table > tbody > tr:nth-child(2) > td:nth-child(4)').text()
-    const recovered = $('#top > div.main-content > section.rte.w-max > div:nth-child(5) > table > tbody > tr:nth-child(2) > td:nth-child(5)').text()
-    const deceased_long = $('#top > div.main-content > section.rte.w-max > div:nth-child(5) > table > tbody > tr:nth-child(2) > td:nth-child(6)').text();
-    const deceased_split = deceased_long.split(' ');
-    const deceased = deceased_split[0];
-    const tested = $('#top > div.main-content > section.rte.w-max > div:nth-child(5) > table > tbody > tr:nth-child(2) > td:nth-child(3)').text()
-    const tests = $('#top > div.main-content > section.rte.w-max > div:nth-child(5) > table > tbody > tr:nth-child(2) > td:nth-child(2)').text()
 
-    const now = new Date();
+    log.info('Processing and saving data...')
 
-    const toInt = (num) => Number(num.replace('.', ''));
+    const $firstColumn = $('tbody').eq(0).find('tr:nth-child(2) td');
+    const $secondColumn = $('tbody').eq(0).find('tr:nth-child(3) td');
+
+    const srcDate = new Date($('section:contains(Senest redigeret den)').text().match(/(?<=den)[^]+$/g)[0])
 
     const result = {
-        infected: toInt(infected),
-        recovered: toInt(recovered),
-        deceased: toInt(deceased),
-        tested: toInt(tested),
-        tests: toInt(tests),
+        infected: toInt($($firstColumn).eq(3).text()),
+        recovered: toInt($($firstColumn).eq(4).text()),
+        deceased: toInt($($firstColumn).eq(5).text().split(' ')[0]),
+        tested: toInt($($firstColumn).eq(2).text()),
+        tests: toInt($($firstColumn).eq(1).text()),
+        newlyInfected: toInt($($secondColumn).eq(3).text()),
+        newlyRecovered: toInt($($secondColumn).eq(4).text()),
+        newlyDeceased: toInt($($secondColumn).eq(5).text()),
+        newlyTested: toInt($($secondColumn).eq(2).text()),
+        country: 'Denmark',
+        historyData: 'https://api.apify.com/v2/datasets/Ugq8cNqnhUSjfJeHr/items?format=json&clean=1',
         sourceUrl: 'https://www.ssi.dk/sygdomme-beredskab-og-forskning/sygdomsovervaagning/c/covid19-overvaagning',
         lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
+        lastUpdatedAtSource: new Date(Date.UTC(srcDate.getFullYear(), srcDate.getMonth(), srcDate.getDate(), srcDate.getHours(), srcDate.getMinutes())).toISOString(),
         readMe: 'https://apify.com/tugkan/covid-dk'
     };
-    console.log(result)
 
     let latest = await kvStore.getValue(LATEST);
     if (!latest) {
@@ -50,6 +57,7 @@ Apify.main(async () => {
 
     await kvStore.setValue('LATEST', result);
     await Apify.pushData(result);
+    log.info('Data saved')
 }
 );
 
