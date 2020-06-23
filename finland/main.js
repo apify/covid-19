@@ -5,7 +5,7 @@ const _ = require('lodash');
 const { log } = Apify.utils;
 log.setLevel(log.LEVELS.INFO);
 
-const LATEST ='LATEST';
+const LATEST = 'LATEST';
 
 Apify.main(async () => {
     const sourceUrl = 'https://thl.fi/fi/web/infektiotaudit-ja-rokotukset/ajankohtaista/ajankohtaista-koronaviruksesta-covid-19/tilannekatsaus-koronaviruksesta';
@@ -40,7 +40,7 @@ Apify.main(async () => {
                 const currentYear = moment().tz('Europe/Helsinki').year();
                 const dateTimeStr = `${currentYear}.${matchUpadatedAt[2]}.${matchUpadatedAt[1]} ${matchUpadatedAt[3]}:${matchUpadatedAt[4]}`;
                 const dateTime = moment.tz(dateTimeStr, "YYYY.MM.DD H:mm", 'Europe/Helsinki');
-               
+
                 data.lastUpdatedAtSource = dateTime.toISOString();
             } else {
                 throw new Error('lastUpdatedAtSource not found');
@@ -63,13 +63,13 @@ Apify.main(async () => {
             const testedText = $('.journal-content-article').eq(0).find('ul li').eq(0).text();
             let parts = testedText.match(/\s+(\d+\s*\d+)\s+/);
             if (parts) {
-                data.tested = parseInt(parts[1].replace(/\s/, ''));
+                data.infected = parseInt(parts[1].replace(/\s/, ''));
             }
 
             const infectedText = $('.journal-content-article').eq(0).find('ul li').eq(1).text();
             parts = infectedText.match(/\s+(\d+\s*\d+)\s+/);
             if (parts) {
-                data.infected = parseInt(parts[1].replace(/\s/, ''));
+                data.tested = parseInt(parts[1].replace(/\s/, ''));
             }
 
             const deathsText = $('.journal-content-article').eq(0).find('ul li').eq(3).text();
