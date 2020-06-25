@@ -3,8 +3,8 @@
 	"version": "0.0.1",
 	"description": "This is a boilerplate of an Apify actor.",
 	"dependencies": {
-		"apify": "^0.20.2",
-		"pdf-parse": "^1.1.1"
+		"apify": "^0.21.0",
+		"cheerio": "^1.0.0-rc.3"
 	},
 	"devDependencies": {},
 	"scripts": {
