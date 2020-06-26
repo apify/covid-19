@@ -1,22 +1,21 @@
 // main.js
 const Apify = require('apify');
-const pdf = require('pdf-parse');
-const { log } = Apify.utils;
+const cheerio = require('cheerio')
+const { log, requestAsBrowser } = Apify.utils;
+const LATEST = 'LATEST';
 
-
-const LATEST = "LATEST";
-const now = new Date();
 const sourceUrl = 'https://www.mscbs.gob.es/profesionales/saludPublica/ccayes/alertasActual/nCov-China/situacionActual.htm';
-
+const now = new Date();
 const toNumber = (txt) => parseInt(txt.replace(/\D/g, ''), 10);
 
 Apify.main(async () => {
+
+    Apify.client.setOptions({ token: process.env.APIFY_TOKEN });
 
     log.info('Starting actor.');
 
     const kvStore = await Apify.openKeyValueStore('COVID-19-ES');
     const dataset = await Apify.openDataset('COVID-19-ES-HISTORY');
-
 
     const requestQueue = await Apify.openRequestQueue();
     await requestQueue.addRequest({
@@ -25,71 +24,72 @@ Apify.main(async () => {
             label: 'GET_PDF_LINK'
         }
     })
-
-    log.debug('Setting up crawler.');
-    const cheerioCrawler = new Apify.CheerioCrawler({
+    const crawler = new Apify.BasicCrawler({
         requestQueue,
-        maxRequestRetries: 5,
-        requestTimeoutSecs: 90,
-        useApifyProxy: true,
-        additionalMimeTypes: ['application/pdf'],
-        handleRequestTimeoutSecs: 90,
-        prepareRequestFunction: async ({ request }) => {
-            if (request.url.endsWith('.pdf')) {
-                log.info(`Proccecing ${request.url}`)
-                log.info(`Downloading PDF file ...`)
-            };
-        },
-        handlePageFunction: async ({ request, $, body }) => {
-            const { label } = request.userData;
+        handleRequestTimeoutSecs: 240,
+        handleRequestFunction: async ({ request }) => {
+            const { url, userData: { label } } = request;
+            log.info('Page opened.', { label, url });
+
             switch (label) {
                 case 'GET_PDF_LINK':
-                    log.info(`Proccecing ${request.url}`)
-                    log.info(`Getting PDF download link...`)
-                    const PDFLink = $('div.imagen_texto ul li:nth-child(2) a').attr('href').match(/profesionales.*/g)[0];
+
+                    const { body } = await requestAsBrowser({ url });
+                    const $ = cheerio.load(body)
+
+                    const pdfLink = $('div.imagen_texto ul li:nth-child(2) a').attr('href').match(/profesionales.*/g)[0];
 
                     await requestQueue.addRequest({
-                        url: `https://www.mscbs.gob.es/${PDFLink}`,
+                        url: `https://www.mscbs.gob.es/${pdfLink}`,
                         userData: {
                             label: 'EXTRACT_DATA'
                         }
                     })
                     break;
                 case 'EXTRACT_DATA':
+                    log.info('Converting pdf to html...')
 
-                    log.info(`File had downloaded.`);
-                    log.info(`Processing and saving data.`);
+                    const run = await Apify.call('jancurn/pdf-to-html', {
+                        url,
+                    });
 
-                    let PDFText = await pdf(body).then(async (data) => {
-                        return data.text;
-                    }).catch(function (error) {
-                        throw new Error(`${error}`)
+                    log.info('Proccesing and saving data...')
+                    const $$ = cheerio.load(run.output.body)
+
+                    let f_t = $$('div.c.x0').toArray();
+                    let s_t = $$('div.c.x2a').toArray();
+
+                    const totalColumn = f_t.pop()
+                    const hospColumn = s_t.pop()
+
+                    let regions = []
+
+                    f_t.slice(1, f_t.length).forEach((elem, i) => {
+                        regions.push({
+                            name: $$(elem).text().replace(/\*/g, '').trim(),
+                            infected: toNumber($$(elem).next().text().trim()),
+                            deceased: toNumber($$(s_t).eq(i + 1).next().next().next().next().next().text()),
+                            hospitalised: toNumber($$(s_t).eq(i + 1).next().text()),
+                            ICU: toNumber($$(s_t).eq(i + 1).next().next().next().text()),
+                            dailyInfected: toNumber($$(elem).next().next().text().trim()),
+                        })
                     })
-
-                    PDFText = PDFText.replace(/\n/g, '#')
-
-                    // use data
-                    const total = PDFText.match(/(?<=confirmados totales.*ESPAÑA.*#)[^#]+(?=#)/g)[0]
-                        .trim()
-                        .split(' ');
-                    const hospitalization = PDFText.match(/(?<=precisado hospitalización.*ESPAÑA.*#)[^#]+(?=#)/g)[0]
-                        .trim()
-                        .split(' ');
-
-                    const [h, rest] = PDFText.match(/(?<=a las.*)[^\)]+(?=\))/g)[0].trim().replace(/[^:\d. ]/g, '')
+                    const $srcDate = $$('div:contains(Actualización)').last().text();
+                    const [h, rest] = $srcDate.match(/(?<=a las.*)[^\)]+(?=\))/g)[0].trim().replace(/[^:\d. ]/g, '')
                         .replace(/  /g, '').split(' ')
                     const [d, m, y] = rest.split('.')
 
                     const srcDate = new Date(`${h} ${m}-${d}-${y}`);
 
                     const data = {
-                        infected: toNumber(total[0]),
+                        infected: toNumber($$(totalColumn).next().text()),
                         recovered: 'N/A',
                         tested: 'N/A',
-                        deceased: toNumber(hospitalization[4]),
-                        hospitalised: toNumber(hospitalization[0]),
-                        ICU: toNumber(hospitalization[2]),
-                        dailyInfected: toNumber(total[1]),
+                        deceased: toNumber($$(hospColumn).next().next().next().next().next().text()),
+                        hospitalised: toNumber($$(hospColumn).next().text()),
+                        ICU: toNumber($$(hospColumn).next().next().next().text()),
+                        dailyInfected: toNumber($$(totalColumn).next().next().text()),
+                        regions,
                         country: 'Spain',
                         historyData: 'https://api.apify.com/v2/datasets/hxwow9BB75z8RV3JT/items?format=json&clean=1',
                         sourceUrl: sourceUrl,
@@ -97,7 +97,6 @@ Apify.main(async () => {
                         lastUpdatedAtSource: new Date(Date.UTC(srcDate.getFullYear(), srcDate.getMonth(), srcDate.getDate(), (srcDate.getHours()), srcDate.getMinutes())).toISOString(),
                         readMe: 'https://apify.com/zuzka/covid-es',
                     }
-
                     // Push the data
                     let latest = await kvStore.getValue(LATEST);
                     if (!latest) {
@@ -118,17 +117,11 @@ Apify.main(async () => {
 
                     log.info('Data saved.');
                     break;
-                default:
-                    break;
             }
         },
-        handleFailedRequestFunction: async ({ request }) => {
-            console.log(`Request ${request.url} failed many times.`);
-            console.dir(request)
-        },
     });
+
     // Run the crawler and wait for it to finish.
-    log.info('Starting the crawl.');
-    await cheerioCrawler.run();
-    log.info('Actor finished.');
+    await crawler.run();
+    console.log('Crawler finished.');
 });
