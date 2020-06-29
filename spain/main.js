@@ -56,24 +56,29 @@ Apify.main(async () => {
                     log.info('Proccesing and saving data...')
                     const $$ = cheerio.load(run.output.body)
 
-                    let f_t = $$('div.c.x0').toArray();
-                    let s_t = $$('div.c.x2a').toArray();
+                    let totalColumn = $$('div:contains(La Rioja)').eq(3).nextAll('div:contains(ESPAÑA)');
+                    let hospColumn = $$('div:contains(La Rioja)').eq(7).nextAll('div:contains(ESPAÑA)');
 
-                    const totalColumn = f_t.pop()
-                    const hospColumn = s_t.pop()
-
+                    let regionsNames = ['Andalucía', 'Aragón', 'Asturias', "Baleares", "Canarias", "Cantabria", "Castilla La Mancha", "Castilla y León",
+                        "Cataluña", "Ceuta", "Valenciana", "Extremadura", "Galicia", "Madrid", "Melilla", "Murcia", "Navarra", "País Vasco ", "La Rioja"]
                     let regions = []
 
-                    f_t.slice(1, f_t.length).forEach((elem, i) => {
+                    regionsNames.forEach(name => {
+                        const firstElem = $$(`div:contains(${name})`).eq(3);
+                        let secondElem = $$(`div:contains(${name})`).eq(7);
+                        if (name.includes('Castilla y León')) {
+                            secondElem = $$(`div:contains(${name})`).eq(9);
+                        }
                         regions.push({
-                            name: $$(elem).text().replace(/\*/g, '').trim(),
-                            infected: toNumber($$(elem).next().text().trim()),
-                            deceased: toNumber($$(s_t).eq(i + 1).next().next().next().next().next().text()),
-                            hospitalised: toNumber($$(s_t).eq(i + 1).next().text()),
-                            ICU: toNumber($$(s_t).eq(i + 1).next().next().next().text()),
-                            dailyInfected: toNumber($$(elem).next().next().text().trim()),
+                            name: $$(secondElem).text().replace(/\*/g, '').trim(),
+                            infected: toNumber($$(firstElem).next().text().trim()),
+                            deceased: toNumber($$(secondElem).next().next().next().next().next().text()),
+                            hospitalised: toNumber($$(secondElem).next().text()),
+                            ICU: toNumber($$(secondElem).next().next().next().text()),
+                            dailyInfected: toNumber($$(firstElem).next().next().text().trim()),
                         })
                     })
+
                     const $srcDate = $$('div:contains(Actualización)').last().text();
                     const [h, rest] = $srcDate.match(/(?<=a las.*)[^\)]+(?=\))/g)[0].trim().replace(/[^:\d. ]/g, '')
                         .replace(/  /g, '').split(' ')
