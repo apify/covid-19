@@ -24,13 +24,16 @@ Apify.main(async () => {
         maxRequestRetries: 1,
         handlePageTimeoutSecs: 60,
 
-        handlePageFunction: async ({ request, $ }) => {
+        handlePageFunction: async ({ request, $, body }) => {
+
             log.info(`Processing ${request.url}...`);
 
             const data = {
+                country: "Finland",
+                historyData: "https://api.apify.com/v2/datasets/BDEAOLx0DzEW91s5L/items?format=json&clean=1",
                 sourceUrl,
-                lastUpdatedAtApify: moment().utc().second(0).millisecond(0).toISOString(),
                 readMe: "https://apify.com/dtrungtin/covid-fi",
+                lastUpdatedAtApify: moment().utc().second(0).millisecond(0).toISOString(),
             };
 
             const confirmedDateText = $('#column-2-2 .journal-content-article > p:nth-child(2)').text();
@@ -72,11 +75,8 @@ Apify.main(async () => {
                 data.tested = parseInt(parts[1].replace(/\s/, ''));
             }
 
-            const deathsText = $('.journal-content-article').eq(0).find('ul li').eq(3).text();
-            parts = deathsText.match(/\s+(\d+\s*\d+)[.\s]+/);
-            if (parts) {
-                data.deaths = parseInt(parts[1].replace(/\s/, ''));
-            }
+            const deathsText = $('li:contains(Testattuja)').next().text();
+            data.deaths = parseInt(deathsText.match(/[0-9 ]+/g).filter(item => item.trim() !== '')[0].trim());
 
             // Compare and save to history
             const latest = await kvStore.getValue(LATEST) || {};
