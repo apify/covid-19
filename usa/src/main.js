@@ -23,8 +23,8 @@ Apify.main(async () => {
     });
     await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
     const extracted = await page.evaluate(() => {
-        const totalCases = $('body > div.container.d-flex.flex-wrap.body-wrapper.bg-white > main > div:nth-child(3) > div > div:nth-child(4) > div:nth-child(1) > div > div > div > section > div > div > div:nth-child(1) > span.count').text().replace(',', '').trim();
-        const totalDeaths = $('body > div.container.d-flex.flex-wrap.body-wrapper.bg-white > main > div:nth-child(3) > div > div:nth-child(4) > div:nth-child(1) > div > div > div > section > div > div > div:nth-child(2) > span.count').text().replace(',', '').trim();
+        const totalCases = $('body > div.container.d-flex.flex-wrap.body-wrapper.bg-white > main > div:nth-child(3) > div > div.syndicate > div:nth-child(1) > div > div > div > section > div > div > div:nth-child(1) > span.count').text().replace(/,/g, '').trim();
+        const totalDeaths = $('body > div.container.d-flex.flex-wrap.body-wrapper.bg-white > main > div:nth-child(3) > div > div.syndicate > div:nth-child(1) > div > div > div > section > div > div > div:nth-child(2) > span.count').text().replace(/,/g, '').trim();
         let dateUpdated = new Date();
         dateUpdated = new Date(Date.UTC(dateUpdated.getFullYear(), dateUpdated.getMonth(), dateUpdated.getDate())).toISOString();
 
