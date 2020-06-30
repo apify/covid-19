@@ -19,8 +19,8 @@ Apify.main(async () => {
 
     log.info('Processing and saving data...')
 
-    const $firstColumn = $('tbody').eq(1).find('tr:nth-child(2) td');
-    const $secondColumn = $('tbody').eq(1).find('tr:nth-child(3) td');
+    const $firstColumn = $('tbody:contains(Antal i dag)').eq(0).find('tr:nth-child(2) td');
+    const $secondColumn = $('tbody:contains(Antal i dag)').eq(0).find('tr:nth-child(3) td');
 
     const srcDate = new Date($('section:contains(Senest redigeret den)').text().match(/(?<=den)[^]+$/g)[0])
 
