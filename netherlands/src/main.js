@@ -1,6 +1,6 @@
 const Apify = require('apify');
 const cheerio = require('cheerio');
-const SOURCE_URL = 'https://www.rivm.nl/actuele-informatie-over-coronavirus';
+const SOURCE_URL = 'https://www.rivm.nl/en/novel-coronavirus-covid-19/current-information';
 const LATEST = 'LATEST';
 const {log, requestAsBrowser} = Apify.utils;
 
@@ -36,7 +36,7 @@ Apify.main(async () => {
             const { label } = request.userData;
             switch (label) {
                 case LABELS.GOV:
-                    const contentTableRows = $('.table-responsive tr');
+                    const contentTableRows = $('.table.table-brand tr');
                     if (contentTableRows.length > 0) {
                         let dataRow = contentTableRows.eq(0);
                         let dataCols = dataRow.find('td');
@@ -46,8 +46,8 @@ Apify.main(async () => {
                         dataCols = dataRow.find('td');
                         const bodyDeceased = dataCols.eq(1).text().trim();
                         const deceasedMatch = bodyDeceased.match(/(\d+[\s,\.]\d+)/);
-                        totalInfected = infectedMatch[0].replace('.', '');
-                        totalDeceased = deceasedMatch[0].replace('.', '');
+                        totalInfected = infectedMatch[0].replace(/\.|,/, '');
+                        totalDeceased = deceasedMatch[0].replace(/\.|,/, '');
                     }
                     break;
                 case LABELS.WIKI:
