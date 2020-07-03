@@ -5,25 +5,25 @@ const sourceUrl = 'https://covid19.rs/homepage-english/';
 const LATEST = 'LATEST';
 
 Apify.main(async () => {
-  const kvStore = await Apify.openKeyValueStore('COVID-19-SERBIA');
-  const dataset = await Apify.openDataset('COVID-19-SERBIA-HISTORY');
+    const kvStore = await Apify.openKeyValueStore('COVID-19-SERBIA');
+    const dataset = await Apify.openDataset('COVID-19-SERBIA-HISTORY');
 
     console.log('Getting data...');
     const { body } = await httpRequest({ url: sourceUrl });
     const $ = cheerio.load(body);
     const confirmedCases = $('#main > div > div > div > section.elementor-element.elementor-element-4953d8ff.elementor-section-full_width.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-top-section > div.elementor-container.elementor-column-gap-no > div > div > div > div > section.elementor-element.elementor-element-6f98bbd0.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-inner-section > div > div > div.elementor-element.elementor-element-59e8c78f.elementor-column.elementor-col-33.elementor-inner-column > div > div > div.elementor-element.elementor-element-c11c81c.elementor-widget.elementor-widget-heading > div > p').text()
-    const tested = $('#main > div > div > div > section.elementor-element.elementor-element-4953d8ff.elementor-section-full_width.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-top-section > div.elementor-container.elementor-column-gap-no > div > div > div > div > section.elementor-element.elementor-element-3847b70.elementor-hidden-desktop.elementor-hidden-tablet.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-inner-section > div > div > div.elementor-element.elementor-element-53a7df09.elementor-column.elementor-col-16.elementor-inner-column > div > div > div.elementor-element.elementor-element-68c970ce.elementor-widget.elementor-widget-heading > div > p').text()
+    const tested = $('#main > div > div > div > section.elementor-element.elementor-element-4953d8ff.elementor-section-full_width.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-top-section > div.elementor-container.elementor-column-gap-no > div > div > div > div > section.elementor-element.elementor-element-3847b70.elementor-hidden-desktop.elementor-hidden-tablet.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-inner-section > div > div > div.elementor-element.elementor-element-53a7df09.elementor-column.elementor-col-16.elementor-inner-column > div > div > div.elementor-element.elementor-element-68c970ce.elementor-widget.elementor-widget-heading > div > p').text().replace(/[^ -~]+/g, "")
     const deaths = $('#main > div > div > div > section.elementor-element.elementor-element-4953d8ff.elementor-section-full_width.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-top-section > div.elementor-container.elementor-column-gap-no > div > div > div > div > section.elementor-element.elementor-element-6f98bbd0.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-inner-section > div > div > div.elementor-element.elementor-element-571da723.elementor-column.elementor-col-33.elementor-inner-column > div > div > div.elementor-element.elementor-element-b99363d.elementor-widget.elementor-widget-heading > div > p').text()
-        const tested24hours = $('#main > div > div > div > section.elementor-element.elementor-element-4953d8ff.elementor-section-full_width.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-top-section > div.elementor-container.elementor-column-gap-no > div > div > div > div > section.elementor-element.elementor-element-234f11a9.elementor-hidden-phone.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-inner-section > div > div > div.elementor-element.elementor-element-d7ca9c7.elementor-column.elementor-col-16.elementor-inner-column > div > div > div.elementor-element.elementor-element-39f31511.elementor-widget.elementor-widget-heading > div > p').text()
+    const tested24hours = $('#main > div > div > div > section.elementor-element.elementor-element-4953d8ff.elementor-section-full_width.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-top-section > div.elementor-container.elementor-column-gap-no > div > div > div > div > section.elementor-element.elementor-element-234f11a9.elementor-hidden-phone.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-inner-section > div > div > div.elementor-element.elementor-element-d7ca9c7.elementor-column.elementor-col-16.elementor-inner-column > div > div > div.elementor-element.elementor-element-39f31511.elementor-widget.elementor-widget-heading > div > p').text()
     const infected24hours = $('#main > div > div > div > section.elementor-element.elementor-element-4953d8ff.elementor-section-full_width.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-top-section > div.elementor-container.elementor-column-gap-no > div > div > div > div > section.elementor-element.elementor-element-234f11a9.elementor-hidden-phone.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-inner-section > div > div > div.elementor-element.elementor-element-71ed3c8f.elementor-column.elementor-col-16.elementor-inner-column > div > div > div.elementor-element.elementor-element-7275fa4a.elementor-widget.elementor-widget-heading > div > p').text()
     const deceased24hours = $('#main > div > div > div > section.elementor-element.elementor-element-4953d8ff.elementor-section-full_width.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-top-section > div.elementor-container.elementor-column-gap-no > div > div > div > div > section.elementor-element.elementor-element-234f11a9.elementor-hidden-phone.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-inner-section > div > div > div.elementor-element.elementor-element-f7b4ffe.elementor-column.elementor-col-16.elementor-inner-column > div > div > div.elementor-element.elementor-element-482359d.elementor-widget.elementor-widget-heading > div > p').text();
     const active = $('#main > div > div > div > section.elementor-element.elementor-element-4953d8ff.elementor-section-full_width.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-top-section > div.elementor-container.elementor-column-gap-no > div > div > div > div > section.elementor-element.elementor-element-234f11a9.elementor-hidden-phone.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-inner-section > div > div > div.elementor-element.elementor-element-57c69ff4.elementor-column.elementor-col-16.elementor-inner-column > div > div > div.elementor-element.elementor-element-571cb025.elementor-widget.elementor-widget-heading > div > p').text();
 
-const toInt = (string) => Number(string.replace(',', ''));
+    const toInt = (string) => Number(string.replace(',', ''));
 
-const infected = toInt(confirmedCases);
-const deceased = toInt(deaths);
-const activeCases = toInt(active);
+    const infected = toInt(confirmedCases);
+    const deceased = toInt(deaths);
+    const activeCases = toInt(active);
 
     const now = new Date();
 
@@ -105,7 +105,7 @@ const activeCases = toInt(active);
 //         // This function will be called for each URL to crawl.
 //         handlePageFunction: async ({ request, body, $ }) => {
 //             console.log(`Processing ${request.url}...`);
-            
+
 //             // Extract data from the page using cheerio.
 //             var data = {};
 //             data.sourceUrl = request.url;
@@ -115,7 +115,7 @@ const activeCases = toInt(active);
 //             // Source title
 //             const sourceTitle = $('title').text();
 //             data.sourceTitle = sourceTitle;
-            
+
 //             // Source text is the first info article in page
 //             var src = $('#main');
 //             console.log(src.text());
@@ -130,7 +130,7 @@ const activeCases = toInt(active);
 //                 data.lastUpdatedAtSource = new Date(date);
 //                 console.log("Info date: " + date);
 //             }
-            
+
 //             // Tested cases
 //             //console.log(src.text());
 //             rex = /.*?Torlak\s+Institute\s+tested\s+(?<testedCasesTotal>[\d]+)/s
@@ -146,7 +146,7 @@ const activeCases = toInt(active);
 //             if (match != null)
 //                 data.infectedTotal = match.groups.infectedTotal
 //                     .replace(/[\s\.]/g,"");
-            
+
 //             // Recovered
 //             //console.log(src.text());
 //             rex = /.*?(?<recoveredTotal>[\d\s\.]+)[^\d]*?recovered/s
@@ -154,7 +154,7 @@ const activeCases = toInt(active);
 //             if (match != null)
 //                 data.recoveredTotal = match.groups.recoveredTotal
 //                     .replace(/[\s\.]/g,"");
-            
+
 //             // Deadths
 //             //console.log(src.text());
 //             rex = /.*?(?<deathsTotal>[\d\s\.]+)[^\d]*?death/s
@@ -190,7 +190,7 @@ const activeCases = toInt(active);
 //                     await dataset.pushData(data);
 //                 }
 //             }
-            
+
 //             await kvStore.setValue('LATEST', data);
 
 //             // Done :)
@@ -205,9 +205,9 @@ const activeCases = toInt(active);
 
 //     await crawler.run();
 
-    
+
 
 //     console.log('Crawler finished.'); 
 // });
 
-    
+
