@@ -3,7 +3,7 @@ const httpRequest = require('@apify/http-request')
 const cheerio = require('cheerio');
 const sourceUrl = 'https://korona.gov.sk/koronavirus-na-slovensku-v-cislach/';
 const LATEST = 'LATEST';
-
+ 
 Apify.main(async () => {
     const kvStore = await Apify.openKeyValueStore('COVID-19-SLOVAK-3');
     const dataset = await Apify.openDataset('COVID-19-SLOVAK-3-HISTORY');
