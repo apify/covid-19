@@ -1,7 +1,7 @@
 const Apify = require('apify');
-const SOURCE_URL = 'https://www.terviseamet.ee/en/covid19';
+const SOURCE_URL = 'https://koroonakaart.ee/js/app.30fa4153.js';
 const LATEST = 'LATEST';
-const { log } = Apify.utils;
+const { log, requestAsBrowser } = Apify.utils;
 
 const LABELS = {
     GOV: 'GOV',
@@ -13,7 +13,7 @@ Apify.main(async () => {
     const requestQueue = await Apify.openRequestQueue();
     const kvStore = await Apify.openKeyValueStore('COVID-19-ESTONIA');
     const dataset = await Apify.openDataset("COVID-19-ESTONIA-HISTORY");
-    await requestQueue.addRequest({ url: SOURCE_URL, userData: { label: LABELS.GOV} });
+    await requestQueue.addRequest({ url: SOURCE_URL, userData: { label: LABELS.GOV } });
 
     if (notificationEmail) {
         await Apify.addWebhook({
@@ -26,28 +26,35 @@ Apify.main(async () => {
     let totalInfected = 0;
     let tested = undefined;
     let totalDeceased = undefined;
+    let totalRecovered = undefined;
+    const proxyConfiguration = await Apify.createProxyConfiguration();
 
-    const crawler = new Apify.CheerioCrawler({
+    const crawler = new Apify.BasicCrawler({
         requestQueue,
-        useApifyProxy: true,
         handlePageTimeoutSecs: 120,
-        handlePageFunction: async ({ $, request }) => {
+        handleRequestFunction: async ({ request }) => {
             const { label } = request.userData;
+            let response;
+            let body;
             switch (label) {
                 case LABELS.GOV:
-                    const infoBoxes = $('.first').toArray();
-                    for (let box of infoBoxes) {
-                        const head = $(box).find('h2');
-                        if (head.text().trim() === 'CURRENT SITUATION IN ESTONIA') {
-                            const lastColumn = $(box).find('.last');
-                            tested = lastColumn.eq(0).text().trim();
-                            totalInfected = lastColumn.eq(1).text().trim();
-                            totalDeceased = lastColumn.eq(2).text().trim();
-                            tested = tested.replace(' ', '');
-                            totalInfected = totalInfected.replace(' ', '');
-                            totalDeceased = totalDeceased.replace('.', '');
-                        }
-                    }
+                    response = await requestAsBrowser({
+                        url: request.url,
+                        proxyUrl: proxyConfiguration.newUrl(),
+                        json:false,
+                    });
+                    body = response.body;
+                    let start = body.indexOf('5033:function(t)');
+                    let end = body.indexOf(',"dates1":')
+                    body = body.substring(start, end);
+                    start = body.indexOf('{"')
+                    body = body.substring(start);
+                    body = `${body}}`;
+                    body = JSON.parse(body);
+                    totalInfected = body.confirmedCasesNumber;
+                    tested = body.testsAdministeredNumber;
+                    totalDeceased = body.deceasedNumber;
+                    totalRecovered = body.recoveredNumber;
                     // await requestQueue.addRequest({ url: 'https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Estonia', userData: { label: LABELS.WIKI }});
                     break;
                 case LABELS.WIKI:
@@ -78,10 +85,11 @@ Apify.main(async () => {
         infected: parseInt(totalInfected, 10),
         tested: parseInt(tested, 10),
         deceased: parseInt(totalDeceased, 10),
+        recovered: parseInt(totalRecovered, 10),
         country: 'Estonia',
         moreData: 'https://api.apify.com/v2/key-value-stores/AZUhwS51lBBg26wSG/records/LATEST?disableRedirect=true',
         historyData: 'https://api.apify.com/v2/datasets/Ix8h3SN2Ngyukf7yM/items?format=json&clean=1',
-        SOURCE_URL,
+        SOURCE_URL: 'https://koroonakaart.ee/en',
         lastUpdatedAtApify: new Date(new Date().toUTCString()).toISOString(),
         readMe: 'https://apify.com/lukass/covid-est',
     };
