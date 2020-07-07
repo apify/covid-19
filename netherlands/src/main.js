@@ -1,5 +1,4 @@
 const Apify = require('apify');
-const cheerio = require('cheerio');
 const SOURCE_URL = 'https://www.rivm.nl/en/novel-coronavirus-covid-19/current-information';
 const LATEST = 'LATEST';
 const {log, requestAsBrowser} = Apify.utils;
@@ -14,7 +13,7 @@ Apify.main(async () => {
     const requestQueue = await Apify.openRequestQueue();
     const kvStore = await Apify.openKeyValueStore('COVID-19-NL');
     const dataset = await Apify.openDataset("COVID-19-NL-HISTORY");
-    await requestQueue.addRequest({ url: SOURCE_URL, userData: { label: LABELS.GOV }});
+    await requestQueue.addRequest({ url: 'https://en.wikipedia.org/wiki/COVID-19_pandemic_in_the_Netherlands', userData: { label: LABELS.WIKI }});
 
     if (notificationEmail) {
         await Apify.addWebhook({
@@ -26,10 +25,11 @@ Apify.main(async () => {
 
     let totalInfected = 0;
     let totalDeceased = undefined;
+    const proxyConfiguration = await Apify.createProxyConfiguration();
 
     const crawler = new Apify.CheerioCrawler({
         requestQueue,
-        useApifyProxy: true,
+        proxyConfiguration,
         maxRequestRetries: 2,
         handlePageTimeoutSecs: 120,
         handlePageFunction: async ({$, request}) => {
@@ -58,7 +58,9 @@ Apify.main(async () => {
                         if (th) {
                             const value = $row.find('td');
                             if (th.text().trim() === 'Deaths') {
-                                totalDeceased = value.text().trim();
+                                totalDeceased = value.text().trim().replace(',','');
+                            } else if (th.text().trim() === 'Confirmed cases') {
+                                totalInfected = value.text().trim().replace(',','');
                             }
                         }
                     }
