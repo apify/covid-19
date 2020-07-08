@@ -6,6 +6,7 @@ const {log, requestAsBrowser} = Apify.utils;
 const LABELS = {
     GOV: 'GOV',
     WIKI: 'WIKI',
+    GIS: 'GIS'
 };
 
 Apify.main(async () => {
@@ -13,7 +14,7 @@ Apify.main(async () => {
     const requestQueue = await Apify.openRequestQueue();
     const kvStore = await Apify.openKeyValueStore('COVID-19-NL');
     const dataset = await Apify.openDataset("COVID-19-NL-HISTORY");
-    await requestQueue.addRequest({ url: 'https://en.wikipedia.org/wiki/COVID-19_pandemic_in_the_Netherlands', userData: { label: LABELS.WIKI }});
+    await requestQueue.addRequest({ url: 'https://services9.arcgis.com/N9p5hsImWXAccRNI/arcgis/rest/services/Nc2JKvYFoAEOFCG5JSI6/FeatureServer/2/query?f=json&where=(Recovered%3C%3E0)%20AND%20(OBJECTID%3D12)&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=Recovered%20desc&outSR=102100&resultOffset=0&resultRecordCount=250&resultType=standard&cacheHint=true', userData: { label: LABELS.GIS }});
 
     if (notificationEmail) {
         await Apify.addWebhook({
@@ -27,30 +28,30 @@ Apify.main(async () => {
     let totalDeceased = undefined;
     const proxyConfiguration = await Apify.createProxyConfiguration();
 
-    const crawler = new Apify.CheerioCrawler({
+    const crawler = new Apify.BasicCrawler({
         requestQueue,
-        proxyConfiguration,
         maxRequestRetries: 2,
-        handlePageTimeoutSecs: 120,
-        handlePageFunction: async ({$, request}) => {
+        handleRequestTimeoutSecs: 120,
+        handleRequestFunction: async ({ request}) => {
             const { label } = request.userData;
+            let response;
             switch (label) {
-                case LABELS.GOV:
-                    const contentTableRows = $('.table.table-brand tr');
-                    if (contentTableRows.length > 0) {
-                        let dataRow = contentTableRows.eq(0);
-                        let dataCols = dataRow.find('td');
-                        const bodyInfected = dataCols.eq(1).text().trim();
-                        const infectedMatch = bodyInfected.match(/(\d+[\s,\.]\d+)/);
-                        dataRow = contentTableRows.eq(2);
-                        dataCols = dataRow.find('td');
-                        const bodyDeceased = dataCols.eq(1).text().trim();
-                        const deceasedMatch = bodyDeceased.match(/(\d+[\s,\.]\d+)/);
-                        totalInfected = infectedMatch[0].replace(/\.|,/, '');
-                        totalDeceased = deceasedMatch[0].replace(/\.|,/, '');
+                case LABELS.GIS:
+                    response = await requestAsBrowser({
+                        url: request.url,
+                        headers: {
+                            referer: 'https://gisanddata.maps.arcgis.com/apps/opsdashboard/index.html'
+                        },
+                        proxyUrl: proxyConfiguration.newUrl(),
+                        json: true,
+                    });
+                    if (response.statusCode === 200) {
+                        const attributes = response.body.features[0].attributes;
+                        totalInfected = attributes.Confirmed;
+                        totalDeceased = attributes.Deaths;
                     }
                     break;
-                case LABELS.WIKI:
+                case LABELS.WIKI: // deprecated
                     const tableRows = $('table.infobox tr').toArray();
                     for (const row of tableRows) {
                         const $row = $(row);
