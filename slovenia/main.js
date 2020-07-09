@@ -44,7 +44,17 @@ Apify.main(async () => {
             const { ModifiedDate } = workbook.Props;
             const atSource = new Date(ModifiedDate)
 
-            const lastApdate = XLSX.utils.sheet_to_json(workbook.Sheets['Covid-19 podatki']).pop();
+            const everything = XLSX.utils.sheet_to_json(workbook.Sheets['Covid-19 podatki']);
+            console.log(typeof everything[everything.length - 4]['Date']);
+
+            let lastApdate = {};
+
+            for (i = (everything.length - 1); i > 0; i--) {
+                if (typeof everything[i]['Date'] === 'number') {
+                    lastApdate = everything[i];
+                    break;
+                }
+            };
 
             const data = {
                 testedCases: lastApdate['Tested (all)'],
@@ -63,7 +73,7 @@ Apify.main(async () => {
                 lastUpdatedAtSource: new Date(Date.UTC(atSource.getFullYear(), atSource.getMonth(), atSource.getDate(), (atSource.getHours()), atSource.getMinutes())).toISOString(),
                 readMe: 'https://apify.com/dtrungtin/covid-si'
             }
-
+            console.log(data);
             // Push the data
             let latest = await kvStore.getValue(LATEST);
             if (!latest) {
