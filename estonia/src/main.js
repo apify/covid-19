@@ -1,5 +1,5 @@
 const Apify = require('apify');
-const SOURCE_URL = 'https://koroonakaart.ee/js/app.30fa4153.js';
+const SOURCE_URL = 'https://koroonakaart.ee/';
 const LATEST = 'LATEST';
 const { log, requestAsBrowser } = Apify.utils;
 
@@ -29,48 +29,39 @@ Apify.main(async () => {
     let totalRecovered = undefined;
     const proxyConfiguration = await Apify.createProxyConfiguration();
 
-    const crawler = new Apify.BasicCrawler({
+    const crawler = new Apify.PuppeteerCrawler({
         requestQueue,
         handlePageTimeoutSecs: 120,
-        handleRequestFunction: async ({ request }) => {
+        proxyConfiguration,
+        gotoFunction: async ({ page, request }) => {
+            await page.on('response', async(interceptedRequest) => {
+                if (interceptedRequest.url().endsWith('.js') && interceptedRequest.url().includes('koroonakaart.ee/js/app')) {
+                    log.info(`Reading ${interceptedRequest.url()}`);
+                    try {
+                        let body = await interceptedRequest.text();
+                        log.info('Getting city and province data out of file');
+                        let start = body.indexOf('5033:function(t)');
+                        let end = body.indexOf(',"dates1":')
+                        body = body.substring(start, end);
+                        start = body.indexOf('{"')
+                        body = body.substring(start);
+                        body = `${body}}`;
+                        body = JSON.parse(body);
+                        totalInfected = body.confirmedCasesNumber;
+                        tested = body.testsAdministeredNumber;
+                        totalDeceased = body.deceasedNumber;
+                        totalRecovered = body.recoveredNumber;
+                    } catch (err) {
+                        log.error(err)
+                    }
+                }
+            });
+            return page.goto(request.url, { waitUntil: 'networkidle2', timeout: 300000 });
+        },
+        handlePageFunction: async ({ request }) => {
             const { label } = request.userData;
             let response;
             let body;
-            switch (label) {
-                case LABELS.GOV:
-                    response = await requestAsBrowser({
-                        url: request.url,
-                        proxyUrl: proxyConfiguration.newUrl(),
-                        json:false,
-                    });
-                    body = response.body;
-                    let start = body.indexOf('5033:function(t)');
-                    let end = body.indexOf(',"dates1":')
-                    body = body.substring(start, end);
-                    start = body.indexOf('{"')
-                    body = body.substring(start);
-                    body = `${body}}`;
-                    body = JSON.parse(body);
-                    totalInfected = body.confirmedCasesNumber;
-                    tested = body.testsAdministeredNumber;
-                    totalDeceased = body.deceasedNumber;
-                    totalRecovered = body.recoveredNumber;
-                    // await requestQueue.addRequest({ url: 'https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_Estonia', userData: { label: LABELS.WIKI }});
-                    break;
-                case LABELS.WIKI:
-                    const tableRows = $('table.infobox tr').toArray();
-                    for (const row of tableRows) {
-                        const $row = $(row);
-                        const th = $row.find('th');
-                        if (th) {
-                            const value = $row.find('td');
-                            if (th.text().trim() === 'Deaths') {
-                                totalDeceased = value.text().trim();
-                            }
-                        }
-                    }
-                    break;
-            }
         },
         handleFailedRequestFunction: async ({ request }) => {
             console.log(`Request ${request.url} failed twice.`);
@@ -89,7 +80,7 @@ Apify.main(async () => {
         country: 'Estonia',
         moreData: 'https://api.apify.com/v2/key-value-stores/AZUhwS51lBBg26wSG/records/LATEST?disableRedirect=true',
         historyData: 'https://api.apify.com/v2/datasets/Ix8h3SN2Ngyukf7yM/items?format=json&clean=1',
-        SOURCE_URL: 'https://koroonakaart.ee/en',
+        SOURCE_URL,
         lastUpdatedAtApify: new Date(new Date().toUTCString()).toISOString(),
         readMe: 'https://apify.com/lukass/covid-est',
     };
