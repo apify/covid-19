@@ -104,7 +104,7 @@ Apify.main(async () => {
         await dataset.pushData(data);
     }
 
-    if (latest.infected > actual.infected || latest.deceased > actual.deceased) {
+    if ((latest.infected - 10) > actual.infected || (latest.deceased - 10) > actual.deceased) {
         log.error('Actual numbers are lower then latest probably wrong parsing');
         process.exit(1);
     }
