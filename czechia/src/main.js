@@ -18,8 +18,59 @@ const connectDataFromGraph = (graphData) => {
         date: parseDateToUTC(value.x).toISOString()
     }));
 };
+const getRegionData = async () => {
+    const url = "https://onemocneni-aktualne.mzcr.cz/covid-19/prehledy-khs"
+    const response = await Apify.utils.requestAsBrowser({
+        url,
+        proxyUrl: Apify.getApifyProxyUrl({groups: ["SHADER"]}
+        )
+    });
+    const $ = await cheerio.load(response.body);
 
+    const sexAgeData = JSON.parse($("#js-total-sex-age-data").attr("data-barchart"));
+    return { sexAgeData}
+}
+
+const getCummulativeData = async () => {
+    const url = "https://onemocneni-aktualne.mzcr.cz/covid-19/kumulativni-prehledy"
+    const response = await Apify.utils.requestAsBrowser({
+        url,
+        proxyUrl: Apify.getApifyProxyUrl({groups: ["SHADER"]}
+        )
+    });
+    const $ = await cheerio.load(response.body);
+    const infectedData = JSON.parse($("#js-cummulative-total-persons-data").attr("data-linechart"));
+    const numberOfTestedData = JSON.parse($("#js-cummulative-total-tests-data").attr("data-linechart"));
+
+    return {infectedData, numberOfTestedData}
+}
+
+const getHospitalizationData = async () => {
+    const url = "https://onemocneni-aktualne.mzcr.cz/covid-19/prehled-hospitalizaci"
+    const response = await Apify.utils.requestAsBrowser({
+        url,
+        proxyUrl: Apify.getApifyProxyUrl({groups: ["SHADER"]}
+        )
+    });
+    const $ = await cheerio.load(response.body);
+
+    const hospitalizationTable = JSON.parse($("#js-hospitalization-table-data").attr("data-table"));
+
+
+    let hospitalizationTableData = [];
+    hospitalizationTableData.push(hospitalizationTable.header.map(h => h.title));
+    hospitalizationTableData = hospitalizationTableData.concat(hospitalizationTable.body.map(row => {
+        const split = row[0].split(".");
+        let reportDate = new Date(`${split[1]}.${split[0]}.${split[2]}`);
+        reportDate = new Date(Date.UTC(reportDate.getFullYear(), reportDate.getMonth(), reportDate.getDate()));
+
+        row[0] = reportDate.toISOString();
+        return row;
+    }));
+    return hospitalizationTableData
+}
 const LATEST = "LATEST";
+// @TODO: Rewrite to crawler.
 
 Apify.main(async () => {
     const kvStore = await Apify.openKeyValueStore("COVID-19-CZECH");
@@ -33,45 +84,26 @@ Apify.main(async () => {
     const $ = await cheerio.load(response.body);
     const url = $("#covid-content").attr("data-report-url");
     const totalTested = $("#count-test").text().trim();
-    const infected = $("p#count-sick").eq(0).text().trim();
+    const infected = $("#count-sick").attr("data-value").trim();
     const recovered = $("#count-recover").text().trim();
     const deceased = $("#count-dead").text().trim();
     const hospitalized = $("#count-hospitalization").text().trim();
     const active = $("#count-active").text().trim();
-    const infectedData = JSON.parse($("#js-cummulative-total-persons-data").attr("data-linechart"));
-    const numberOfTestedData = JSON.parse($("#js-cummulative-total-tests-data").attr("data-linechart"));
-    const infectedByRegionData = JSON.parse($("#js-total-isin-regions-data").attr("data-barchart"));
-    const deathsByRegionData = JSON.parse($("#js-total-region-died-data").attr("data-barchart"));
     const infectedDailyData = JSON.parse($("#js-total-persons-data").attr("data-barchart"));
-    const regionQuarantineData = JSON.parse($("#js-region-quarantine-data").attr("data-barchart") || "[]");
-    const regionQuarantine = regionQuarantineData.map(val => ({
-        reportDate: parseDateToUTC(val.key.replace("Hlášení k ", "")).toISOString(),
-        regionData: val.values.map(({x, y}) => ({regionName: x, value: y}))
-    }));
-    const sourceOfInfectionData = JSON.parse($("#js-total-foreign-countries-data").attr("data-barchart"));
-    const sexAgeData = JSON.parse($("#js-total-sex-age-data").attr("data-barchart"));
-    const protectionSuppliesSummaryTable = $(".static-table__container table");
-    const hospitalizationTable = JSON.parse($("#js-hospitalization-table-data").attr("data-table"));
+
+    const {deathsByRegionData, sexAgeData} = await getRegionData();
+    const {infectedData, numberOfTestedData} = await getCummulativeData();
+    const hospitalizationTableData = await getHospitalizationData();
 
 
-    let hospitalizationTableData = [];
-    hospitalizationTableData.push(hospitalizationTable.header.map(h => h.title));
-    hospitalizationTableData=  hospitalizationTableData.concat(hospitalizationTable.body.map(row => {
-        const split = row[0].split(".");
-        let reportDate = new Date(`${split[1]}.${split[0]}.${split[2]}`);
-        reportDate = new Date(Date.UTC(reportDate.getFullYear(), reportDate.getMonth(), reportDate.getDate()));
-
-        row[0] = reportDate.toISOString();
-        return row;
-    }));
-
-    const lastUpdated = $("#last-modified-datetime").text().trim().replace("k", "").replace(/\u00a0/g, "");
+    const lastUpdated = $("#last-modified-datetime").text().trim().replace("k datu:", "").replace(/\u00a0/g, "");
     const parts = lastUpdated.split("v");
     const splited = parts[0].split(".");
     let lastUpdatedParsed = new Date(`${splited[1]}.${splited[0]}.${splited[2]} ${parts[1].replace("h", "").replace(".", ":")}`);
     lastUpdatedParsed = new Date(Date.UTC(lastUpdatedParsed.getFullYear(), lastUpdatedParsed.getMonth(), lastUpdatedParsed.getDate(), lastUpdatedParsed.getHours() - 1, lastUpdatedParsed.getMinutes()));
 
-    const critical = hospitalizationTableData[1][2];
+    const critical = hospitalizationTableData[hospitalizationTableData.length - 1][2];
+
     const now = new Date();
     const data = {
         totalTested: toNumber(totalTested),
@@ -83,11 +115,9 @@ Apify.main(async () => {
         critical,
         totalPositiveTests: connectDataFromGraph(infectedData),
         numberOfTestedGraph: connectDataFromGraph(numberOfTestedData),
-        infectedByRegion: infectedByRegionData.values.map(({x, y}) => ({name: x, value: y})),
-        deceasedByRegion: deathsByRegionData.values.map(({x, y}) => ({name: x, value: y})),
+        // infectedByRegion: infectedByRegionData.values.map(({x, y}) => ({name: x, value: y})),
+        // deceasedByRegion: deathsByRegionData.values.map(({x, y}) => ({name: x, value: y})),
         infectedDaily: connectDataFromGraph(infectedDailyData),
-        regionQuarantine,
-        countryOfInfection: sourceOfInfectionData.values.map((value) => ({countryName: value.x, value: value.y})),
         infectedByAgeSex: sexAgeData.map((sexData) => ({
             sex: sexData.key,
             infectedByAge: sexData.values.map(({x, y}) => ({
@@ -95,7 +125,6 @@ Apify.main(async () => {
                 value: y,
             })),
         })),
-        // protectionSuppliesSummary: tableData,
         sourceUrl: url,
         hospitalizationData: hospitalizationTableData,
         lastUpdatedAtSource: lastUpdatedParsed.toISOString(),
@@ -103,11 +132,6 @@ Apify.main(async () => {
         readMe: "https://apify.com/petrpatek/covid-cz",
     };
 
-    // Data from idnes - They have newer numbers than MZCR...
-    const idnesData = await getDataFromIdnes();
-    data.fromBabisNewspapers = {
-        ...idnesData
-    };
 
 
     // Compare and save to history
