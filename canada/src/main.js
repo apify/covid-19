@@ -17,17 +17,14 @@ Apify.main(async () => {
             payloadTemplate: `{"notificationEmail": "${notificationEmail}", "eventType": {{eventType}}, "eventData": {{eventData}}, "resource": {{resource}} }`,
         });
     }
+    const proxyConfiguration = await Apify.createProxyConfiguration();
 
     const crawler = new Apify.BasicCrawler({
         requestQueue,
         handleRequestFunction: async ({ request }) => {
-            const proxyUrl = Apify.getApifyProxyUrl({
-                groups: ['SHADER'],
-            });
-
             const response = await requestAsBrowser({
                 url: request.url,
-                proxyUrl,
+                proxyUrl: proxyConfiguration.newUrl(),
             });
             const lines = response.body.split(/\r?\n/);
             let totalInfected = undefined;
@@ -80,7 +77,7 @@ Apify.main(async () => {
                 await dataset.pushData(data);
             }
 
-            if (latest.infected > data.infected || latest.deceased > data.deceased) {
+            if ((latest.infected - 10) > data.infected || (latest.deceased - 10) > data.deceased) {
                 log.error('Latest data are high then actual - probably wrong scrap');
                 process.exit(1);
             }
