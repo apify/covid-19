@@ -4,7 +4,7 @@ const LATEST = 'LATEST';
 const {log, requestAsBrowser} = Apify.utils;
 
 Apify.main(async () => {
-    const { notificationEmail } = await Apify.getInput();
+    const { notificationEmail, doErrorCheck = true } = await Apify.getInput();
     const requestQueue = await Apify.openRequestQueue();
     const kvStore = await Apify.openKeyValueStore('COVID-19-CAD');
     const dataset = await Apify.openDataset("COVID-19-CAD-HISTORY");
@@ -77,7 +77,7 @@ Apify.main(async () => {
                 await dataset.pushData(data);
             }
 
-            if ((latest.infected - 10) > data.infected || (latest.deceased - 10) > data.deceased) {
+            if (doErrorCheck && ((latest.infected - 10) > data.infected || (latest.deceased - 10) > data.deceased)) {
                 log.error('Latest data are high then actual - probably wrong scrap');
                 process.exit(1);
             }
