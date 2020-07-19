@@ -1,5 +1,5 @@
 const Apify = require('apify');
-const moment = require('moment-timezone');
+// const moment = require('moment-timezone');
 const _ = require('lodash');
 
 const { log } = Apify.utils;
@@ -33,21 +33,21 @@ Apify.main(async () => {
                 historyData: "https://api.apify.com/v2/datasets/BDEAOLx0DzEW91s5L/items?format=json&clean=1",
                 sourceUrl,
                 readMe: "https://apify.com/dtrungtin/covid-fi",
-                lastUpdatedAtApify: moment().utc().second(0).millisecond(0).toISOString(),
+                // lastUpdatedAtApify: moment().utc().second(0).millisecond(0).toISOString(),
             };
 
             const confirmedDateText = $('#column-2-2 .journal-content-article > p:nth-child(2)').text();
             const matchUpadatedAt = confirmedDateText.match(/(\d+).(\d+). klo (\d+).(\d+)/);
 
-            if (matchUpadatedAt && matchUpadatedAt.length > 4) {
-                const currentYear = moment().tz('Europe/Helsinki').year();
-                const dateTimeStr = `${currentYear}.${matchUpadatedAt[2]}.${matchUpadatedAt[1]} ${matchUpadatedAt[3]}:${matchUpadatedAt[4]}`;
-                const dateTime = moment.tz(dateTimeStr, "YYYY.MM.DD H:mm", 'Europe/Helsinki');
+            // if (matchUpadatedAt && matchUpadatedAt.length > 4) {
+            //     const currentYear = moment().tz('Europe/Helsinki').year();
+            //     const dateTimeStr = `${currentYear}.${matchUpadatedAt[2]}.${matchUpadatedAt[1]} ${matchUpadatedAt[3]}:${matchUpadatedAt[4]}`;
+            //     const dateTime = moment.tz(dateTimeStr, "YYYY.MM.DD H:mm", 'Europe/Helsinki');
 
-                data.lastUpdatedAtSource = dateTime.toISOString();
-            } else {
-                throw new Error('lastUpdatedAtSource not found');
-            }
+            //     data.lastUpdatedAtSource = dateTime.toISOString();
+            // } else {
+            //     throw new Error('lastUpdatedAtSource not found');
+            // }
 
             // const liList = $('.journal-content-article').eq(0).find('ul li');
             // for (let index=0; index < liList.length; index++) {
@@ -69,14 +69,20 @@ Apify.main(async () => {
                 data.infected = parseInt(parts[1].replace(/\s/, ''));
             }
 
+            console.log(data.infected);
+
             const infectedText = $('.journal-content-article').eq(0).find('ul li').eq(1).text();
             parts = infectedText.match(/\s+(\d+\s*\d+)\s+/);
             if (parts) {
                 data.tested = parseInt(parts[1].replace(/\s/, ''));
             }
 
-            const deathsText = $('li:contains(Testattuja)').next().text();
+            console.log(data.tested);
+
+            const deathsText = $('li:contains(Tautiin)').text();
             data.deaths = parseInt(deathsText.match(/[0-9 ]+/g).filter(item => item.trim() !== '')[0].trim());
+
+            console.log(data.deaths);
 
             // Compare and save to history
             const latest = await kvStore.getValue(LATEST) || {};
