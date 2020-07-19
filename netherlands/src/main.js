@@ -10,7 +10,7 @@ const LABELS = {
 };
 
 Apify.main(async () => {
-    const { notificationEmail } = await Apify.getInput();
+    const { notificationEmail, doErrorCheck = true } = await Apify.getInput();
     const requestQueue = await Apify.openRequestQueue();
     const kvStore = await Apify.openKeyValueStore('COVID-19-NL');
     const dataset = await Apify.openDataset("COVID-19-NL-HISTORY");
@@ -104,7 +104,7 @@ Apify.main(async () => {
         await dataset.pushData(data);
     }
 
-    if (latest.infected > actual.infected || latest.deceased > actual.deceased) {
+    if (doErrorCheck && ((latest.infected - 10) > actual.infected || (latest.deceased - 10) > actual.deceased)) {
         log.error('Actual numbers are lower then latest probably wrong parsing');
         process.exit(1);
     }
