@@ -28,14 +28,19 @@ Apify.main(async () => {
 
             log.info(`Processing ${request.url}...`);
 
+            const now = new Date();
+
             const data = {
                 country: "Finland",
                 historyData: "https://api.apify.com/v2/datasets/BDEAOLx0DzEW91s5L/items?format=json&clean=1",
                 sourceUrl,
                 readMe: "https://apify.com/dtrungtin/covid-fi",
+                lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString()
                 // lastUpdatedAtApify: moment().utc().second(0).millisecond(0).toISOString(),
             };
 
+            console.log(data);
+            
             const confirmedDateText = $('#column-2-2 .journal-content-article > p:nth-child(2)').text();
             const matchUpadatedAt = confirmedDateText.match(/(\d+).(\d+). klo (\d+).(\d+)/);
 
