@@ -1,9 +1,0 @@
-{
-  "country": "Finland",
-  "historyData": "https://api.apify.com/v2/datasets/BDEAOLx0DzEW91s5L/items?format=json&clean=1",
-  "sourceUrl": "https://thl.fi/fi/web/infektiotaudit-ja-rokotukset/ajankohtaista/ajankohtaista-koronaviruksesta-covid-19/tilannekatsaus-koronaviruksesta",
-  "readMe": "https://apify.com/dtrungtin/covid-fi",
-  "infected": 7301,
-  "tested": 300400,
-  "deaths": 328
-}
