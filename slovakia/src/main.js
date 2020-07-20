@@ -13,11 +13,11 @@ Apify.main(async () => {
     const $ = cheerio.load(body);
     // const statistics = $.find('h3');
 
-    // const infected = statistics[0].textContent 
-    // $('#block_5e9990e25ffff > div > h3').text().replace(/\u00a0/g, '');
-    // const tested = $('#block_5e9990e25ffff > div > h2').text().replace(/\u00a0/g, '');
-    // const deceased = $('#block_5e9991ed60005 > div > h2').text();
-    // const recovered = $("#block_5e99921b60008 > div > h2").text().replace(/\u00a0/g, '');
+    const infected = statistics[0].textContent 
+    $('#block_5e9990e25ffff > div > h3').text().replace(/\u00a0/g, '');
+    const tested = $('#block_5e9990e25ffff > div > h2').text().replace(/\u00a0/g, '');
+    const deceased = $('#block_5e9991ed60005 > div > h2').text();
+    const recovered = $("#block_5e99921b60008 > div > h2").text().replace(/\u00a0/g, '');
 
     const regions = $('table')
 
