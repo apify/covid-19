@@ -1,5 +1,6 @@
 const Apify = require('apify');
 const cheerio = require("cheerio");
+let decodeHtml = require("decode-html")
 const getDataFromIdnes = require("./idnes");
 const toNumber = (str) => {
     return parseInt(str.replace(",", "").replace(" ", ""), 10)
@@ -22,34 +23,37 @@ const getRegionData = async () => {
     const url = "https://onemocneni-aktualne.mzcr.cz/covid-19/prehledy-khs"
     const response = await Apify.utils.requestAsBrowser({
         url,
-        proxyUrl: Apify.getApifyProxyUrl({groups: ["SHADER"]}
+        proxyUrl: Apify.getApifyProxyUrl({ groups: ["SHADER"] }
         )
     });
     const $ = await cheerio.load(response.body);
 
     const sexAgeData = JSON.parse($("#js-total-sex-age-data").attr("data-barchart"));
-    return { sexAgeData}
+    const recoveredByRegionData = JSON.parse(decodeHtml($('#js-total-region-recovered-data').attr('data-barchart')));
+    const deathsByRegionData = JSON.parse(decodeHtml($('#js-total-region-died-data').attr('data-barchart')));
+
+    return { sexAgeData, recoveredByRegionData, deathsByRegionData }
 }
 
 const getCummulativeData = async () => {
     const url = "https://onemocneni-aktualne.mzcr.cz/covid-19/kumulativni-prehledy"
     const response = await Apify.utils.requestAsBrowser({
         url,
-        proxyUrl: Apify.getApifyProxyUrl({groups: ["SHADER"]}
+        proxyUrl: Apify.getApifyProxyUrl({ groups: ["SHADER"] }
         )
     });
     const $ = await cheerio.load(response.body);
     const infectedData = JSON.parse($("#js-cummulative-total-persons-data").attr("data-linechart"));
     const numberOfTestedData = JSON.parse($("#js-cummulative-total-tests-data").attr("data-linechart"));
 
-    return {infectedData, numberOfTestedData}
+    return { infectedData, numberOfTestedData }
 }
 
 const getHospitalizationData = async () => {
     const url = "https://onemocneni-aktualne.mzcr.cz/covid-19/prehled-hospitalizaci"
     const response = await Apify.utils.requestAsBrowser({
         url,
-        proxyUrl: Apify.getApifyProxyUrl({groups: ["SHADER"]}
+        proxyUrl: Apify.getApifyProxyUrl({ groups: ["SHADER"] }
         )
     });
     const $ = await cheerio.load(response.body);
@@ -73,12 +77,13 @@ const LATEST = "LATEST";
 // @TODO: Rewrite to crawler.
 
 Apify.main(async () => {
+
     const kvStore = await Apify.openKeyValueStore("COVID-19-CZECH");
     const dataset = await Apify.openDataset("COVID-19-CZECH-HISTORY");
 
     const response = await Apify.utils.requestAsBrowser({
         url: "https://onemocneni-aktualne.mzcr.cz/covid-19",
-        proxyUrl: Apify.getApifyProxyUrl({groups: ["SHADER"]}
+        proxyUrl: Apify.getApifyProxyUrl({ groups: ["SHADER"] }
         )
     });
     const $ = await cheerio.load(response.body);
@@ -90,9 +95,10 @@ Apify.main(async () => {
     const hospitalized = $("#count-hospitalization").text().trim();
     const active = $("#count-active").text().trim();
     const infectedDailyData = JSON.parse($("#js-total-persons-data").attr("data-barchart"));
+    const infectedByRegionData = JSON.parse(decodeHtml($('#panel2-districts-regions-maps div[data-barchart]').attr('data-barchart')));
 
-    const {deathsByRegionData, sexAgeData} = await getRegionData();
-    const {infectedData, numberOfTestedData} = await getCummulativeData();
+    const { recoveredByRegionData, deathsByRegionData, sexAgeData } = await getRegionData();
+    const { infectedData, numberOfTestedData } = await getCummulativeData();
     const hospitalizationTableData = await getHospitalizationData();
 
 
@@ -115,12 +121,13 @@ Apify.main(async () => {
         critical,
         totalPositiveTests: connectDataFromGraph(infectedData),
         numberOfTestedGraph: connectDataFromGraph(numberOfTestedData),
-        // infectedByRegion: infectedByRegionData.values.map(({x, y}) => ({name: x, value: y})),
-        // deceasedByRegion: deathsByRegionData.values.map(({x, y}) => ({name: x, value: y})),
+        infectedByRegion: infectedByRegionData.values.map(({ x, y }) => ({ name: x, value: y })),
+        recoveredByRegion: recoveredByRegionData.values.map(({ x, y }) => ({ name: x, value: y })),
+        deceasedByRegion: deathsByRegionData.values.map(({ x, y }) => ({ name: x, value: y })),
         infectedDaily: connectDataFromGraph(infectedDailyData),
         infectedByAgeSex: sexAgeData.map((sexData) => ({
             sex: sexData.key,
-            infectedByAge: sexData.values.map(({x, y}) => ({
+            infectedByAge: sexData.values.map(({ x, y }) => ({
                 age: x,
                 value: y,
             })),
