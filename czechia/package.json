@@ -4,7 +4,8 @@
 	"description": "This is a boilerplate of an Apify actor.",
 	"dependencies": {
 		"apify": "^0.20.2",
-		"cheerio": "^1.0.0-rc.3"
+		"cheerio": "^1.0.0-rc.3",
+		"decode-html": "^2.0.0"
 	},
 	"devDependencies": {
 		"@apify/eslint-config": "0.0.3",
