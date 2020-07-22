@@ -62,7 +62,7 @@ Apify.main(async () => {
       const month = moment().month(result.lastUpdatedAtSource[6]).format("M");
       const day = result.lastUpdatedAtSource[5];
       const dateString = `${year}-${month}-${day}`;
-      result.lastUpdatedAtSource = moment(dateString).format();
+      result.lastUpdatedAtSource = moment(dateString, "YYYY-MM-DD").format();
 
       console.log(result)
   
