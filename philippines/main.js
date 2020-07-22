@@ -20,7 +20,7 @@ Apify.main(async () => {
   const page = await browser.newPage();
 
   console.log('Going to the website...');
-  await page.goto(sourceUrl, { waitUntil: 'networkidle0' });
+  await page.goto(sourceUrl);
   await Apify.utils.puppeteer.injectJQuery(page);
 
   await page.waitFor(4000);
