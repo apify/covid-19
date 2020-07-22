@@ -14,13 +14,13 @@ Apify.main(async () => {
     const { body } = await httpRequest({ url: sourceUrl });
     const $ = cheerio.load(body);
     const infected = $('#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(1) > strong').text();
-    const deceased = $('#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(4) > strong').text();
+    const deceased = $('#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul:nth-child(5) > li:nth-child(4) > b').text();
     const recovered = $("#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(6) > strong").text();
-    const newInfected = $("#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(3) > strong").text();
-    const isolated = $("#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(7) > strong").text();
+    const newInfected = $("#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul:nth-child(5) > li:nth-child(3) > b").text();
+    const isolated = $("#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul:nth-child(5) > li:nth-child(7) > b").text();
     const connectedDeaths = $('#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(5) > strong').text();
     const stillSick = $('#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(2) > b').text();
-    
+
     const now = new Date();
 
     const result = {
