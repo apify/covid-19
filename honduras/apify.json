@@ -1,7 +1,7 @@
 {
-	"name": "honduras",
+	"name": "covid-ng",
 	"version": "0.0",
 	"buildTag": "latest",
 	"env": null,
-	"template": "cheerio_crawler"
+	"template": "puppeteer_crawler"
 }

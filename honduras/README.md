@@ -1,15 +1,9 @@
-# CheerioCrawler project
+# Coronavirus stats in Palestine
 
-This template is a production ready boilerplate for developing with `CheerioCrawler`.
-Use this to bootstrap your projects using the most up-to-date code.
+Actor gets an actual number of infected, deceased and recovered people in Nigeria from https://corona.ps/details.
 
-If you're looking for examples or want to learn more visit:
-- [Tutorial](https://sdk.apify.com/docs/guides/getting-started#cheeriocrawler-aka-jquery-crawler) 
-- [Documentation](https://sdk.apify.com/docs/api/cheerio-crawler) 
-- [Examples](https://sdk.apify.com/docs/examples/cheerio-crawler) 
+Latest data are available at this URL: .
 
-## Documentation reference
+You can find a dataset with unique history items here: .
 
-- [Apify SDK](https://sdk.apify.com/)
-- [Apify Actor documentation](https://docs.apify.com/actor)
-- [Apify CLI](https://docs.apify.com/cli)
+URL is being actualized every 5 minutes.

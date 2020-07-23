@@ -1,17 +1,16 @@
 {
-  "title": "CheerioCrawler Template",
-  "description": "lorem ipsum",
+  "title": "NG COVID-19 Statistics",
+  "description": "This actor scrapes data about COVID-19 from Nigerian CDC.",
   "type": "object",
   "schemaVersion": 1,
   "properties": {
-    "startUrls": {
-      "title": "Start URLs",
-      "type": "array",
-      "description": "URLs to start with.",
-      "editor": "requestListSources"
+    "email": {
+      "title": "Email for alerts",
+      "type": "string",
+      "description": "Email where we should send email if there are no data about Total Infected, which means something is wrong.",
+      "prefill": "zuzka@apify.com",
+      "editor": "textfield"
     }
   },
-  "required": [
-    "startUrls"
-  ]
+  "required": ["email"]
 }

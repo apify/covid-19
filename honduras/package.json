@@ -1,16 +1,13 @@
 {
-	"name": "honduras",
+	"name": "covid-ng",
 	"version": "0.0.1",
 	"description": "This is a boilerplate of an Apify actor.",
 	"dependencies": {
-		"apify": "^0.20.0"
+		"apify": "^0.20.2"
 	},
-	"devDependencies": {
-		"@apify/eslint-config": "0.0.3",
-		"eslint": "^7.0.0"
-	},
+	"devDependencies": {},
 	"scripts": {
-		"start": "node src/main.js",
+		"start": "node main.js",
 		"test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1"
 	},
 	"author": "It's not you it's me",
