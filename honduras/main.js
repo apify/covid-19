@@ -5,8 +5,8 @@ const LATEST = 'LATEST';
 
 Apify.main(async () => {
 
-    const kvStore = await Apify.openKeyValueStore('COVID-19-HONDURAS');
-    const dataset = await Apify.openDataset('COVID-19-HONDURAS-HISTORY');
+    const kvStore = await Apify.openKeyValueStore('COVID-19-HN');
+    const dataset = await Apify.openDataset('COVID-19-HN-HISTORY');
 
     const { body: sex } = await httpRequest({
         url: "https://covid19honduras.org/dll/OTOTALSEXO.php",

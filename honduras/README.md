@@ -1,6 +1,6 @@
-# Coronavirus stats in Palestine
+# Coronavirus stats in Honduras
 
-Actor gets an actual number of infected, deceased and recovered people in Nigeria from https://corona.ps/details.
+Actor gets an actual number of infected, deceased and recovered people in Honduras from http://www.salud.gob.hn/site/ and https://covid19honduras.org/.
 
 Latest data are available at this URL: .
 
