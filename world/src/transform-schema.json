@@ -75,6 +75,11 @@
     "deceased": "deceased",
     "infected": "infected"
   },
+  "Honduras": {
+    "deceased": "deceased",
+    "infected": "infected",
+    "recovered": "recovered"
+  },
   "Hungary": {
     "deceased": "deceased",
     "infected": "infected",
