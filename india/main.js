@@ -23,22 +23,23 @@ Apify.main(async () => {
     const result = await page.evaluate(() => {
         const now = new Date();
 
-        const activeCases = Number($('#site-dashboard > div > div > div > div > ul > li.bg-blue > strong').text());
-        const recovered = Number($("#site-dashboard > div > div > div > div > ul > li.bg-green > strong").text());
-        const deaths = Number($('#site-dashboard > div > div > div > div > ul > li.bg-red > strong').text());
+        const activeCases = Number($('strong:contains(Active)').next().text().split("(")[0]);
+        const recovered = Number($('strong:contains(Discharged)').next().text().split("(")[0]);
+        const deaths = Number(Number($('strong:contains(Deaths)').next().text().split("(")[0]));
 
         const rawTableRows = [...document.querySelectorAll("#state-data > div > div > div > div > table > tbody > tr")];
-        const regionsTableRows = rawTableRows.filter(row => row.querySelectorAll('td').length === 6);
+        const regionsTableRows = rawTableRows.filter(row => row.querySelectorAll('td').length === 8);
         const regionData = [];
+
+        console.log(regionsTableRows)
 
         for (const row of regionsTableRows) {
             const cells = Array.from(row.querySelectorAll("td")).map(td => td.textContent);
             if (cells[1] !== 'Total#') regionData.push({
                 region: cells[1],
                 totalInfected: Number(cells[2]),
-                recovered: Number(cells[3]),
-                deceased: Number(cells[4]),
-                totalCases: Number(cells[5]),
+                recovered: Number(cells[4]),
+                deceased: Number(cells[6])
             });
         }
 
@@ -53,7 +54,7 @@ Apify.main(async () => {
             regionData: regionData
         };
         return data;
-
+        
     });
 
     console.log(result)
