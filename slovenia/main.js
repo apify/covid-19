@@ -45,27 +45,35 @@ Apify.main(async () => {
             const atSource = new Date(ModifiedDate)
 
             const everything = XLSX.utils.sheet_to_json(workbook.Sheets['Covid-19 podatki']);
-            console.log(typeof everything[everything.length - 4]['Date']);
-
+            // console.log(typeof everything[everything.length - 4]['Dátum']);
             let lastApdate = {};
+
+            let inHangrois = false;
+
 
             for (i = (everything.length - 1); i > 0; i--) {
                 if (typeof everything[i]['Date'] === 'number') {
                     lastApdate = everything[i];
                     break;
                 }
+                if (typeof everything[i]['Dátum'] === 'number') {
+                    lastApdate = everything[i];
+                    inHangrois = true
+                    break;
+                }
             };
+            lastApdate = JSON.parse(JSON.stringify(lastApdate).replace(/"\s+|\s+"/g, '"'));
 
             const data = {
-                testedCases: lastApdate['Tested (all)'],
-                infectedCases: lastApdate['Positive (all)'],
-                numberOfDeath: lastApdate['Deaths (all)'],
-                dailyTested: lastApdate['Tested (daily)'],
-                dailyInfected: lastApdate['Positive (daily)'],
-                dailyDeaths: lastApdate['Deaths (daily)'],
-                dailyDischarged: lastApdate.Discharged,
-                dailyHospitalized: lastApdate['All hospitalized on certain day'],
-                dailyIntensiveCare: lastApdate['All persons in intensive care on certain day'],
+                testedCases: inHangrois ? lastApdate['Mintavételek száma (összesen)'] : lastApdate['Tested (all)'],
+                infectedCases: inHangrois ? lastApdate['pozitív esetek száma (összesen)'] : lastApdate['Positive (all)'],
+                numberOfDeath: inHangrois ? lastApdate['elhunytak száma összesen'] : lastApdate['Deaths (all)'],
+                dailyTested: inHangrois ? lastApdate['mintavételek száma'] : lastApdate['Tested (daily)'],
+                dailyInfected: inHangrois ? lastApdate['napi pozitív esetszám'] : lastApdate['Positive (daily)'],
+                dailyDeaths: inHangrois ? lastApdate['elhunytak'] : lastApdate['Deaths (daily)'],
+                dailyDischarged: inHangrois ? lastApdate['a kórházból elbocsátottak napi száma'] : lastApdate.Discharged,
+                dailyHospitalized: inHangrois ? lastApdate['hospitalizált'] : lastApdate['All hospitalized on certain day'],
+                dailyIntensiveCare: inHangrois ? lastApdate['intenzív ellátásra szoruló'] : lastApdate['All persons in intensive care on certain day'],
                 country: 'slovenia',
                 historyData: 'https://api.apify.com/v2/datasets/H6HKZRQr8I81bClnb/items?format=json&clean=1',
                 sourceUrl: sourceUrl,

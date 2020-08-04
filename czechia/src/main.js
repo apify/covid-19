@@ -3,7 +3,7 @@ const cheerio = require("cheerio");
 let decodeHtml = require("decode-html")
 const getDataFromIdnes = require("./idnes");
 const toNumber = (str) => {
-    return parseInt(str.replace(",", "").replace(" ", ""), 10)
+    return parseInt(str.replace(/\D+/g, ""), 10)
 };
 
 const parseDateToUTC = (dateString) => {
@@ -94,7 +94,7 @@ Apify.main(async () => {
     const deceased = $("#count-dead").text().trim();
     const hospitalized = $("#count-hospitalization").text().trim();
     const active = $("#count-active").text().trim();
-    const infectedDailyData = JSON.parse($("#js-total-persons-data").attr("data-barchart"));
+    const infectedDailyData = JSON.parse($("#js-total-persons-data").attr("data-linechart"));
     const infectedByRegionData = JSON.parse(decodeHtml($('#panel2-districts-regions-maps div[data-barchart]').attr('data-barchart')));
 
     const { recoveredByRegionData, deathsByRegionData, sexAgeData } = await getRegionData();
