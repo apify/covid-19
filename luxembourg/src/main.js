@@ -27,7 +27,7 @@ Apify.main(async () => {
         requestQueue,
         handleRequestTimeoutSecs: 240,
         handleRequestFunction: async ({ request }) => {
-            const { url, userData: { label } } = request;
+            const { url, userData: { label, dateModified } } = request;
             log.info('Page opened.', { label, url });
 
             switch (label) {
@@ -35,12 +35,13 @@ Apify.main(async () => {
                     const { body } = await requestAsBrowser({ url });
 
                     const $ = cheerio.load(body);
-                    const contentUrl = JSON.parse($('script#json_ld').html().replace(/\\|/g, '')).distribution[0].contentUrl;
+                    const { contentUrl, dateModified: fileDateModified } = JSON.parse($('script#json_ld').html().replace(/\\|/g, '')).distribution[0];
 
                     await requestQueue.addRequest({
                         url: contentUrl,
                         userData: {
-                            label: 'EXTRACT_DATA'
+                            label: 'EXTRACT_DATA',
+                            dateModified: fileDateModified,
                         }
                     })
                     break;
@@ -54,9 +55,13 @@ Apify.main(async () => {
                     log.info('Proccesing and saving data...')
                     const $$ = cheerio.load(run.output.body.replace(/\\/g, ''))
 
+                    // // Extract date
+                    // const [m, d, y] = $$('span:contains(Date de publication)').text().match(/[0-9\/]+/g)[0].split('/');
+                    // const srcDate = new Date(`${d}-${m}-${y}`);
+
                     // Extract date
-                    const [m, d, y] = $$('span:contains(Date de publication)').text().match(/[0-9\/]+/g)[0].split('/');
-                    const srcDate = new Date(`${d}-${m}-${y}`);
+                    const srcDate = new Date(dateModified);
+
 
                     const data = {
                         tested: toNumber($$('div:contains(Nombre de tests)').nextAll().eq(11).text()),
