@@ -64,26 +64,20 @@ Apify.main(async () => {
           const { ModifiedDate } = workbook.Props;
           const atSource = new Date(ModifiedDate);
 
-          const CASES_AGESEX = XLSX.utils.sheet_to_json(
-              workbook.Sheets["CASES_AGESEX"]
-            ),
-            CASES_MUNI = XLSX.utils.sheet_to_json(
-              workbook.Sheets["CASES_MUNI"]
-            ),
-            CASES_MUNI_CUM = XLSX.utils.sheet_to_json(
-              workbook.Sheets["CASES_MUNI_CUM"]
-            ),
-            HOSP = XLSX.utils.sheet_to_json(workbook.Sheets["HOSP"]),
-            MORT = XLSX.utils.sheet_to_json(workbook.Sheets["MORT"]),
-            TESTS = XLSX.utils.sheet_to_json(workbook.Sheets["TESTS"]);
+          const CASES_AGESEX = XLSX.utils.sheet_to_json(workbook.Sheets["CASES_AGESEX"]);
+          const HOSP = XLSX.utils.sheet_to_json(workbook.Sheets["HOSP"]);
+          const MORT = XLSX.utils.sheet_to_json(workbook.Sheets["MORT"]);
+          const TESTS = XLSX.utils.sheet_to_json(workbook.Sheets["TESTS"]);
+
+          // const CASES_MUNI = XLSX.utils.sheet_to_json(workbook.Sheets["CASES_MUNI"]);
+          // const CASES_MUNI_CUM = XLSX.utils.sheet_to_json(workbook.Sheets["CASES_MUNI_CUM"]);
 
           const data = {};
 
-          data.infected =
-            (await getSheetColumnSum(CASES_AGESEX, "CASES")) || "N/A";
-          data.tested = (await getSheetColumnSum(TESTS, "TESTS")) || "N/A";
+          data.infected = await getSheetColumnSum(CASES_AGESEX, "CASES");
+          data.tested = await getSheetColumnSum(TESTS, "TESTS_ALL");
           data.recovered = "N/A";
-          data.deaths = (await getSheetColumnSum(MORT, "DEATHS")) || null;
+          data.deaths = await getSheetColumnSum(MORT, "DEATHS");
           data.totalInToHospital = await getSheetColumnSum(HOSP, "TOTAL_IN");
           data.totalHospitalized = await getSheetColumnSum(HOSP, "NEW_IN");
           data.newlyOutOfHospital = await getSheetColumnSum(HOSP, "NEW_OUT");
