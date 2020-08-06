@@ -123,6 +123,7 @@
   "Luxembourg": {
     "deceased": "deceased",
     "infected": "infected",
+    "recovered": "recovered",
     "tested": "tested"
   },
   "Malaysia": {
