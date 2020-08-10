@@ -7,7 +7,6 @@ Apify.main(async () => {
 
     const kvStore = await Apify.openKeyValueStore('COVID-19-IN');
     const dataset = await Apify.openDataset('COVID-19-IN-HISTORY');
-    const { email } = await Apify.getValue('INPUT');
 
     console.log('Launching Puppeteer...');
     const browser = await Apify.launchPuppeteer();
@@ -24,8 +23,11 @@ Apify.main(async () => {
         const now = new Date();
 
         const activeCases = Number($('strong:contains(Active)').next().text().split("(")[0]);
+        const activeCasesNew = Number($('strong:contains(Active)').next().text().split("(")[1].replace(/\D/g, ''));
         const recovered = Number($('strong:contains(Discharged)').next().text().split("(")[0]);
-        const deaths = Number(Number($('strong:contains(Deaths)').next().text().split("(")[0]));
+        const recoveredNew = Number($('strong:contains(Discharged)').next().text().split("(")[1].replace(/\D/g, ''));
+        const deaths = Number($('strong:contains(Deaths)').next().text().split("(")[0]);
+        const deathsNew = Number($('strong:contains(Deaths)').next().text().split("(")[1].replace(/\D/g, ''));
 
         const rawTableRows = [...document.querySelectorAll("#state-data > div > div > div > div > table > tbody > tr")];
         const regionsTableRows = rawTableRows.filter(row => row.querySelectorAll('td').length === 8);
@@ -44,14 +46,17 @@ Apify.main(async () => {
         }
 
         const data = {
-            activeCases: activeCases,
-            recovered: recovered,
-            deaths: deaths,
-            totalCases: parseInt(activeCases) + parseInt(recovered) + parseInt(deaths),
+            activeCases,
+            activeCasesNew,
+            recovered,
+            recoveredNew,
+            deaths,
+            deathsNew,
+            totalCases: activeCases + recovered + deaths,
             sourceUrl: 'https://www.mohfw.gov.in/',
             lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
             readMe: 'https://github.com/zpelechova/covid-in/blob/master/README.md',
-            regionData: regionData
+            regionData: regionData,
         };
         return data;
         
