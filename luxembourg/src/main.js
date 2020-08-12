@@ -64,8 +64,8 @@ Apify.main(async () => {
 
 
                     const data = {
-                        tested: toNumber($$('div:contains(Nombre de tests)').nextAll().eq(11).text()),
-                        infected: toNumber($$('div:contains(Personnes testées)').nextAll().eq(11).text()),
+                        tested: toNumber($$('div:contains(Nombre de tests)').nextAll().eq(12).text()),
+                        infected: toNumber($$('div:contains(Personnes testées)').nextAll().eq(12).text()),
                         deceased: toNumber($$('div:contains(Nombre de décès)').parent().last().nextAll().eq(1).text()),
                         active: toNumber($$('div:contains(Nombre d’infections actives)').parent().last().nextAll().eq(0).text()),
                         hospitalized: toNumber($$('div:contains(Hospitalisations en soins normaux)').parent().last().nextAll().eq(0).text()),
