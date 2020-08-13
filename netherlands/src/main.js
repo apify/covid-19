@@ -4,19 +4,20 @@ const LATEST = 'LATEST';
 const {log, requestAsBrowser} = Apify.utils;
 
 const LABELS = {
-    GOV: 'GOV',
-    WIKI: 'WIKI',
-    GIS: 'GIS'
+    GIS: 'GIS',
+    GIS_REGIONS: 'GIS_REGIONS'
 };
 
 Apify.main(async () => {
-    const { notificationEmail, doErrorCheck = true } = await Apify.getInput();
+    const { notificationEmail, doErrorCheck = true, failedLimit = 5 } = await Apify.getInput();
     const requestQueue = await Apify.openRequestQueue();
+    let failedBefore = (await Apify.getValue('COVID-19-NL-FAILED')) || 0;
     const kvStore = await Apify.openKeyValueStore('COVID-19-NL');
     const dataset = await Apify.openDataset("COVID-19-NL-HISTORY");
-    await requestQueue.addRequest({ url: 'https://services9.arcgis.com/N9p5hsImWXAccRNI/arcgis/rest/services/Nc2JKvYFoAEOFCG5JSI6/FeatureServer/2/query?f=json&where=(Recovered%3C%3E0)%20AND%20(OBJECTID%3D12)&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=Recovered%20desc&outSR=102100&resultOffset=0&resultRecordCount=250&resultType=standard&cacheHint=true', userData: { label: LABELS.GIS }});
+    await requestQueue.addRequest({ url: 'https://services9.arcgis.com/N9p5hsImWXAccRNI/arcgis/rest/services/Nc2JKvYFoAEOFCG5JSI6/FeatureServer/3/query?f=json&where=Country_Region%3D%27Netherlands%27&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=Confirmed%20desc&outSR=102100&resultOffset=0&resultRecordCount=75&resultType=standard&cacheHint=true', userData: {label: LABELS.GIS_REGIONS}})
+    await requestQueue.addRequest({ url: 'https://services9.arcgis.com/N9p5hsImWXAccRNI/arcgis/rest/services/Nc2JKvYFoAEOFCG5JSI6/FeatureServer/2/query?f=json&where=(Recovered%3C%3E0)%20AND%20(OBJECTID%3D123)&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=Recovered%20desc&outSR=102100&resultOffset=0&resultRecordCount=250&resultType=standard&cacheHint=true', userData: { label: LABELS.GIS }});
 
-    if (notificationEmail) {
+    if (notificationEmail && failedLimit < failedBefore) {
         await Apify.addWebhook({
             eventTypes: ['ACTOR.RUN.FAILED', 'ACTOR.RUN.TIMED_OUT'],
             requestUrl: `https://api.apify.com/v2/acts/mnmkng~email-notification-webhook/runs?token=${Apify.getEnv().token}`,
@@ -26,6 +27,7 @@ Apify.main(async () => {
 
     let totalInfected = 0;
     let totalDeceased = undefined;
+    let infectedByRegion = [];
     const proxyConfiguration = await Apify.createProxyConfiguration();
 
     const crawler = new Apify.BasicCrawler({
@@ -51,18 +53,23 @@ Apify.main(async () => {
                         totalDeceased = attributes.Deaths;
                     }
                     break;
-                case LABELS.WIKI: // deprecated
-                    const tableRows = $('table.infobox tr').toArray();
-                    for (const row of tableRows) {
-                        const $row = $(row);
-                        const th = $row.find('th');
-                        if (th) {
-                            const value = $row.find('td');
-                            if (th.text().trim() === 'Deaths') {
-                                totalDeceased = value.text().trim().replace(',','');
-                            } else if (th.text().trim() === 'Confirmed cases') {
-                                totalInfected = value.text().trim().replace(',','');
-                            }
+                case LABELS.GIS_REGIONS: // deprecated
+                    response = await requestAsBrowser({
+                        url: request.url,
+                        headers: {
+                            referer: 'https://gisanddata.maps.arcgis.com/apps/opsdashboard/index.html'
+                        },
+                        proxyUrl: proxyConfiguration.newUrl(),
+                        json: true,
+                    });
+                    if (response.statusCode === 200) {
+                        for (const province of response.body.features) {
+                            const {attributes} = province;
+                            infectedByRegion.push({
+                                region: attributes.Province_State,
+                                infectedCount: attributes.Confirmed,
+                                deceasedCount: attributes.Deaths
+                            });
                         }
                     }
                     break;
@@ -82,6 +89,7 @@ Apify.main(async () => {
         infected: parseInt(totalInfected, 10),
         tested: undefined,
         deceased: parseInt(totalDeceased, 10),
+        infectedByRegion,
         country: 'Netherlands',
         moreData: 'https://api.apify.com/v2/key-value-stores/vqnEUe7VtKNMqGqFF/records/LATEST?disableRedirect=true',
         historyData: 'https://api.apify.com/v2/datasets/jr5ogVGnyfMZJwpnB/items?format=json&clean=1',
@@ -105,10 +113,13 @@ Apify.main(async () => {
     }
 
     if (doErrorCheck && ((latest.infected - 10) > actual.infected || (latest.deceased - 10) > actual.deceased)) {
+        failedBefore = failedBefore + 1;
+        await Apify.setValue('COVID-19-NL-FAILED', failedBefore);
         log.error('Actual numbers are lower then latest probably wrong parsing');
         process.exit(1);
     }
 
     await kvStore.setValue(LATEST, data);
+    await Apify.setValue('COVID-19-NL-FAILED', 0);
     log.info('Data stored, finished.');
 });
