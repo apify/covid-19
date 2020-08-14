@@ -5,7 +5,7 @@ const _ = require('lodash');
 const { log } = Apify.utils;
 log.setLevel(log.LEVELS.WARNING);
 
-const LATEST ='LATEST';
+const LATEST = 'LATEST';
 
 Apify.main(async () => {
     const sourceUrl = 'https://ncov.moh.gov.vn/';
@@ -39,7 +39,7 @@ Apify.main(async () => {
             // if (matchUpadatedAt && matchUpadatedAt.length > 5) {
             //     const dateTimeStr = `${matchUpadatedAt[5]}.${matchUpadatedAt[4]}.${matchUpadatedAt[3]} ${matchUpadatedAt[0]}:${matchUpadatedAt[1]}`;
             //     const dateTime = moment.tz(dateTimeStr, "YYYY.MM.DD h:mm a", 'Asia/Ho_Chi_Minh');
-               
+
             //     data.lastUpdatedAtSource = dateTime.toISOString();
             // } else {
             //     throw new Error('lastUpdatedAtSource not found');
@@ -64,6 +64,23 @@ Apify.main(async () => {
             data.treated = parseInt(treated);
             data.recovered = parseInt(recovered);
             data.deceased = parseInt(died);
+
+            const table = $('#sailorTable').toArray();
+            const tableRows = Array.from($(table).find('table > tbody > tr'));
+            const regionData = [];
+            for (const row of tableRows) {
+                const cells = Array.from($(row).find('td')).map(td => $(td).text().trim());
+                regionData.push({
+                    region: cells[0],
+                    totalInfected: cells[1],
+                    activeCases: cells[2],
+                    recovered: cells[3],
+                    deceased: cells[4]
+                });
+            }
+            data.regionData = regionData;
+
+            console.log(data);
 
             // Compare and save to history
             const latest = await kvStore.getValue(LATEST) || {};
