@@ -39,7 +39,7 @@ Apify.main(async () =>
         const totalInfected = $( "a[id*='cases-total']" ).text().trim();
         const dailyConfirmed = $( "a[id*='cases-daily']" ).text().trim();
         // //const patientsRecovered = $("text[vector-effect='non-scaling-stroke']").eq(4).text();
-        const deceased = $( "a[id*='deaths-total']" ).text().trim();
+        //const deceased = $( "a[id*='deaths-total']" ).text().trim();
         const tested = $( "a[id*='testing-total']" ).text().trim();
         // const englandConfirmed = $('td:contains("England")').next().eq(0).text().trim();
         // const englandDeceased = $('h3:contains("England").govuk-caption-m').next().text().trim();
@@ -54,7 +54,7 @@ Apify.main(async () =>
             infected: getInt(totalInfected.substring(0, totalInfected.indexOf('Value'))),
             tested: getInt(tested.substring(0, tested.indexOf('Value'))),
             // recovered: "N/A",
-            deceased: getInt(deceased.substring(0, deceased.indexOf('Value'))),
+            deceased: "N/A",
             dailyConfirmed: getInt(dailyConfirmed.substring(0, dailyConfirmed.indexOf('Value'))),
             // englandConfirmed: getInt(englandConfirmed),
             // englandDeceased: getInt(englandDeceased),
@@ -77,7 +77,7 @@ Apify.main(async () =>
     
     console.log(result)
     
-    if ( !result.infected || !result.dailyConfirmed || !result.deceased || !result.tested) {
+    if ( !result.infected || !result.dailyConfirmed || !result.tested) {
                 throw "One of the output is null";
             }
     else {
