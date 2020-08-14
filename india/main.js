@@ -33,16 +33,24 @@ Apify.main(async () => {
         const regionsTableRows = rawTableRows.filter(row => row.querySelectorAll('td').length === 8);
         const regionData = [];
 
-        console.log(regionsTableRows)
-
         for (const row of regionsTableRows) {
-            const cells = Array.from(row.querySelectorAll("td")).map(td => td.textContent);
+            const cells = Array.from(row.querySelectorAll("td")).map(td => getFormattedNumber(td));
             if (cells[1] !== 'Total#') regionData.push({
                 region: cells[1],
                 totalInfected: Number(cells[2]),
+                newInfected: Number(cells[3]),
                 recovered: Number(cells[4]),
-                deceased: Number(cells[6])
+                newRecovered: Number(cells[5]),
+                deceased: Number(cells[6]),
+                newDeceased: Number(cells[7])
             });
+        }
+
+        function getFormattedNumber(td) {
+            const tdText = $(td).text().trim();
+            if ($(td).find('.fa-arrow-up').length) return Number(`+${tdText}`);
+            if ($(td).find('.fa-arrow-down').length) return Number(`-${tdText}`);
+            return isNaN(tdText) ? tdText : Number(tdText);
         }
 
         const data = {
@@ -59,7 +67,7 @@ Apify.main(async () => {
             regionData: regionData,
         };
         return data;
-        
+
     });
 
     console.log(result)
