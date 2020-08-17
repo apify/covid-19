@@ -29,9 +29,23 @@ Apify.main(async () => {
         return { region, newInfected, totalInfected };
     });
 
+    // Or this way:
+
+    // const table = $('.govuk-grid-column-two-thirds').toArray().find(t => $(t).find('h2') && $(t).find('h2').text() === 'Počet pozitívne testovaných za kraje');
+    // const tableRows = Array.from($(table).find('table > tbody > tr'));
+    // const regionData = [];
+    // for (const row of tableRows) {
+    //     const cells = Array.from($(row).find('td')).map(td => $(td).text().trim());
+    //     regionData.push({
+    //         region: cells[0],
+    //         increase: cells[1],
+    //         overall: cells[2]
+    //     });
+    // }
+
     const now = new Date();
 
-    const updated = $('#block_5e9f629147a8d > div > p').text().replace('Aktualizované ','');
+    const updated = $('#block_5e9f629147a8d > div > p').text().replace('Aktualizované ', '');
 
     const result = {
         infected: Number(infected),
