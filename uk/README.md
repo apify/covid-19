@@ -1,6 +1,6 @@
 # Coronavirus stats in the UK 
 
-Actor gets an actual number of examined and infected people in the UK from https://www.gov.uk/government/publications/covid-19-track-coronavirus-cases (specifically from https://www.arcgis.com/apps/opsdashboard/index.html#/f94c3c90da5b4e9f9a0b19484dd4bb14)
+Actor gets an actual number of examined and infected people in the UK from https://coronavirus.data.gov.uk/ .
 
 Latest data are available at this URL: https://api.apify.com/v2/key-value-stores/KWLojgM5r1JmMW4b4/records/LATEST?disableRedirect=true.
 
