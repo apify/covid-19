@@ -41,6 +41,7 @@ Apify.main(async () =>
         // //const patientsRecovered = $("text[vector-effect='non-scaling-stroke']").eq(4).text();
         //const deceased = $( "a[id*='deaths-total']" ).text().trim();
         const tested = $( "a[id*='testing-total']" ).text().trim();
+        const deceasedWithin28Days = $( "a[id*='cumdeaths28']" ).text().trim();
         // const englandConfirmed = $('td:contains("England")').next().eq(0).text().trim();
         // const englandDeceased = $('h3:contains("England").govuk-caption-m').next().text().trim();
         // const scotlandConfirmed = $('td:contains("Scotland")').next().eq(0).text().trim();
@@ -55,6 +56,7 @@ Apify.main(async () =>
             tested: getInt(tested.substring(0, tested.indexOf('Value'))),
             // recovered: "N/A",
             deceased: "N/A",
+            deceasedWithin28Days: getInt(deceasedWithin28Days.substring(0, deceasedWithin28Days.indexOf('Value'))),
             dailyConfirmed: getInt(dailyConfirmed.substring(0, dailyConfirmed.indexOf('Value'))),
             // englandConfirmed: getInt(englandConfirmed),
             // englandDeceased: getInt(englandDeceased),
