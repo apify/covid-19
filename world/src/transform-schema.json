@@ -45,6 +45,11 @@
     "infected": "infected",
     "recovered": "recovered"
   },
+  "Croatia": {
+    "deceased": "deceased",
+    "infected": "infected",
+    "recovered": "recovered"
+  },
   "Czech Republic": {
     "deceased": "deceased",
     "infected": "infected",
