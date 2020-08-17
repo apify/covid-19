@@ -1,0 +1,9 @@
+# Coronavirus stats in Croatia
+
+Actor gets an actual number of infected, deceased and recovered people in Croatia from .
+
+Latest data are available at this URL: .
+
+You can find a dataset with unique history items here: .
+
+URL is being actualized every 5 minutes.
