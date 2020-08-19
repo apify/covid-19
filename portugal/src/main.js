@@ -8,15 +8,17 @@ async function waitForContentToLoad(page) {
   const query = "document.querySelectorAll('full-container full-container')";
 
   return page.waitForFunction(
-    `!!${query}[1] && !!${query}[2] && !!${query}[3] && !!${query}[4] && !!${query}[6] && !!${query}[13]` +
-      ` && !!${query}[1].innerText.includes('Confirmados')` +
-      ` && !!${query}[2].innerText.includes('Recuperados')` +
-      ` && !!${query}[3].innerText.includes('Óbitos')` +
-      ` && !!${query}[4].innerText.includes('Suspeitos')` +
-      ` && !!${query}[5].innerText.includes('Amostras')` +
-      ` && !!${query}[6].innerText.includes('Dados relativos ao boletim da DGS')` +
-      ` && !!${query}[13].innerText.includes('Casos por Região de Saúde')` +
-      ` && !!${query}[13].innerHTML.includes('<nav class="feature-list">')`,
+    `!!${query}[1] && !!${query}[6] && !!${query}[2] && !!${query}[4] && !!${query}[19] && !!${query}[8] && !!${query}[15]` +
+    ` && !!${query}[1].innerText.includes('ACTIVOS')` +
+    ` && !!${query}[6].innerText.includes('CONFIRMADOS')` +
+    ` && !!${query}[2].innerText.includes('RECUPERADOS')` +
+    ` && !!${query}[4].innerText.includes('ÓBITOS')` +
+    // ` && !!${query}[19].innerText.includes('AMOSTRAS')` +
+    ` && !!${query}[19].querySelector('text')` +
+    // ` && !!${query}[4].innerText.includes('Suspeitos')` +
+    ` && !!${query}[8].innerText.includes('Dados relativos ao boletim da DGS')` +
+    ` && !!${query}[15].innerText.includes('Casos por Região de Saúde')` +
+    ` && !!${query}[15].innerHTML.includes('<nav class="feature-list">')`,
     { timeout: 45 * 1000 }
   );
 }
@@ -71,7 +73,9 @@ Apify.main(async () => {
 
       await Apify.utils.puppeteer.injectJQuery(page);
       log.info("Waiting for content to load");
+
       await waitForContentToLoad(page);
+
       log.info("Content loaded");
 
       const extracted = await page.evaluate(async () => {
@@ -81,24 +85,27 @@ Apify.main(async () => {
 
         const fullContainer = $("full-container full-container").toArray();
 
-        const date = $(fullContainer[6]).find("g").last().text().trim();
-        const suspicious = await strToInt(
-          $(fullContainer[4]).find("g").last().text().trim()
+        const date = $(fullContainer[8]).find("g").last().text().trim();
+        // const suspicious = await strToInt(
+        //   $(fullContainer[4]).find("g").last().text().trim()
+        // );
+        const active = await strToInt(
+          $(fullContainer[1]).find("g").last().text().trim()
         );
         const infected = await strToInt(
-          $(fullContainer[1]).find("g").last().text().trim()
+          $(fullContainer[6]).find("g").last().text().trim()
         );
         const recovered = await strToInt(
           $(fullContainer[2]).find("g").last().text().trim()
         );
         const deceased = await strToInt(
-          $(fullContainer[3]).find("g").last().text().trim()
+          $(fullContainer[4]).find("g").last().text().trim()
         );
         const tested = await strToInt(
-          $(fullContainer[5]).find("g").last().text().trim()
+          $(fullContainer[19]).find("g").last().text().trim()
         );
 
-        const spans = $(fullContainer[13])
+        const spans = $(fullContainer[15])
           .find('nav.feature-list span[id*="ember"]')
           .toArray();
 
@@ -114,11 +121,12 @@ Apify.main(async () => {
 
         return {
           date,
+          active,
           infected,
           tested,
           recovered,
           deceased,
-          suspicious,
+          // suspicious,
           infectedByRegion,
         };
       });
