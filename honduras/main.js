@@ -73,24 +73,24 @@ Apify.main(async () => {
     const recovered = $('#art-main > div > div.art-layout-wrapper > div > div > div.art-layout-cell.art-content > div:nth-child(4) > div > div > section > div > div > div:nth-child(2) > div:nth-child(2) > div.skillbar-score > span.score').text().replace(",", "");
     const deceased = $('#art-main > div > div.art-layout-wrapper > div > div > div.art-layout-cell.art-content > div:nth-child(4) > div > div > section > div > div > div:nth-child(2) > div:nth-child(3) > div.skillbar-score').text().replace(",", "").trim();
 
-    const dateString = $('#art-main > div > div.art-layout-wrapper > div > div > div.art-layout-cell.art-content > div:nth-child(4) > div > div > section > div > div > div:nth-child(1) > div > p').text();
-    const cleanDateString = dateString.replace('Actualizado el', '').trim();
-    const [day, month, year] = cleanDateString.split(' de ');
-    const months = {
-        enero: 0,
-        febrero: 1,
-        marzo: 2,
-        abril: 3,
-        mayo: 4,
-        junio: 5,
-        julio: 6,
-        agosto: 7,
-        septiembre: 8,
-        octubre: 9,
-        noviembre: 10,
-        diciembre: 11,
-    }
-    const date = new Date(Date.UTC(year, months[month], day)).toISOString();
+    // const dateString = $('#art-main > div > div.art-layout-wrapper > div > div > div.art-layout-cell.art-content > div:nth-child(4) > div > div > section > div > div > div:nth-child(1) > div > p').text();
+    // const cleanDateString = dateString.replace('Actualizado el', '').trim();
+    // const [day, month, year] = cleanDateString.split(' de ');
+    // const months = {
+    //     enero: 0,
+    //     febrero: 1,
+    //     marzo: 2,
+    //     abril: 3,
+    //     mayo: 4,
+    //     junio: 5,
+    //     julio: 6,
+    //     agosto: 7,
+    //     septiembre: 8,
+    //     octubre: 9,
+    //     noviembre: 10,
+    //     diciembre: 11,
+    // }
+    // const date = new Date(Date.UTC(year, months[month], day)).toISOString();
 
     
     const now = new Date();
@@ -104,7 +104,7 @@ Apify.main(async () => {
         sexes,
         historyData,
         dailyData,
-        lastUpdatedAtSource: date,
+        // lastUpdatedAtSource: date,
         lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
         readMe: 'https://apify.com/zuzka/honduras'
     }
