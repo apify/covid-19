@@ -1,61 +1,83 @@
 
 const Apify = require('apify');
-const httpRequest = require('@apify/http-request')
 const cheerio = require('cheerio');
 const sourceUrl = 'http://sam.lrv.lt/lt/naujienos/koronavirusas';
+const { log, requestAsBrowser } = Apify.utils;
 const LATEST = 'LATEST';
+
+const toNumber = (str) => parseInt(str.replace(/\D+/g, ''), 10);
 
 Apify.main(async () => {
 
     const kvStore = await Apify.openKeyValueStore("COVID-19-LITHUANIA");
     const dataset = await Apify.openDataset("COVID-19-LITHUANIA-HISTORY");
 
-    console.log('Getting data...');
-    const { body } = await httpRequest({ url: sourceUrl });
-    const $ = cheerio.load(body);
-    const infected = $('#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(1) > strong').text();
-    const deceased = $('#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul:nth-child(5) > li:nth-child(4) > b').text();
-    const recovered = $("#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(6) > strong").text();
-    const newInfected = $("#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul:nth-child(5) > li:nth-child(3) > b").text();
-    const isolated = $("#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul:nth-child(5) > li:nth-child(7) > b").text();
-    const connectedDeaths = $('#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(5) > strong').text();
-    const stillSick = $('#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(2) > b').text();
+    const requestList = await Apify.openRequestList('my-list', [
+        { url: sourceUrl },
+    ]);
 
-    const now = new Date();
+    const basicCrawler = new Apify.BasicCrawler({
+        requestList,
+        maxRequestRetries: 1,
+        requestTimeoutSecs: 60,
+        handleRequestFunction: async ({ request }) => {
+            const { url } = request;
+            log.info(`Processsing ${url}`);
 
-    const result = {
-        infected,
-        recovered,
-        deceased,
-        newInfected,
-        isolated,
-        connectedDeaths,
-        stillSick,
-        sourceUrl: 'http://sam.lrv.lt/lt/naujienos/koronavirusas',
-        lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
-        readMe: 'https://apify.com/dtrungtin/covid-lt'
-    };
-    console.log(result)
+            const response = await requestAsBrowser({ url });
 
-    let latest = await kvStore.getValue(LATEST);
-    if (!latest) {
-        await kvStore.setValue('LATEST', result);
-        latest = result;
-    }
-    delete latest.lastUpdatedAtApify;
-    const actual = Object.assign({}, result);
-    delete actual.lastUpdatedAtApify;
+            const $ = cheerio.load(response.body);
 
-    if (JSON.stringify(latest) !== JSON.stringify(actual)) {
-        await dataset.pushData(result);
-    }
+            const infected = $('#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(1) > strong').text();
+            const deceased = $('#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul:nth-child(5) > li:nth-child(4) > b').text();
+            const recovered = $("#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(6) > strong").text();
+            const newInfected = $("#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul:nth-child(5) > li:nth-child(3) > b").text();
+            const isolated = $('div.text ul').eq(0).find('li').last().find('strong').text();
+            const connectedDeaths = $('#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(5) > strong').text();
+            const stillSick = $('#module_Structure > div.wrapper > div.main_content.clearfix > div:nth-child(3) > div.text > ul > li:nth-child(2) > b').text();
+            const now = new Date();
 
-    await kvStore.setValue('LATEST', result);
-    await Apify.pushData(result);
-}
-);
+            const result = {
+                infected: toNumber(infected),
+                recovered: toNumber(recovered),
+                deceased: toNumber(deceased),
+                newInfected: toNumber(newInfected),
+                isolated: toNumber(isolated),
+                connectedDeaths: toNumber(connectedDeaths),
+                stillSick: toNumber(stillSick),
+                sourceUrl: 'http://sam.lrv.lt/lt/naujienos/koronavirusas',
+                lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
+                readMe: 'https://apify.com/dtrungtin/covid-lt'
+            };
+            console.log(result);
 
+            let latest = await kvStore.getValue(LATEST);
+            if (!latest) {
+                await kvStore.setValue('LATEST', result);
+                latest = result;
+            }
+            delete latest.lastUpdatedAtApify;
+            const actual = Object.assign({}, result);
+            delete actual.lastUpdatedAtApify;
 
+            if (JSON.stringify(latest) !== JSON.stringify(actual)) {
+                await dataset.pushData(result);
+            }
+
+            await kvStore.setValue('LATEST', result);
+            await Apify.pushData(result);
+        },
+        handleFailedRequestFunction: async ({ request }) => {
+            console.log(`Request ${request.url} failed many times.`);
+            console.dir(request);
+        },
+    });
+
+    // Run the crawler and wait for it to finish.
+    log.info("Starting the crawl.");
+    await basicCrawler.run();
+    log.info("Actor finished.");
+});
 
 // old actor
 
