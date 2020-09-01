@@ -1,4 +1,5 @@
 const Apify = require('apify');
+const httpRequest = require("@apify/http-request");
 
 const LATEST = 'LATEST';
 const parseNum = (str) => {
@@ -8,32 +9,31 @@ Apify.main(async () => {
     const url = 'https://www.cdc.gov/coronavirus/2019-ncov/cases-in-us.html';
     const kvStore = await Apify.openKeyValueStore('COVID-19-USA-CDC');
     const dataset = await Apify.openDataset('COVID-19-USA-CDC-HISTORY');
-    
+
     const browser = await Apify.launchPuppeteer({ useApifyProxy: true, apifyProxyGroups: ['SHADER'] });
     const page = await browser.newPage();
     await Apify.utils.puppeteer.injectJQuery(page);
-    let casesByStateJson = '';
-    let json = '';
-    page.on('response', async (res) => {
-        if (res.url() === 'https://www.cdc.gov/coronavirus/2019-ncov/json/us-cases-map-data.json') {
-            casesByStateJson = await res.text();
-        } else if (res.url() === 'https://www.cdc.gov/coronavirus/2019-ncov/json/cumm-total-chart-data.json') {
-            json = await res.json();
+    let {body: casesByStateJson} = await httpRequest({
+        url: 'https://www.cdc.gov/coronavirus/2019-ncov/json/us-cases-map-data.json',
+        proxyUrl: Apify.getApifyProxyUrl({groups: ["SHADER"]}),
+        json: false,
+        headers: {
+            Accept: 'application/json, */*',
+            'Content-Type': 'application/json',
         }
-    });
+    })
+    casesByStateJson = casesByStateJson.replace("﻿[", "[")
+
     await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
     const extracted = await page.evaluate(() => {
-        const totalCases = $('body > div.container.d-flex.flex-wrap.body-wrapper.bg-white > main > div:nth-child(3) > div > div.syndicate > div:nth-child(1) > div > div > div > section > div > div > div:nth-child(1) > span.count').text().replace(/,/g, '').trim();
-        const totalDeaths = $('body > div.container.d-flex.flex-wrap.body-wrapper.bg-white > main > div:nth-child(3) > div > div.syndicate > div:nth-child(1) > div > div > div > section > div > div > div:nth-child(2) > span.count').text().replace(/,/g, '').trim();
+        const totalCases = $('#viz001_uscases .wLevel_2').text().replace(/,/g, '').trim();
+        const totalDeaths = $('#viz002_usdeaths .wLevel_2').text().replace(/,/g, '').trim();
         let dateUpdated = new Date();
         dateUpdated = new Date(Date.UTC(dateUpdated.getFullYear(), dateUpdated.getMonth(), dateUpdated.getDate())).toISOString();
 
         return { totalDeaths, totalCases, dateUpdated };
     });
 
-    // const [dates, values] = json;
-    // dates.splice(0, 1);
-    // values.splice(0, 1);
     const now = new Date();
     const data = {
         totalCases: parseNum(extracted.totalCases),
@@ -44,10 +44,6 @@ Apify.main(async () => {
             casesReported: row['Cases Reported'],
             communityTransmission: row['Community Transmission'],
         })),
-        // casesByDays: dates.map((value, index) => {
-        //     const dataSplit = value.split('/');
-        //     return { date: new Date(Date.UTC(dataSplit[2], dataSplit[0], dataSplit[1])).toISOString(), value: values[index] };
-        // }),
         sourceUrl: url,
         lastUpdatedAtSource: extracted.dateUpdated,
         lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
