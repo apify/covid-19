@@ -1,16 +1,14 @@
 // main.js
 const Apify = require('apify');
-const cheerio = require('cheerio')
-const { log, requestAsBrowser } = Apify.utils;
+const XLSX = require("xlsx");
+const { log } = Apify.utils;
+
 const LATEST = 'LATEST';
 
-const sourceUrl = 'https://data.public.lu/fr/datasets/covid-19-rapports-journaliers/';
+const sourceUrl = 'https://data.public.lu/fr/datasets/donnees-covid19/';
 const now = new Date();
-const toNumber = (txt) => parseInt(txt.replace(/\D+/g, ''), 10);
 
 Apify.main(async () => {
-
-    Apify.client.setOptions({ token: process.env.APIFY_TOKEN });
 
     log.info('Starting actor.');
     const kvStore = await Apify.openKeyValueStore('COVID-19-LUXEMBOURG');
@@ -18,24 +16,34 @@ Apify.main(async () => {
 
     const requestQueue = await Apify.openRequestQueue();
     await requestQueue.addRequest({
-        url: 'https://data.public.lu/fr/datasets/covid-19-rapports-journaliers/',
+        url: 'https://data.public.lu/fr/datasets/donnees-covid19/',
         userData: {
-            label: 'GET_PDF_LINK'
+            label: 'GET_XLSX_LINK'
         }
     })
-    const crawler = new Apify.BasicCrawler({
+
+    const cheerioCrawler = new Apify.CheerioCrawler({
         requestQueue,
-        handleRequestTimeoutSecs: 240,
-        handleRequestFunction: async ({ request }) => {
-            const { url, userData: { label, dateModified } } = request;
-            log.info('Page opened.', { label, url });
-
+        requestTimeoutSecs: 90,
+        useApifyProxy: true,
+        handleRequestTimeoutSecs: 120,
+        additionalMimeTypes: [
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "text/plain",
+        ],
+        prepareRequestFunction: async ({ request }) => {
+            if (request.url.endsWith(".xlsx")) {
+                log.info(`Proccecing ${request.url}`);
+                log.info(`Downloading xlsx file ...`);
+            }
+        },
+        handlePageFunction: async ({ request, $, body }) => {
+            const { label } = request.userData;
             switch (label) {
-                case 'GET_PDF_LINK':
-                    const { body } = await requestAsBrowser({ url });
-
-                    const $ = cheerio.load(body);
-                    const { contentUrl, dateModified: fileDateModified } = JSON.parse($('script#json_ld').html().replace(/\\|/g, '')).distribution[0];
+                case "GET_XLSX_LINK":
+                    log.info(`Proccecing ${request.url}`);
+                    log.info(`Getting xlsx download link.`);
+                    const { contentUrl, dateModified: fileDateModified } = JSON.parse($('script#json_ld').html().replace(/\\|/g, '')).distribution[1];
 
                     await requestQueue.addRequest({
                         url: contentUrl,
@@ -45,32 +53,24 @@ Apify.main(async () => {
                         }
                     })
                     break;
+                case "EXTRACT_DATA":
+                    log.info(`File had downloaded.`);
+                    log.info(`Processing and saving data.`);
+                    let workbook = XLSX.read(body, { type: "buffer" });
 
-                case 'EXTRACT_DATA':
-                    log.info('Converting pdf to html...')
-
-                    const run = await Apify.call('jancurn/pdf-to-html', {
-                        url,
-                    });
-                    log.info('Proccesing and saving data...')
-                    const $$ = cheerio.load(run.output.body.replace(/\\/g, ''))
-
-                    // // Extract date
-                    // const [m, d, y] = $$('span:contains(Date de publication)').text().match(/[0-9\/]+/g)[0].split('/');
-                    // const srcDate = new Date(`${d}-${m}-${y}`);
+                    const total = XLSX.utils.sheet_to_json(workbook.Sheets["Sheet1"]);
 
                     // Extract date
-                    const srcDate = new Date(dateModified);
-
-
+                    const srcDate = new Date(request.userData.dateModified);
+                    const lastItem = total.pop();
                     const data = {
-                        tested: toNumber($$('div:contains(Nombre de tests)').nextAll().eq(12).text()),
-                        infected: toNumber($$('div:contains(Personnes testées)').nextAll().eq(12).text()),
-                        deceased: toNumber($$('div:contains(Nombre de décès)').parent().last().nextAll().eq(1).text()),
-                        recovered: toNumber($$('div:contains(Nombre de personnes guéries)').parent().last().nextAll().eq(0).text()),
-                        active: toNumber($$('div:contains(Nombre d’infections actives)').parent().last().nextAll().eq(0).text()),
-                        hospitalized: toNumber($$('div:contains(Hospitalisations en soins normaux)').parent().last().nextAll().eq(0).text()),
-                        intensiveCare: toNumber($$('div:contains(Hospitalisations en soins intensifs)').parent().last().nextAll().eq(0).text()),
+                        tested: lastItem["__EMPTY"],
+                        infected: lastItem["Nouvelles infections"],
+                        deceased: lastItem["[1.NbMorts]"],
+                        intensiveCare: lastItem["Soins intensifs"],
+                        newlyTested: lastItem["Nombre tests total"],
+                        newlyInfected: lastItem["Personnes testées"],
+                        newlyRecovered: lastItem["[9.TotalPatientDepartHopital]"],
                         sourceUrl,
                         country: ' Luxembourg',
                         historyData: 'https://api.apify.com/v2/datasets/oZH6thpQSdIyo3ky2/items?format=json&clean=1',
@@ -83,7 +83,7 @@ Apify.main(async () => {
                     // Push the data
                     let latest = await kvStore.getValue(LATEST);
                     if (!latest) {
-                        await kvStore.setValue('LATEST', data);
+                        await kvStore.setValue("LATEST", data);
                         latest = Object.assign({}, data);
                     }
                     delete latest.lastUpdatedAtApify;
@@ -91,24 +91,29 @@ Apify.main(async () => {
                     delete actual.lastUpdatedAtApify;
 
                     const { itemCount } = await dataset.getInfo();
-                    if (JSON.stringify(latest) !== JSON.stringify(actual) || itemCount === 0) {
+                    if (
+                        JSON.stringify(latest) !== JSON.stringify(actual) ||
+                        itemCount === 0
+                    ) {
                         await dataset.pushData(data);
                     }
 
-                    await kvStore.setValue('LATEST', data);
+                    await kvStore.setValue("LATEST", data);
                     await Apify.pushData(data);
 
-                    log.info('Data saved.');
+                    log.info("Data saved.");
+                    break;
+                default:
                     break;
             }
         },
-        // This function is called if the page processing failed more than maxRequestRetries+1 times.	
         handleFailedRequestFunction: async ({ request }) => {
-            console.log(`Request ${request.url} failed twice.`);
+            console.log(`Request ${request.url} failed many times.`);
+            console.dir(request);
         },
     });
-
     // Run the crawler and wait for it to finish.
-    await crawler.run();
-    console.log('Crawler finished.');
+    log.info("Starting the crawl.");
+    await cheerioCrawler.run();
+    log.info("Actor finished.");
 });
