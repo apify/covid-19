@@ -8,12 +8,22 @@ Apify.main(async () => {
         json: true,
     })
 
-let result = worldometerDataRaw.regionData[17];
+let result = worldometerDataRaw.regionData.find(c => c.country === 'Iran')
+const infected = result.totalCases;
+const deceased = result.totalDeaths;
+const recovered = result.totalRecovered;
+const activeCases = result.activeCases;
+const tested = result.totalTests;
+const critical = result.seriousCritical;
 
-    for (i in worldometerDataRaw.regionData) {
-        console.log(i.country)
-        if (i.country === 'World') {
-            result = i
-        };
-    console.log(result);
-    }});
+ const data = {
+     infected,
+     deceased,
+     recovered,
+     activeCases,
+     tested,
+     critical
+ }
+
+ console.log(data)
+    });
