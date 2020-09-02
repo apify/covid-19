@@ -1,0 +1,27 @@
+{
+  "China": {
+    "infected_Apify": 85765,
+    "infected_WM": 85066,
+    "deviation_percent": "-0.82"
+  },
+  "Japan": {
+    "infected_Apify": 69457,
+    "infected_WM": 68392,
+    "deviation_percent": "-1.53"
+  },
+  "Netherlands": {
+    "infected_Apify": 73802,
+    "infected_WM": 71129,
+    "deviation_percent": "-3.62"
+  },
+  "Palestine": {
+    "infected_Apify": 30421,
+    "infected_WM": 23281,
+    "deviation_percent": "-23.47"
+  },
+  "Vietnam": {
+    "infected_Apify": 1046,
+    "infected_WM": 1044,
+    "deviation_percent": "-0.19"
+  }
+}

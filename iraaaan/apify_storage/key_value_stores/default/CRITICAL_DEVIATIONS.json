@@ -1,0 +1,37 @@
+{
+  "Denmark": {
+    "infected_Apify": 4,
+    "infected_WM": 17084,
+    "deviation_percent": "427000.00"
+  },
+  "Honduras": {
+    "infected_Apify": 0,
+    "infected_WM": 61769,
+    "deviation_percent": null
+  },
+  "Iran": {
+    "infected_Apify": 197873,
+    "infected_WM": 378752,
+    "deviation_percent": "91.41"
+  },
+  "Kosovo": {
+    "infected_Apify": 12683,
+    "infected_WM": null,
+    "deviation_percent": null
+  },
+  "Luxembourg": {
+    "infected_Apify": 208,
+    "infected_WM": 6702,
+    "deviation_percent": "3122.12"
+  },
+  "Palestine": {
+    "infected_Apify": 30421,
+    "infected_WM": 23281,
+    "deviation_percent": "-23.47"
+  },
+  "Russia": {
+    "infected_Apify": 3548,
+    "infected_WM": 1005000,
+    "deviation_percent": "28225.82"
+  }
+}
