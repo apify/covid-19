@@ -3,7 +3,8 @@
 	"version": "0.0.1",
 	"description": "This is a boilerplate of an Apify actor.",
 	"dependencies": {
-		"apify": "^0.20.2"
+		"apify": "^0.20.2",
+		"decode-html": "^2.0.0"
 	},
 	"devDependencies": {},
 	"scripts": {
