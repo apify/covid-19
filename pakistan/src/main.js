@@ -1,5 +1,6 @@
 const Apify = require('apify');
 const cheerio = require("cheerio");
+const moment = require('moment');
 const { log } = Apify.utils;
 
 const LATEST = "LATEST";
@@ -30,20 +31,10 @@ Apify.main(async () => {
     const recovered = $('.recovered-icon').next().next().text().replace(',','');
     const deceased = $('.deaths-icon').next().next().text().replace(',','');
     const critical = $('.tests-icon').next().next().text().replace(',','');
-    
-    // const lastLocal = $("#last-update")
-    //     .text()
-    //     .trim()
-    //     .split(':')[1]
-    //     .split('- ')
-    //     .map((input, index) =>
-    //         index ?
-    //             input.replace(/[a-z]+/g, ` ${input.match(/[a-z]+/)}`) :
-    //             input)
-    //     .join('')
-    //     .replace(/\s+/g, ' ');
-    // const dateLocal = new Date(`${lastLocal} GMT+5`);
-    // const lastUpdatedAtSource = new Date(dateLocal.setHours(dateLocal.getHours() - 5)).toISOString();
+
+    const lastLocalString = $("#last-update").text().trim();
+    const lastLocalMoment = moment(lastLocalString, 'DD MMMM, YYYY - hh:mm');
+    const lastUpdatedAtSource = new Date(`${lastLocalMoment.toDate()} GMT+5`).toISOString();
 
     const sourceData = {
         infected: Number(infected),
@@ -53,15 +44,15 @@ Apify.main(async () => {
         critical: Number(critical)
     };
 
-    console.log(sourceData);
-
     const output = {
         ...sourceData,
         sourceUrl,
-        // lastUpdatedAtSource: new Date(dateLocal).toISOString(),
+        lastUpdatedAtSource,
         lastUpdatedAtApify: new Date(Date.now()).toISOString(),
         readMe: 'https://apify.com/cyberfly/covid-pk'
     };
+
+    console.log({output});
 
     // Compare and save to history
     const previousData = await store.getValue(LATEST);

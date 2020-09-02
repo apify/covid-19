@@ -1,5 +1,6 @@
 dependencies:
   apify: 0.20.2
+  moment: 2.27.0
   request-promise-native: 1.0.8
 lockfileVersion: 5.1
 packages:
@@ -1339,6 +1340,10 @@ packages:
     optional: true
     resolution:
       integrity: sha512-NKmAlESf6jMGym1++R0Ra7wvhV+wFW63FaSOFPwRahvea0gMUcGUhVeAg/0BC0wiv9ih5NYPB1Wn1UEI1/L+xQ==
+  /moment/2.27.0:
+    dev: false
+    resolution:
+      integrity: sha512-al0MUK7cpIcglMv3YF13qSgdAIqxHTO7brRtaz3DlSULbqfazqkc5kEjNrLDOM7fsjshoFIihnU8snrP7zUvhQ==
   /ms/2.0.0:
     dev: false
     resolution:
@@ -2193,4 +2198,5 @@ packages:
       integrity: sha1-AI4G2AlDIMNy28L47XagymyKxBk=
 specifiers:
   apify: ^0.20.2
+  moment: ^2.27.0
   request-promise-native: ^1.0.8
