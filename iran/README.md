@@ -1,7 +1,7 @@
 
 Coronavirus stats in the Iran
 
-Actor gets an actual number of examined and infected people in the Iran from https://corona.ihio.gov.ir.
+Actor gets an actual number of tested, infected, recovered and deceased people in Iran not from https://corona.ihio.gov.ir anymore but from https://www.worldometers.info/coronavirus/.
 
 Latest data are available at this URL: https://api.apify.com/v2/key-value-stores/XV4DWf1ctkSPA8H99/records/LATEST?disableRedirect=true.
 
