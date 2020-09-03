@@ -13,7 +13,7 @@ Apify.main(async () => {
 
     const requestList = new Apify.RequestList({
         sources: [
-            { url: 'https://covid19.rosminzdrav.ru/wp-json/api/mapdata/' },
+            { url: 'https://covid19.rosminzdrav.ru/wp-json/api/mapdata' },
         ],
     });
     await requestList.initialize();
@@ -54,6 +54,7 @@ Apify.main(async () => {
             data.readMe = "https://apify.com/krakorj/covid-russia";
 
             // Push the data
+            console.log(data);
             let latest = await kvStore.getValue(LATEST);
             if (!latest) {
                 await kvStore.setValue('LATEST', data);
