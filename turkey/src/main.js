@@ -20,20 +20,14 @@ Apify.main(async () => {
       log.info("Page loaded.");
       const now = new Date();
 
-      const numbers = $("#bg-logo span[class]")
-        .map((i, el) => $(el).text().trim().replace(/\D/g, ""))
-        .get()
-        .filter((text) => text.match(/\d/))
-        .map((text) => parseInt(text, 10));
-
-      const tested = numbers[0];
-      const infected = numbers[1];
-      const deceased = numbers[2];
-      const recovered = numbers[5];
-      const dailyTested = numbers[6];
-      const dailyInfected = numbers[7];
-      const dailyDeceased = numbers[8];
-      const dailyRecovered = numbers[9];
+      const tested = $('.toplam-test-sayisi').text();
+      const infected = $('.toplam-vaka-sayisi').text();
+      const deceased = $('.toplam-vefat-sayisi').text();
+      const recovered = $('.toplam-iyilesen-hasta-sayisi').text();
+      const dailyTested = $('.bugunku-test-sayisi').text();
+      const dailyInfected = $('.bugunku-vaka-sayisi').text();
+      const dailyDeceased = $('.bugunku-vefat-sayisi').text();
+      const dailyRecovered = $('.bugunku-iyilesen-hasta-sayisi').text();
 
       // Turkish month name map
       const turkMonthNames = [
@@ -113,6 +107,8 @@ Apify.main(async () => {
         readMe: "https://apify.com/tugkan/covid-tr",
       };
 
+      console.log(returningData);
+      
       // Compare and save to history
       const latest = (await kvStore.getValue(LATEST)) || {};
       delete latest.lastUpdatedAtApify;
