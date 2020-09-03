@@ -69,9 +69,9 @@ Apify.main(async () => {
     const { body: general } = await httpRequest({ url: "http://www.salud.gob.hn/site/" });
     const $ = cheerio.load(general);
 
-    const infected = $('#art-main > div > div.art-layout-wrapper > div > div > div.art-layout-cell.art-content > div:nth-child(4) > div > div > section > div > div > div:nth-child(2) > div:nth-child(1) > div.skillbar-score > span.score').text().replace(",", "");
-    const recovered = $('#art-main > div > div.art-layout-wrapper > div > div > div.art-layout-cell.art-content > div:nth-child(4) > div > div > section > div > div > div:nth-child(2) > div:nth-child(2) > div.skillbar-score > span.score').text().replace(",", "");
-    const deceased = $('#art-main > div > div.art-layout-wrapper > div > div > div.art-layout-cell.art-content > div:nth-child(4) > div > div > section > div > div > div:nth-child(2) > div:nth-child(3) > div.skillbar-score').text().replace(",", "").trim();
+    const infected = $('#art-main > div > div.art-layout-wrapper > div > div > div.art-layout-cell.art-content > div:nth-child(3) > div > div > section > div > div > div:nth-child(2) > div:nth-child(1) > div.skillbar-score > span.score').text().replace(",", "");
+    const recovered = $('#art-main > div > div.art-layout-wrapper > div > div > div.art-layout-cell.art-content > div:nth-child(3) > div > div > section > div > div > div:nth-child(2) > div:nth-child(2) > div.skillbar-score > span.score').text().replace(",", "");
+    const deceased = $('#art-main > div > div.art-layout-wrapper > div > div > div.art-layout-cell.art-content > div:nth-child(3) > div > div > section > div > div > div:nth-child(2) > div:nth-child(3) > div.skillbar-score > span.score').text().replace(",", "").trim();
 
     // const dateString = $('#art-main > div > div.art-layout-wrapper > div > div > div.art-layout-cell.art-content > div:nth-child(4) > div > div > section > div > div > div:nth-child(1) > div > p').text();
     // const cleanDateString = dateString.replace('Actualizado el', '').trim();
