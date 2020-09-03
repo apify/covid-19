@@ -4,6 +4,7 @@
 	"description": "This is a boilerplate of an Apify actor.",
 	"dependencies": {
 		"apify": "^0.20.2",
+		"moment": "^2.27.0",
 		"request-promise-native": "^1.0.8"
 	},
 	"scripts": {
