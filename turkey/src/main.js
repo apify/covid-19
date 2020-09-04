@@ -1,139 +1,67 @@
-const Apify = require("apify");
-
-const { log, requestAsBrowser } = Apify.utils;
-const sourceUrl = "https://covid19.saglik.gov.tr/";
-const LATEST = "LATEST";
+const Apify = require('apify');
+const httpRequest = require('@apify/http-request');
+const LATEST = 'LATEST';
 
 Apify.main(async () => {
-  const requestQueue = await Apify.openRequestQueue();
   const kvStore = await Apify.openKeyValueStore("COVID-19-TURKEY");
   const dataset = await Apify.openDataset("COVID-19-TURKEY-HISTORY");
 
-  await requestQueue.addRequest({ url: sourceUrl });
-  const crawler = new Apify.CheerioCrawler({
-    requestQueue,
-    useApifyProxy: true,
-    handlePageTimeoutSecs: 60 * 2,
-    useSessionPool: true,
-    handlePageFunction: async (context) => {
-      const { $, request, session } = context;
-      log.info("Page loaded.");
-      const now = new Date();
+        const { body: turkey } = await httpRequest({
+        url: 'https://covid19.saglik.gov.tr/covid19api?getir=sondurum',
+        json: true,
+    })
 
-      const tested = $('.toplam-test-sayisi').text();
-      const infected = $('.toplam-vaka-sayisi').text();
-      const deceased = $('.toplam-vefat-sayisi').text();
-      const recovered = $('.toplam-iyilesen-hasta-sayisi').text();
-      const dailyTested = $('.bugunku-test-sayisi').text();
-      const dailyInfected = $('.bugunku-vaka-sayisi').text();
-      const dailyDeceased = $('.bugunku-vefat-sayisi').text();
-      const dailyRecovered = $('.bugunku-iyilesen-hasta-sayisi').text();
+const tested = turkey[0].toplam_test;
+const infected = turkey[0].toplam_vaka;
+const deceased = turkey[0].toplam_vefat;
+const recovered = turkey[0].toplam_iyilesen;
+const critical = turkey[0].agir_hasta_sayisi;
+const ICU = turkey[0].toplam_yogun_bakim;
 
-      // Turkish month name map
-      const turkMonthNames = [
-        "OCAK",
-        "ŞUBAT",
-        "MART",
-        "NİSAN",
-        "MAYIS",
-        "HAZİRAN",
-        "TEMMUZ",
-        "AĞUSTOS",
-        "EYLÜL",
-        "EKİM",
-        "KASIM",
-        "ARALIK",
-      ];
+const dailyTested = turkey[0].gunluk_test;
+const dailyInfected = turkey[0].gunluk_vaka;
+const dailyDeceased = turkey[0].gunluk_vefat;
+const dailyRecovered = turkey[0].gunluk_iyilesen;
 
-      // English month name map
-      const englMonthNames = [
-        "january",
-        "february",
-        "march",
-        "april",
-        "may",
-        "june",
-        "july",
-        "august",
-        "september",
-        "october",
-        "november",
-        "december",
-      ];
 
-      const [month, day, year] = $(".takvim")
-        .text()
-        .trim()
-        .replace(/\s+/g, " ")
-        .split(" ");
+const now = new Date();
 
-      let lastUpdatedParsed = undefined;
+const toInt = (str) => Number(str.replace('.','').replace('.', ''));
 
-      if (turkMonthNames.indexOf(month) !== -1) {
-        lastUpdatedParsed = new Date(
-          `${turkMonthNames.indexOf(month) + 1}.${day}.${year}`
-        );
-      } else if (englMonthNames.indexOf(month.toLowerCase()) !== -1) {
-        lastUpdatedParsed = new Date(
-          `${englMonthNames.indexOf(month.toLowerCase()) + 1}.${day.replace(
-            /\D/g,
-            ""
-          )}.${year}`
-        );
-      } else {
-        throw new Error("Invalid time value");
-      }
+ const result = {
+     infected: toInt(infected),
+     deceased: toInt(deceased),
+     recovered: toInt(recovered),
+     tested: toInt(tested),
+     critical: toInt(critical),
+     ICU: toInt(ICU),
+     dailyTested: toInt(dailyTested),
+     dailyInfected: toInt(dailyInfected),
+     dailyDeceased: toInt(dailyDeceased),
+     dailyRecovered: toInt(dailyRecovered),
+     sourceUrl: 'https://www.worldometers.info/coronavirus/',
+     lastUpdateresultpify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
+     readMe: 'https://apify.com/onidivo/covid-ir',
+ }
 
-      const returningData = {
-        tested,
-        infected,
-        deceased,
-        recovered,
-        dailyTested,
-        dailyInfected,
-        dailyDeceased,
-        dailyRecovered,
-        sourceUrl,
-        lastUpdatedAtSource: lastUpdatedParsed.toISOString(),
-        lastUpdatedAtApify: new Date(
-          Date.UTC(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate(),
-            now.getHours(),
-            now.getMinutes()
-          )
-        ).toISOString(),
-        readMe: "https://apify.com/tugkan/covid-tr",
-      };
+ console.log(result)
 
-      console.log(returningData);
-      
-      // Compare and save to history
-      const latest = (await kvStore.getValue(LATEST)) || {};
-      delete latest.lastUpdatedAtApify;
-      const actual = Object.assign({}, returningData);
-      delete actual.lastUpdatedAtApify;
+ // Push the data
+ let latest = await kvStore.getValue(LATEST);
+ if (!latest) {
+     await kvStore.setValue('LATEST', result);
+     latest = result;
+ }
+ delete latest.lastUpdatedAtApify;
+ const actual = Object.assign({}, result);
+ delete actual.lastUpdatedAtApify;
 
-      await Apify.pushData({ ...returningData });
+ if (JSON.stringify(latest) !== JSON.stringify(actual)) {
+     await dataset.pushData(result);
+ }
 
-      if (JSON.stringify(latest) !== JSON.stringify(actual)) {
-        log.info("Data did change :( storing new to dataset.");
-        await dataset.pushData(returningData);
-      }
+ await kvStore.setValue('LATEST', result);
+ await Apify.pushData(result);
 
-      await kvStore.setValue(LATEST, returningData);
-      log.info("Data stored, finished.");
-    },
-
-    // This function is called if the page processing failed more than maxRequestRetries+1 times.
-    handleFailedRequestFunction: async ({ request }) => {
-      console.log(`Request ${request.url} failed twice.`);
-    },
-  });
-
-  // Run the crawler and wait for it to finish.
-  await crawler.run();
-
-  console.log("Crawler finished.");
+ console.log('Done.');
 });
