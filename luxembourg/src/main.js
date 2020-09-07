@@ -64,12 +64,13 @@ Apify.main(async () => {
                     const srcDate = new Date(request.userData.dateModified);
                     const lastItem = total.pop();
                     const data = {
-                        tested: lastItem["__EMPTY"],
-                        infected: lastItem["Nouvelles infections"],
+                        tested: lastItem["Nombre tests total cumulés (résidents)"],
+                        infected: lastItem["Nouvelles infections (résidents)"],
                         deceased: lastItem["[1.NbMorts]"],
                         intensiveCare: lastItem["Soins intensifs"],
-                        newlyTested: lastItem["Nombre tests total"],
-                        newlyInfected: lastItem["Personnes testées"],
+                        normalCare: lastItem["Soins normaux"],
+                        newlyTested: lastItem["Nombre tests total (résidents)"],
+                        newlyInfected: lastItem["Personnes testées (résidents)"],
                         newlyRecovered: lastItem["[9.TotalPatientDepartHopital]"],
                         sourceUrl,
                         country: ' Luxembourg',
