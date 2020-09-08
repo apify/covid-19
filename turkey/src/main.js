@@ -39,9 +39,9 @@ const toInt = (str) => Number(str.replace('.','').replace('.', ''));
      dailyInfected: toInt(dailyInfected),
      dailyDeceased: toInt(dailyDeceased),
      dailyRecovered: toInt(dailyRecovered),
-     sourceUrl: 'https://www.worldometers.info/coronavirus/',
+     sourceUrl: 'https://covid19.saglik.gov.tr/covid19api?getir=sondurum',
      lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
-     readMe: 'https://apify.com/onidivo/covid-ir',
+     readMe: 'https://apify.com/tugkan/covid-tr',
  }
 
  console.log(result)
