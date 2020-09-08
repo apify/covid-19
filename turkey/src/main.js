@@ -40,7 +40,7 @@ const toInt = (str) => Number(str.replace('.','').replace('.', ''));
      dailyDeceased: toInt(dailyDeceased),
      dailyRecovered: toInt(dailyRecovered),
      sourceUrl: 'https://www.worldometers.info/coronavirus/',
-     lastUpdateresultpify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
+     lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
      readMe: 'https://apify.com/onidivo/covid-ir',
  }
 
