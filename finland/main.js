@@ -30,17 +30,6 @@ Apify.main(async () => {
 
             const now = new Date();
 
-            const data = {
-                country: "Finland",
-                historyData: "https://api.apify.com/v2/datasets/BDEAOLx0DzEW91s5L/items?format=json&clean=1",
-                sourceUrl,
-                readMe: "https://apify.com/dtrungtin/covid-fi",
-                lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString()
-                // lastUpdatedAtApify: moment().utc().second(0).millisecond(0).toISOString(),
-            };
-
-            console.log(data);
-            
             const confirmedDateText = $('#column-2-2 .journal-content-article > p:nth-child(2)').text();
             const matchUpadatedAt = confirmedDateText.match(/(\d+).(\d+). klo (\d+).(\d+)/);
 
@@ -68,26 +57,34 @@ Apify.main(async () => {
             //     }
             // }
 
-            const testedText = $('.journal-content-article').eq(0).find('ul li').eq(0).text();
-            let parts = testedText.match(/\s+(\d+\s*\d+)\s+/);
-            if (parts) {
-                data.infected = parseInt(parts[1].replace(/\s/, ''));
-            }
-
-            console.log(data.infected);
-
-            const infectedText = $('.journal-content-article').eq(0).find('ul li').eq(1).text();
-            parts = infectedText.match(/\s+(\d+\s*\d+)\s+/);
-            if (parts) {
-                data.tested = parseInt(parts[1].replace(/\s/, ''));
-            }
-
-            console.log(data.tested);
+            const infectedText = $('.journal-content-article').eq(0).find('ul li').eq(0).text();
+            let parts = infectedText.match(/\d+/g);
+            const infected = Number(parts[0]+parts[1]);
+            
+            const testedText = $('.journal-content-article').eq(0).find('ul li').eq(1).text();
+            parts = testedText.match(/\d+/g);
+            const tested = Number(parts[0]+parts[1]);
+            
 
             const deathsText = $('li:contains(Tautiin)').text();
-            data.deaths = parseInt(deathsText.match(/[0-9 ]+/g).filter(item => item.trim() !== '')[0].trim());
+            parts = deathsText.match(/\d+/g);
+            const deaths = Number(parts[0]);
+            
+            const data = {
+                infected,
+                tested,
+                deaths,
+                country: "Finland",
+                historyData: "https://api.apify.com/v2/datasets/BDEAOLx0DzEW91s5L/items?format=json&clean=1",
+                sourceUrl,
+                readMe: "https://apify.com/dtrungtin/covid-fi",
+                lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString()
+                // lastUpdatedAtApify: moment().utc().second(0).millisecond(0).toISOString(),
+            };
 
-            console.log(data.deaths);
+            console.log(data);
+            
+
 
             // Compare and save to history
             const latest = await kvStore.getValue(LATEST) || {};
