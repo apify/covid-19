@@ -1,130 +1,101 @@
-const Apify = require('apify');
-const httpRequest = require('@apify/http-request')
-const cheerio = require('cheerio');
+// main.js
+const Apify = require("apify");
 const { log } = Apify.utils;
 
-const sourceUrl = 'https://www.ssi.dk/sygdomme-beredskab-og-forskning/sygdomsovervaagning/c/covid19-overvaagning';
-const LATEST = 'LATEST';
-
-const toInt = (num) => Number(num.replace(/\D/g, ''));
+const LATEST = "LATEST";
 const now = new Date();
+const sourceUrl = "https://www.ssi.dk/sygdomme-beredskab-og-forskning/sygdomsovervaagning/c/covid19-overvaagning";
 
 Apify.main(async () => {
+    log.info("Starting actor.");
+
     const kvStore = await Apify.openKeyValueStore('COVID-19-DENMARK');
     const dataset = await Apify.openDataset('COVID-19-DENMARK-HISTORY');
 
-    log.info(`Getting data, URL: ${sourceUrl}`);
-    const { body } = await httpRequest({ url: sourceUrl });
-    const $ = cheerio.load(body);
+    const requestQueue = await Apify.openRequestQueue();
+    await requestQueue.addRequest({
+        url: 'https://services5.arcgis.com/Hx7l9qUpAnKPyvNz/arcgis/rest/services/stats_all_final/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=Date%20desc&resultOffset=0&resultRecordCount=1&resultType=standard'
+    });
 
-    log.info('Processing and saving data...')
+    log.debug("Setting up crawler.");
+    const cheerioCrawler = new Apify.CheerioCrawler({
+        requestQueue,
+        maxRequestRetries: 5,
+        useApifyProxy: true,
+        additionalMimeTypes: [
+            "text/plain",
+        ],
+        handlePageFunction: async ({ request, body }) => {
+            log.info(`Processing`, { url: request.url });
+            log.info(`Processing and saving data.`);
+            const { Date: date,
+                Tests: tested,
+                Unique_tests: uniqueTests,
+                Infected: infected,
+                Recovered: recovered,
+                Dead: deaths,
+                Daily_Infected: dailyInfected,
+                Daily_Dead: dailyDead,
+                Daily_Recovered: dailyRecovered,
+                Admissions: admissions,
+                Respirator: respirator,
+                Intensive: intensive,
+                New_Admissions: newAdmissions,
+                Admissions_diff: admissionsDiff,
+                Respirator_diff: respiratorDiff,
+                Intensive_diff: intensiveDiff,
+                Unique_tests_Diff: uniqueTestsDiff,
+                Tests_Diff: testsDiff,
+                Daily_Infected_Diff: dailyInfectedDiff,
+            } = JSON.parse(body.toString()).features[0].attributes;
 
-    const $firstColumn = $('tbody:contains(Antal i alt)').eq(0).find('tr:nth-child(2) td');
-    const $secondColumn = $('tbody:contains(Antal i alt)').eq(0).find('tr:nth-child(3) td');
+            const srcDate = new Date(date);
 
-    const srcDate = new Date($('section:contains(Senest redigeret den)').text().match(/(?<=den)[^]+$/g)[0])
+            const data = {
+                tested, infected, recovered, deaths, dailyInfected, dailyDead, dailyRecovered,
+                uniqueTests, admissions, respirator, intensive, newAdmissions,
+                admissionsDiff, respiratorDiff, intensiveDiff, uniqueTestsDiff, testsDiff, dailyInfectedDiff,
+                country: "Denmark",
+                historyData: 'https://api.apify.com/v2/datasets/Ugq8cNqnhUSjfJeHr/items?format=json&clean=1',
+                sourceUrl,
+                lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
+                lastUpdatedAtSource: new Date(Date.UTC(srcDate.getFullYear(), srcDate.getMonth(), srcDate.getDate(), srcDate.getHours(), srcDate.getMinutes())).toISOString(),
+                readMe: 'https://apify.com/tugkan/covid-dk'
+            };
 
-    const result = {
-        infected: toInt($($firstColumn).eq(3).text()),
-        recovered: toInt($($firstColumn).eq(4).text()),
-        deceased: toInt($($firstColumn).eq(5).text().split(' ')[0]),
-        tested: toInt($($firstColumn).eq(2).text()),
-        tests: toInt($($firstColumn).eq(1).text()),
-        newlyInfected: toInt($($secondColumn).eq(3).text()),
-        newlyRecovered: toInt($($secondColumn).eq(4).text()),
-        newlyDeceased: toInt($($secondColumn).eq(5).text()),
-        newlyTested: toInt($($secondColumn).eq(2).text()),
-        country: 'Denmark',
-        historyData: 'https://api.apify.com/v2/datasets/Ugq8cNqnhUSjfJeHr/items?format=json&clean=1',
-        sourceUrl: 'https://www.ssi.dk/sygdomme-beredskab-og-forskning/sygdomsovervaagning/c/covid19-overvaagning',
-        lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
-        lastUpdatedAtSource: new Date(Date.UTC(srcDate.getFullYear(), srcDate.getMonth(), srcDate.getDate(), srcDate.getHours(), srcDate.getMinutes())).toISOString(),
-        readMe: 'https://apify.com/tugkan/covid-dk'
-    };
+            console.log(data)
 
-    let latest = await kvStore.getValue(LATEST);
-    if (!latest) {
-        await kvStore.setValue('LATEST', result);
-        latest = result;
-    }
-    delete latest.lastUpdatedAtApify;
-    const actual = Object.assign({}, result);
-    delete actual.lastUpdatedAtApify;
+            // Push the data
+            let latest = await kvStore.getValue(LATEST);
+            if (!latest) {
+                await kvStore.setValue("LATEST", data);
+                latest = Object.assign({}, data);
+            }
+            delete latest.lastUpdatedAtApify;
+            const actual = Object.assign({}, data);
+            delete actual.lastUpdatedAtApify;
 
-    if (JSON.stringify(latest) !== JSON.stringify(actual)) {
-        await dataset.pushData(result);
-    }
+            const { itemCount } = await dataset.getInfo();
+            if (
+                JSON.stringify(latest) !== JSON.stringify(actual) ||
+                itemCount === 0
+            ) {
+                await dataset.pushData(data);
+            }
 
-    await kvStore.setValue('LATEST', result);
-    await Apify.pushData(result);
-    console.log(result);
-    log.info('Data saved')
-}
-);
+            await kvStore.setValue("LATEST", data);
+            await Apify.pushData(data);
 
-// actor before the change of source URL on 20/05/2020
+            log.info("Data saved.");
 
-// const Apify = require('apify');
-
-// const { log } = Apify.utils;
-// const sourceUrl = 'https://www.ssi.dk/aktuelt/sygdomsudbrud/coronavirus';
-// const LATEST = 'LATEST';
-
-// Apify.main(async () => {
-//     const requestQueue = await Apify.openRequestQueue();
-//     const kvStore = await Apify.openKeyValueStore('COVID-19-DENMARK');
-//     const dataset = await Apify.openDataset('COVID-19-DENMARK-HISTORY');
-
-//     await requestQueue.addRequest({ url: sourceUrl });
-//     const crawler = new Apify.CheerioCrawler({
-//         requestQueue,
-//         useApifyProxy: true,
-//         apifyProxyGroups: ['SHADER'],
-//         handlePageTimeoutSecs: 60 * 2,
-//         handlePageFunction: async ({ $ }) => {
-//             log.info('Page loaded.');
-//             const now = new Date();
-
-//             const tested = parseInt($($($($(".rte table tbody tr")).get(0)).find("td").get(1)).text().replace(',','').replace('.','').match(/\d+/), 10)
-//             const infected = parseInt($($($($(".rte table tbody tr")).get(0)).find("td").get(2)).text().replace(',','').replace('.','').match(/\d+/), 10)
-//             const recovered = parseInt($($($($(".rte table tbody tr")).get(0)).find("td").get(3)).text().replace(',','').replace('.','').match(/\d+/), 10)
-//             const deceased = parseInt($($($($(".rte table tbody tr")).get(0)).find("td").get(4)).text().replace(',','').replace('.','').match(/\d+/), 10)
-
-//             const data = {
-//                 tested,
-//                 infected,
-//                 recovered,
-//                 deceased,
-//                 sourceUrl,
-//                 lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
-//                 readMe: 'https://apify.com/tugkan/covid-dk',
-//             };
-
-//             // Compare and save to history
-//             const latest = await kvStore.getValue(LATEST) || {};
-//             delete latest.lastUpdatedAtApify;
-//             const actual = Object.assign({}, data);
-//             delete actual.lastUpdatedAtApify;
-
-//             await Apify.pushData({...data});
-
-//             if (JSON.stringify(latest) !== JSON.stringify(actual)) {
-//                 log.info('Data did change :( storing new to dataset.');
-//                 await dataset.pushData(data);
-//             }
-
-//             await kvStore.setValue(LATEST, data);
-//             log.info('Data stored, finished.');
-//         },
-
-//         // This function is called if the page processing failed more than maxRequestRetries+1 times.
-//         handleFailedRequestFunction: async ({ request }) => {
-//             console.log(`Request ${request.url} failed twice.`);
-//         },
-//     });
-
-//     // Run the crawler and wait for it to finish.
-//     await crawler.run();
-
-//     console.log('Crawler finished.');
-// });
+        },
+        handleFailedRequestFunction: async ({ request }) => {
+            console.log(`Request ${request.url} failed many times.`);
+            console.dir(request);
+        },
+    });
+    // Run the crawler and wait for it to finish.
+    log.info("Starting the crawl.");
+    await cheerioCrawler.run();
+    log.info("Actor finished.");
+});
