@@ -33,7 +33,7 @@ Apify.main(async () => {
                 Unique_tests: uniqueTests,
                 Infected: infected,
                 Recovered: recovered,
-                Dead: deaths,
+                Dead: deceased,
                 Daily_Infected: dailyInfected,
                 Daily_Dead: dailyDead,
                 Daily_Recovered: dailyRecovered,
@@ -52,7 +52,7 @@ Apify.main(async () => {
             const srcDate = new Date(date);
 
             const data = {
-                tested, infected, recovered, deaths, dailyInfected, dailyDead, dailyRecovered,
+                tested, infected, recovered, deceased, dailyInfected, dailyDead, dailyRecovered,
                 uniqueTests, admissions, respirator, intensive, newAdmissions,
                 admissionsDiff, respiratorDiff, intensiveDiff, uniqueTestsDiff, testsDiff, dailyInfectedDiff,
                 country: "Denmark",
