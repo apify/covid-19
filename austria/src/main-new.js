@@ -3,7 +3,7 @@ const extractNumbers = require('extract-numbers');
 
 const LATEST = 'LATEST';
 const parseNum = (str) => {
-    return parseInt(extractNumbers(str)[0].replace('.', ''), 10);
+    return parseInt(extractNumbers(str)[0].replace(/\D+/g, ''), 10);
 };
 const MAIN_STATS = 'MAIN_STATS';
 
@@ -44,24 +44,23 @@ Apify.main(async () => {
                         const byRegion = [];
                         let total;
                         $(element).find('td').each((index, el) => {
-                            if (index >= 1) {
-                                const value = parseNum($(el).text());
-                                if (index === 9) {
-                                    total = value;
-                                } else {
-                                    byRegion.push({ name: headers[index], value });
-                                }
+                            const value = parseNum($(el).text());
+                            if (index === 9) {
+                                total = value;
+                            } else {
+                                byRegion.push({ name: headers[index + 1], value });
                             }
                         });
+
                         return { byRegion, total };
                     };
                     $(table).find('tbody tr').each((index, element) => {
                         if (index === 0) {
                             const text = $(element).find('th').text();
                             const dateString = text.split('(Stand ')[1].replace(' Uhr)', '');
-                            const split = dateString.split(', ');
+                            const split = dateString.split(',');
                             const dateSplit = split[0].split('.');
-                            const date = new Date(`${dateSplit[1]}/${dateSplit[0]}/${dateSplit[2]} ${split[1]}`);
+                            const date = new Date(`${dateSplit[1]}/${dateSplit[0]} /${dateSplit[2]} ${split[1].match(/[0-9:]+/g)[0]}`);
                             lastUpdatedAtSource = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() - 2, date.getMinutes())).toISOString();
 
                             infected = processRow(element);
@@ -90,6 +89,9 @@ Apify.main(async () => {
                     data.icuByRegion = icu.byRegion;
                     data.totalHospitalized = hospitalized.total;
                     data.hospitalizedByRegion = hospitalized.byRegion;
+                    data.country = "Austria";
+                    data.historyData = "https://api.apify.com/v2/datasets/EFWZ2Q5JAtC6QDSwV/items?format=json&clean=1";
+                    data.sourceUrl = "https://www.sozialministerium.at/Informationen-zum-Coronavirus/Neuartiges-Coronavirus-(2019-nCov).html";
                     data.lastudpatedAtSource = lastUpdatedAtSource;
                     break;
                 default:
