@@ -28,8 +28,9 @@ Apify.main(async () => {
         useApifyProxy: true,
         handleRequestTimeoutSecs: 120,
         additionalMimeTypes: [
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "text/plain",
+            // "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            // "text/plain",
+            "text/csv"
         ],
         prepareRequestFunction: async ({ request }) => {
             if (request.url.endsWith(".xlsx")) {
@@ -63,6 +64,7 @@ Apify.main(async () => {
                     // Extract date
                     const srcDate = new Date(request.userData.dateModified);
                     const lastItem = total.pop();
+
                     const data = {
                         tested: lastItem["Nombre tests total cumulés (résidents)"],
                         infected: lastItem["Nouvelles infections (résidents)"],
