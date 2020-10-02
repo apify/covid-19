@@ -9,13 +9,14 @@ const LABELS = {
 };
 
 Apify.main(async () => {
-    const { notificationEmail } = await Apify.getInput();
+    const { notificationEmail, failedLimit = 5 } = await Apify.getInput();
     const requestQueue = await Apify.openRequestQueue();
+    let failedBefore = (await Apify.getValue('COVID-19-ESTONIA-FAILD')) || 0;
     const kvStore = await Apify.openKeyValueStore('COVID-19-ESTONIA');
     const dataset = await Apify.openDataset("COVID-19-ESTONIA-HISTORY");
     await requestQueue.addRequest({ url: SOURCE_URL, userData: { label: LABELS.GOV } });
 
-    if (notificationEmail) {
+    if (notificationEmail && failedLimit < failedBefore) {
         await Apify.addWebhook({
             eventTypes: ['ACTOR.RUN.FAILED', 'ACTOR.RUN.TIMED_OUT'],
             requestUrl: `https://api.apify.com/v2/acts/mnmkng~email-notification-webhook/runs?token=${Apify.getEnv().token}`,
@@ -91,6 +92,8 @@ Apify.main(async () => {
         delete latest.lastUpdatedAtApify;
     }
     if (latest && (latest.infected > data.infected)) {
+        failedBefore = failedBefore + 1;
+        await Apify.setValue('COVID-19-ESTONIA-FAILD', failedBefore);
         log.error('Latest data are high then actual - probably wrong scrap');
         console.log(latest);
         console.log(data);
@@ -105,6 +108,7 @@ Apify.main(async () => {
         await dataset.pushData(data);
     }
 
+    await Apify.setValue('COVID-19-ESTONIA-FAILD', 0);
     await kvStore.setValue(LATEST, data);
     log.info('Data stored, finished.');
 });
