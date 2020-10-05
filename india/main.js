@@ -28,6 +28,7 @@ Apify.main(async () => {
         const recoveredNew = Number($('strong:contains(Discharged)').next().text().split("(")[1].replace(/\D/g, ''));
         const deaths = Number($('strong:contains(Deaths)').next().text().split("(")[0]);
         const deathsNew = Number($('strong:contains(Deaths)').next().text().split("(")[1].replace(/\D/g, ''));
+        const previousDayTests = Number($('.header-section > div > div > div > div > div > marquee > span').text().split(" ")[9].split(",").join(""));
 
         const rawTableRows = [...document.querySelectorAll("#state-data > div > div > div > div > table > tbody > tr")];
         const regionsTableRows = rawTableRows.filter(row => row.querySelectorAll('td').length === 8);
@@ -60,6 +61,7 @@ Apify.main(async () => {
             recoveredNew,
             deaths,
             deathsNew,
+            previousDayTests,
             totalCases: activeCases + recovered + deaths,
             sourceUrl: 'https://www.mohfw.gov.in/',
             lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
