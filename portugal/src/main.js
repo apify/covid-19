@@ -53,22 +53,6 @@ Apify.main(async () => {
     gotoFunction: async ({ page, request }) => {
       await Apify.utils.puppeteer.blockRequests(page, {
         urlPatterns: [
-<<<<<<< HEAD
-          '.jpg',
-          '.jpeg',
-          '.png',
-          '.svg',
-          '.gif',
-          '.woff',
-          '.pdf',
-          '.zip',
-          '.pbf',
-          '.woff2',
-          '.woff'
-        ]
-      })
-      return page.goto(request.url, { timeout: 1000 * 30 })
-=======
           ".jpg",
           ".jpeg",
           ".png",
@@ -83,7 +67,6 @@ Apify.main(async () => {
         ],
       });
       return page.goto(request.url, { timeout: 1000 * 60 });
->>>>>>> cb40ab6e5eed458edbe9275c6878a346d0d9a75a
     },
     handlePageFunction: async ({ page, request }) => {
       log.info(`Handling ${request.url}`)
@@ -251,31 +234,26 @@ Apify.main(async () => {
   log.info('Done.')
 })
 
-function formatDate (date) {
-  const arr = date
-    .replace(/(\n)/g, '')
-    .trim()
-    .split('/')
-  // ["10", "13", "2020 1:00 odpoledne"]
-  const month = arr[1]
-  const day = arr[0]
-  const year = arr[2].split(' ')[0]
-  const time = arr[2].split(' ')[1]
-  let am = 'AM'
-  if (arr[2].split(' ')[2] === 'odpoledne') {
-    am = 'PM'
-  }
+// function formatDate (date) {
+//   const arr = date
+//     .replace(/(\n)/g, '')
+//     .trim()
+//     .split('/')
+//   // ["10", "13", "2020 1:00 odpoledne"]
+//   const month = arr[1]
+//   const day = arr[0]
+//   const year = arr[2].split(' ')[0]
+//   const time = arr[2].split(' ')[1]
+//   let am = 'AM'
+//   if (arr[2].split(' ')[2] === 'odpoledne') {
+//     am = 'PM'
+//   }
 
-  const arra = [month, day, year, time, am]
+//   const arra = [month, day, year, time, am]
 
-<<<<<<< HEAD
-  const [a, b, ...others] = [...arra]
-  return Array.from([b, a, ...others]).join(' ')
-}
-=======
 // function formatDate(date) {
 //   const arr = date.replace(/(\n)/g, "").trim().split("/");
 //   const [a, b, ...others] = [...arr];
 //   return Array.from([b, a, ...others]).join("-");
+  // 
 // }
->>>>>>> cb40ab6e5eed458edbe9275c6878a346d0d9a75a
