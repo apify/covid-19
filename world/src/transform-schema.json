@@ -43,7 +43,8 @@
   "China": {
     "deceased": "deceased",
     "infected": "infected",
-    "recovered": "recovered"
+    "recovered": "recovered",
+    "tested": "tested"
   },
   "Croatia": {
     "deceased": "deceased",
