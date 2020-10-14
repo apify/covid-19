@@ -66,7 +66,7 @@ Apify.main(async () => {
           ".woff",
         ],
       });
-      return page.goto(request.url, { timeout: 1000 * 30 });
+      return page.goto(request.url, { timeout: 1000 * 60 });
     },
     handlePageFunction: async ({ page, request }) => {
       log.info(`Handling ${request.url}`);
@@ -131,7 +131,7 @@ Apify.main(async () => {
         };
       });
 
-      const sourceDate = new Date(formatDate(extracted.date));
+      const sourceDate = new Date(extracted.date.replace(/\.+/g,''));
       delete extracted.date;
 
       // ADD:  infected, tested, recovered, deceased, suspicious, infectedByRegion
@@ -199,8 +199,8 @@ Apify.main(async () => {
   log.info("Done.");
 });
 
-function formatDate(date) {
-  const arr = date.replace(/(\n)/g, "").trim().split("/");
-  const [a, b, ...others] = [...arr];
-  return Array.from([b, a, ...others]).join("-");
-}
+// function formatDate(date) {
+//   const arr = date.replace(/(\n)/g, "").trim().split("/");
+//   const [a, b, ...others] = [...arr];
+//   return Array.from([b, a, ...others]).join("-");
+// }
