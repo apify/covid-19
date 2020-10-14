@@ -26,8 +26,8 @@ Apify.main(async () => {
 
     await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
     const extracted = await page.evaluate(() => {
-        const totalCases = $('#viz001_uscases .wLevel_2').text().replace(/,/g, '').trim();
-        const totalDeaths = $('#viz002_usdeaths .wLevel_2').text().replace(/,/g, '').trim();
+        const totalCases = $('#viz001_uscases .card-number').text().replace(/\D/g, "").trim();
+        const totalDeaths = $('#viz002_usdeaths .card-number').text().replace(/\D/g, '').trim();
         let dateUpdated = new Date();
         dateUpdated = new Date(Date.UTC(dateUpdated.getFullYear(), dateUpdated.getMonth(), dateUpdated.getDate())).toISOString();
 
