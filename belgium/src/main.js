@@ -25,9 +25,9 @@ Apify.main(async () => {
   const cheerioCrawler = new Apify.CheerioCrawler({
     requestQueue,
     maxRequestRetries: 5,
-    requestTimeoutSecs: 90,
+    requestTimeoutSecs: 180,
     useApifyProxy: true,
-    handleRequestTimeoutSecs: 120,
+    handleRequestTimeoutSecs: 240,
     additionalMimeTypes: [
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       "text/plain",
