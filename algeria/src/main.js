@@ -40,7 +40,7 @@ Apify.main(async () => {
             await Apify.utils.puppeteer.blockRequests(page, {
                 urlPatterns: ['.jpg', '.jpeg', '.png', '.svg', '.gif', '.woff', '.pdf', '.zip', '.pbf', '.woff2', '.woff'],
             });
-            return page.goto(request.url, { timeout: 1000 * 30 });
+            return page.goto(request.url, { timeout: 1000 * 60 });
         },
         handlePageFunction: async ({ page, request }) => {
             log.info(`Handling ${request.url} `);
