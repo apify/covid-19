@@ -17,34 +17,48 @@ Apify.main(async () => {
       payloadTemplate: `{"notificationEmail": "${notificationEmail}", "eventType": {{eventType}}, "eventData": {{eventData}}, "resource": {{resource}} }`,
     });
   }
+  const proxyConfiguration = await Apify.createProxyConfiguration();
 
-  const crawler = new Apify.CheerioCrawler({
+  const crawler = new Apify.PuppeteerCrawler({
     requestQueue,
-    useApifyProxy: true,
-    handlePageTimeoutSecs: 120,
-    handlePageFunction: async ({$, body}) => {
-      const now = new Date();
-      const infectedByRegion = [];
-      const tableRows = $('tbody > tr').toArray();
-      for (let i = 0; i < tableRows.length - 1; i++) {
-        const row = tableRows[i];
-        const columns = $(row).find('td');
-        const region = columns.eq(0).text().trim();
-        const secondColumn = columns.eq(1).text().trim().replace('.','');
-        const deathColumn = columns.eq(4).text().trim();
-        let infectedCount = parseInt(secondColumn, 10);
-        let deathCount = parseInt(deathColumn, 10);
-        infectedByRegion.push({
-          region,
-          infectedCount,
-          deceasedCount: deathCount
-        });
-      }
+    proxyConfiguration,
+    gotoFunction: async ({ page, request }) => {
+      return page.goto(request.url, { waitUntil: 'networkidle2', timeout: 300000 });
+    },
+    handlePageFunction: async ({ page, request}) => {
+      await Apify.utils.puppeteer.injectJQuery(page);
+      const extracted = await page.evaluate( async () => {
 
-      const row = tableRows[tableRows.length - 1];
-      const columns = $(row).find('td');
-      const secondColumn = columns.eq(1).text().trim();
-      const deathColumn = columns.eq(5).text().trim();
+        const infectedByRegion = [];
+
+        const tableRows = $('tbody > tr').toArray();
+        for (let i = 0; i < tableRows.length - 1; i++) {
+          const row = tableRows[i];
+          const columns = $(row).find('td');
+          const region = columns.eq(0).text().trim();
+          const secondColumn = columns.eq(1).text().trim().replace('.','');
+          const deathColumn = columns.eq(4).text().trim();
+          let infectedCount = parseInt(secondColumn, 10);
+          let deathCount = parseInt(deathColumn, 10);
+          infectedByRegion.push({
+            region,
+            infectedCount,
+            deceasedCount: deathCount
+          });
+        }
+
+        const row = tableRows[tableRows.length - 1];
+        const columns = $(row).find('td');
+        const secondColumn = columns.eq(1).text().trim();
+        const deathColumn = columns.eq(5).text().trim();
+
+        return {
+          secondColumn,
+          deathColumn,
+          infectedByRegion
+        }
+      })
+      const { secondColumn, deathColumn, infectedByRegion } = extracted;
 
       const data = {
         infected: parseInt(secondColumn.replace('.', ''), 10),
@@ -82,10 +96,8 @@ Apify.main(async () => {
 
       await kvStore.setValue(LATEST, data);
       log.info('Data stored, finished.')
-    },
-    handleFailedRequestFunction: async ({request}) => {
-      console.log(`Request ${request.url} failed twice.`);
-    },
+
+    }
   });
 
   log.info('CRAWLER -- start');
