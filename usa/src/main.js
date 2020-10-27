@@ -26,7 +26,8 @@ Apify.main(async () => {
     casesByStateJson = casesByStateJson.replace("﻿[", "[")
 
     await page.goto(url);
-    await page.waitForSelector("#viz001_uscases");
+    await page.waitForSelector("#viz001_uscases .card-number");
+    await Apify.utils.sleep(1000)
 
     const extracted = await page.evaluate(() => {
         const totalCases = $('#viz001_uscases .card-number').text().replace(/\D/g, "").trim();
