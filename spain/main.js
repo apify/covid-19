@@ -46,40 +46,40 @@ Apify.main(async () => {
                         }
                     })
                     break;
-                case 'EXTRACT_DATA':
+                case 'EXTRACT_DATA': {
                     log.info('Converting pdf to html...')
 
                     const run = await Apify.call('jancurn/pdf-to-html', {
                         url,
                     });
-
                     log.info('Proccesing and saving data...')
-                    const $$ = cheerio.load(run.output.body)
+                    const $ = cheerio.load(run.output.body)
 
-                    let totalColumn = $$('div:contains(La Rioja)').eq(3).nextAll('div:contains(ESPAÑA)');
-                    let hospColumn = $$('div:contains(La Rioja)').eq(7).nextAll('div:contains(ESPAÑA)');
+                    let totalColumn = $('div:contains(La Rioja)').eq(3).nextAll().toArray();
+                    let hospColumn = $('div:contains(La Rioja)').eq(7).nextAll().toArray();
+                    let deathsColumn = $(`div:contains(La Rioja)`).eq(17).nextAll().toArray();
 
                     let regionsNames = ['Andalucía', 'Aragón', 'Asturias', "Baleares", "Canarias", "Cantabria", "Castilla La Mancha", "Castilla y León",
-                        "Cataluña", "Ceuta", "Valenciana", "Extremadura", "Galicia", "Madrid", "Melilla", "Murcia", "Navarra", "País Vasco ", "La Rioja"]
+                        "Cataluña", "Ceuta", "C. Valenciana", "Extremadura", "Galicia", "Madrid", "Melilla", "Murcia", "Navarra", "País Vasco ", "La Rioja"]
                     let regions = []
 
                     regionsNames.forEach(name => {
-                        const firstElem = $$(`div:contains(${name})`).eq(3);
-                        let secondElem = $$(`div:contains(${name})`).eq(7);
-                        if (name.includes('Castilla y León')) {
-                            secondElem = $$(`div:contains(${name})`).eq(9);
-                        }
+
+                        let firstElem = $(`div:contains(${name})`).eq(3).nextAll().toArray();
+                        let secondElem = $(`div:contains(${name})`).eq(7).nextAll().toArray();
+                        let thirdElem = $(`div:contains(${name})`).eq(17).nextAll().toArray();
+
                         regions.push({
-                            name: $$(secondElem).text().replace(/\*/g, '').trim(),
-                            infected: toNumber($$(firstElem).next().text().trim()),
-                            deceased: toNumber($$(secondElem).next().next().next().next().next().text()),
-                            hospitalised: toNumber($$(secondElem).next().text()),
-                            ICU: toNumber($$(secondElem).next().next().next().text()),
-                            dailyInfected: toNumber($$(firstElem).next().next().text().trim()),
+                            name,
+                            infected: toNumber($(firstElem[0]).text().trim()),
+                            deceased: toNumber($(thirdElem[0]).text()),
+                            hospitalised: toNumber($(secondElem[0]).text()),
+                            ICU: toNumber($(secondElem[2]).text()),
+                            dailyInfected: toNumber($(firstElem[1]).text().trim()),
                         })
                     })
 
-                    const $srcDate = $$('div:contains(Actualización)').last().text();
+                    const $srcDate = $('div:contains(Actualización)').last().text();
                     const [h, rest] = $srcDate.match(/(?<=a las.*)[^\)]+(?=\))/g)[0].trim().replace(/[^:\d. ]/g, '')
                         .replace(/  /g, '').split(' ')
                     const [d, m, y] = rest.split('.')
@@ -87,13 +87,16 @@ Apify.main(async () => {
                     const srcDate = new Date(`${h} ${m}-${d}-${y}`);
 
                     const data = {
-                        infected: toNumber($$(totalColumn).next().text()),
+                        infected: toNumber($(totalColumn[11]).text()),
                         recovered: 'N/A',
                         tested: 'N/A',
-                        deceased: toNumber($$(hospColumn).next().next().next().next().next().text()),
-                        hospitalised: toNumber($$(hospColumn).next().text()),
-                        ICU: toNumber($$(hospColumn).next().next().next().text()),
-                        dailyInfected: toNumber($$(totalColumn).next().next().text()),
+                        deceased: toNumber($(deathsColumn[3]).text()),
+                        hospitalised: toNumber($(hospColumn[13]).text()),
+                        ICU: toNumber($(hospColumn[15]).text()),
+                        newlyDeceased: toNumber($(deathsColumn[4]).text()),
+                        newlyHospitalised: toNumber($(hospColumn[14]).text()),
+                        NewlyInICU: toNumber($(hospColumn[16]).text()),
+                        dailyInfected: toNumber($(totalColumn[12]).text()),
                         regions,
                         country: 'Spain',
                         historyData: 'https://api.apify.com/v2/datasets/hxwow9BB75z8RV3JT/items?format=json&clean=1',
@@ -121,6 +124,7 @@ Apify.main(async () => {
                     await Apify.pushData(data);
 
                     log.info('Data saved.');
+                }
                     break;
             }
         },
