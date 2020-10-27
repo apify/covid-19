@@ -11,7 +11,7 @@ Apify.main(async () => {
     const kvStore = await Apify.openKeyValueStore('COVID-19-USA-CDC');
     const dataset = await Apify.openDataset('COVID-19-USA-CDC-HISTORY');
 
-    const browser = await Apify.launchPuppeteer({ useApifyProxy: true, apifyProxyGroups: ['SHADER'] });
+    const browser = await Apify.launchPuppeteer({ useApifyProxy: true, apifyProxyGroups: ['SHADER'], useChrome: true, headless: false });
     const page = await browser.newPage();
     await Apify.utils.puppeteer.injectJQuery(page);
     let {body: casesByStateJson} = await httpRequest({
