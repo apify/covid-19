@@ -5,8 +5,9 @@ const LATEST = 'LATEST';
 const parseNum = (str) => {
     return parseInt(str.replace(',', ''), 10);
 };
+
 Apify.main(async () => {
-    const url = 'https://covid.cdc.gov/covid-data-tracker/?CDC_AA_refVal=https%3A%2F%2Fwww.cdc.gov%2Fcoronavirus%2F2019-ncov%2Fcases-updates%2Fcases-in-us.html#cases_casesper100klast7days';
+    const url = 'https://covid.cdc.gov/covid-data-tracker/#cases_casesinlast7days';
     const kvStore = await Apify.openKeyValueStore('COVID-19-USA-CDC');
     const dataset = await Apify.openDataset('COVID-19-USA-CDC-HISTORY');
 
@@ -24,7 +25,9 @@ Apify.main(async () => {
     })
     casesByStateJson = casesByStateJson.replace("﻿[", "[")
 
-    await page.goto(url, { waitUntil: 'load', timeout: 60000 });
+    await page.goto(url);
+    await page.waitForSelector("#viz001_uscases");
+
     const extracted = await page.evaluate(() => {
         const totalCases = $('#viz001_uscases .card-number').text().replace(/\D/g, "").trim();
         const totalDeaths = $('#viz002_usdeaths .card-number').text().replace(/\D/g, '').trim();
