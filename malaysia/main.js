@@ -33,7 +33,7 @@ Apify.main(async () => {
 
       switch (label) {
         case "GET_IFRAME":
-          const iframUrl = $("header script")
+          const iframUrl = $("#g-intro script")
             .attr("id")
             .match(/(?<=_)[^_]+$/g)[0];
           await requestQueue.addRequest({
