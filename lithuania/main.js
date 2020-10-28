@@ -28,13 +28,14 @@ Apify.main(async () => {
 
             const $ = cheerio.load(response.body);
 
-            const infected = $('#module_Structure > main > div > div.main_content.clearfix > div:nth-child(3) > div.text > ul:nth-child(5) > li:nth-child(1) > strong').text();
-            const deceased = $('#module_Structure > main > div > div.main_content.clearfix > div:nth-child(3) > div.text > ul:nth-child(5) > li:nth-child(4) > strong').text();
+            const infected = $('li:contains(Patvirtintų ligos atvejų skaičius konkretiems žmonėms)').text();
+            const deceased = $('li:contains(Mirusių nuo koronaviruso žmonių skaičius)').text();
             const recovered = $('li:contains(Pasveikusių žmonių skaičius)').text().replace(/\D/g, '');
-            const newInfected = $('#module_Structure > main > div > div.main_content.clearfix > div:nth-child(3) > div.text > ul:nth-child(5) > li:nth-child(3) > b').text();
-            const isolated = $('div.text ul').eq(0).find('li').last().find('strong').text();
+            const newInfected = $('li:contains(Per vakar dieną patvirtintų naujų COVID-19 susirgusių žmonių skaičius)').text();
+            // const isolated = $('div.text ul').eq(0).find('li').last().find('strong').text();
+            const isolated = $('li:contains(Izoliacijoje esančių asmenų skaičius) b').text().replace(' ', '');
             const connectedDeaths = $('li:contains(Užsikrėtusieji koronavirusu, mirę dėl kitų priežasčių)').text().replace(/\D/g, '')
-            const stillSick = $('#module_Structure > main > div > div.main_content.clearfix > div:nth-child(3) > div.text > ul:nth-child(5) > li:nth-child(2) > b').text();
+            const stillSick = $('li:contains(Sergančių žmonių skaičius)').text();
             const now = new Date();
 
             const result = {
