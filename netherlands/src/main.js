@@ -11,11 +11,12 @@ const LABELS = {
 Apify.main(async () => {
     const { notificationEmail, doErrorCheck = true, failedLimit = 5 } = await Apify.getInput();
     const requestQueue = await Apify.openRequestQueue();
-    let failedBefore = (await Apify.getValue('COVID-19-NL-FAILED')) || 0;
+    const kvStoreFailed = await Apify.openKeyValueStore('COVID-19-NL-FAILED');
+    let failedBefore = (await kvStoreFailed.getValue('FAILED')) || 0;
     const kvStore = await Apify.openKeyValueStore('COVID-19-NL');
     const dataset = await Apify.openDataset("COVID-19-NL-HISTORY");
     await requestQueue.addRequest({ url: 'https://services9.arcgis.com/N9p5hsImWXAccRNI/arcgis/rest/services/Nc2JKvYFoAEOFCG5JSI6/FeatureServer/3/query?f=json&where=Country_Region%3D%27Netherlands%27&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=Confirmed%20desc&outSR=102100&resultOffset=0&resultRecordCount=75&resultType=standard&cacheHint=true', userData: {label: LABELS.GIS_REGIONS}})
-    await requestQueue.addRequest({ url: 'https://services9.arcgis.com/N9p5hsImWXAccRNI/arcgis/rest/services/Nc2JKvYFoAEOFCG5JSI6/FeatureServer/2/query?f=json&where=(Recovered%3C%3E0)%20AND%20(OBJECTID%3D123)&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=Recovered%20desc&outSR=102100&resultOffset=0&resultRecordCount=250&resultType=standard&cacheHint=true', userData: { label: LABELS.GIS }});
+    await requestQueue.addRequest({ url: 'https://services9.arcgis.com/N9p5hsImWXAccRNI/arcgis/rest/services/Nc2JKvYFoAEOFCG5JSI6/FeatureServer/2/query?f=json&where=OBJECTID%3D124&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=Deaths%20desc&outSR=102100&resultOffset=0&resultRecordCount=200&resultType=standard&cacheHint=true', userData: { label: LABELS.GIS }});
 
     if (notificationEmail && failedLimit < failedBefore) {
         await Apify.addWebhook({
@@ -27,6 +28,7 @@ Apify.main(async () => {
 
     let totalInfected = 0;
     let totalDeceased = undefined;
+    let totalRecovered = undefined;
     let infectedByRegion = [];
     const proxyConfiguration = await Apify.createProxyConfiguration();
 
@@ -51,6 +53,7 @@ Apify.main(async () => {
                         const attributes = response.body.features[0].attributes;
                         totalInfected = attributes.Confirmed;
                         totalDeceased = attributes.Deaths;
+                        totalRecovered = attributes.Recovered;
                     }
                     break;
                 case LABELS.GIS_REGIONS: // deprecated
@@ -88,6 +91,7 @@ Apify.main(async () => {
     const data = {
         infected: parseInt(totalInfected, 10),
         tested: undefined,
+        recovered: parseInt(totalRecovered, 10),
         deceased: parseInt(totalDeceased, 10),
         infectedByRegion,
         country: 'Netherlands',
@@ -114,7 +118,7 @@ Apify.main(async () => {
 
     if (doErrorCheck && ((latest.infected - 10) > actual.infected || (latest.deceased - 10) > actual.deceased)) {
         failedBefore = failedBefore + 1;
-        await Apify.setValue('COVID-19-NL-FAILED', failedBefore);
+        await kvStoreFailed.setValue('FAILED', failedBefore);
         log.error('Actual numbers are lower then latest probably wrong parsing');
         process.exit(1);
     }
