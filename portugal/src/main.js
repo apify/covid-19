@@ -17,8 +17,8 @@ async function waitForContentToLoad(page) {
     ` && !!${query}[19].querySelector('text')` +
     // ` && !!${query}[4].innerText.includes('Suspeitos')` +
     ` && !!${query}[8].innerText.includes('Dados relativos ao boletim da DGS')` +
-    ` && !!${query}[12].innerText.includes('Casos por Região de Saúde')` +
-    ` && !!${query}[12].innerHTML.includes('<nav class="feature-list">')`,
+    ` && !!${query}[15].innerText.includes('Casos por Região de Saúde')` +
+    ` && !!${query}[15].innerHTML.includes('<nav class="feature-list">')`,
     { timeout: 45 * 1000 }
   )
 }
@@ -134,7 +134,7 @@ Apify.main(async () => {
             .replace(/\D/g, '')
         )
 
-        const spans = $(fullContainer[12])
+        const spans = $(fullContainer[15])
           .find('nav.feature-list span[id*="ember"]')
           .toArray()
 
