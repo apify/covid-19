@@ -79,7 +79,7 @@ Apify.main(async () => {
                         })
                     })
 
-                    const $srcDate = $('div:contains(Actualización)').last().text();
+                    const $srcDate = $('span:contains(datos consolidados a las)').eq(0).text();
                     const [h, rest] = $srcDate.match(/(?<=a las.*)[^\)]+(?=\))/g)[0].trim().replace(/[^:\d. ]/g, '')
                         .replace(/  /g, '').split(' ')
                     const [d, m, y] = rest.split('.')
