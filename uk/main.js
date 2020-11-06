@@ -99,7 +99,13 @@ Apify.main(async () =>
             
         });  
 
-    result.deceased = resultDeceased.deceased
+    result.deceased = resultDeceased.deceased;
+    result.country = resultDeceased.country;
+    result.historyData = resultDeceased.historyData;
+    result.sourceUrl = resultDeceased.sourceUrl;
+    result.lastUpdatedAtApify = resultDeceased.lastUpdatedAtApify;
+    result.lastUpdatedAtSource = resultDeceased.lastUpdatedAtSource;
+    result.readMe = resultDeceased.readMe
 
     //console.log(result)
     
