@@ -76,7 +76,7 @@ Apify.main(async () =>
      
      await page.waitFor(8000);
  
-     const resultInfected = await page.evaluate(() =>
+     const resultTotalTested = await page.evaluate(() =>
          {
  
              const getInt = (x)=>{
@@ -93,7 +93,7 @@ Apify.main(async () =>
          });     
  
  
-     result.tested = resultInfected.tested
+     result.tested = resultTotalTested.tested
 
     // getting data about total deceased
     await page.goto('https://coronavirus.data.gov.uk/details/deaths', { waitUntil: 'networkidle0' });
