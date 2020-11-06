@@ -32,12 +32,12 @@ Apify.main(async () =>
             return parseInt(x.replace(' ','').replace(/,/g,''))};
                   
         const dailyConfirmed = $( "span:contains(' Daily number of people tested positive')").parent().text();
-        const tested = $( "span:contains('Daily number of virus tests ')").parent().text();
-        const deceasedWithin28Days = $( "span:contains('Daily number of deaths within 28 days ')").parent().text();
+        const dailyTested = $( "span:contains('Daily number of virus tests ')").parent().text();
+        const dailyDeceasedWithin28Days = $( "span:contains('Daily number of deaths within 28 days ')").parent().text();
        
         const data = {
-            tested: getInt(tested),
-            deceasedWithin28Days: getInt(deceasedWithin28Days),
+            dailytested: getInt(dailyTested),
+            dailyDeceasedWithin28Days: getInt(dailyDeceasedWithin28Days),
             dailyConfirmed: getInt(dailyConfirmed),
             };
         return data;
@@ -69,6 +69,31 @@ Apify.main(async () =>
 
 
     result.infected = resultInfected.infected
+
+     // getting data about total tested
+     await page.goto('https://coronavirus.data.gov.uk/details/testing', { waitUntil: 'networkidle0' });
+     await Apify.utils.puppeteer.injectJQuery(page);
+     
+     await page.waitFor(8000);
+ 
+     const resultInfected = await page.evaluate(() =>
+         {
+ 
+             const getInt = (x)=>{
+                 return parseInt(x.replace(' ','').replace(/,/g,''))};
+                     
+             const tested = $( "a[id*='virus_tests_processed-total']").text()
+                                 
+             const data = {
+                tested: getInt(tested),
+                 
+                 };
+             return data;
+             
+         });     
+ 
+ 
+     result.tested = resultInfected.tested
 
     // getting data about total deceased
     await page.goto('https://coronavirus.data.gov.uk/details/deaths', { waitUntil: 'networkidle0' });
