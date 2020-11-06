@@ -30,9 +30,7 @@ Apify.main(async () =>
 
         const getInt = (x)=>{
             return parseInt(x.replace(' ','').replace(/,/g,''))};
-            
-        const now = new Date();
-        
+                  
         const dailyConfirmed = $( "span:contains(' Daily number of people tested positive')").parent().text();
         const tested = $( "span:contains('Daily number of virus tests ')").parent().text();
         const deceasedWithin28Days = $( "span:contains('Daily number of deaths within 28 days ')").parent().text();
@@ -41,12 +39,6 @@ Apify.main(async () =>
             tested: getInt(tested),
             deceasedWithin28Days: getInt(deceasedWithin28Days),
             dailyConfirmed: getInt(dailyConfirmed),
-            country: "UK",
-            historyData: "https://api.apify.com/v2/datasets/K1mXdufnpvr53AFk6/items?format=json&clean=1",
-            sourceUrl:'https://coronavirus.data.gov.uk/',
-            lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
-            lastUpdatedAtSource: $('time').attr("datetime"),
-            readMe: 'https://apify.com/katerinahronik/covid-uk',
             };
         return data;
         
@@ -89,11 +81,18 @@ Apify.main(async () =>
 
             const getInt = (x)=>{
                 return parseInt(x.replace(' ','').replace(/,/g,''))};
-                    
+            const now = new Date();        
+            
             const deceased = $( "a[id*='deaths_with_covid-19_on_the_death_certificate-total']").text()
                                 
             const data = {
                 deceased: getInt(deceased),
+                country: "UK",
+                historyData: "https://api.apify.com/v2/datasets/K1mXdufnpvr53AFk6/items?format=json&clean=1",
+                sourceUrl:'https://coronavirus.data.gov.uk/',
+                lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
+                lastUpdatedAtSource: $('time').attr("datetime"),
+                readMe: 'https://apify.com/katerinahronik/covid-uk',
                 
                 };
             return data;
