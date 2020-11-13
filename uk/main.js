@@ -132,7 +132,7 @@ Apify.main(async () =>
     result.lastUpdatedAtSource = resultDeceased.lastUpdatedAtSource;
     result.readMe = resultDeceased.readMe
 
-    //console.log(result)
+    console.log(result)
     
     if ( !result.infected || !result.dailyConfirmed || !result.tested) {
                 throw "One of the output is null";
