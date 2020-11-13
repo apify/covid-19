@@ -82,7 +82,7 @@ Apify.main(async () =>
              const getInt = (x)=>{
                  return parseInt(x.replace(' ','').replace(/,/g,''))};
                      
-             const tested = $( "a[id*='virus_tests_processed-total']").text()
+             const tested =  $( "a[id*='value-item-virus_tests_conducted-total']").text()
                                  
              const data = {
                 tested: getInt(tested),
