@@ -22,7 +22,7 @@ Apify.main(async () => {
             log.info('Page loaded.');
             const now = new Date();
             try {
-                const rawData = JSON.parse(($('pre#registerData').text().trim());
+                const rawData = JSON.parse($('pre#registerData').text().trim());
                 const countryData = JSON.parse(rawData.parsedData);
             } catch (e) {
                 check = true;
