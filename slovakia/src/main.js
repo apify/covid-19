@@ -17,6 +17,11 @@ Apify.main(async () => {
     const tested = $('#block_5e9990e25ffff > div > h3').text().replace(/\u00a0/g, '');
     const deceased = $('#block_5e9991ed60005 > div > h3').text();
     const recovered = $("#block_5e99921b60008 > div > h3").text().replace(/\u00a0/g, '');
+    const newInfected = $('#block_5e9991c460002 > div > p').text().replace("Pozitívnetestovaných ľudíPribudlo: ", '').replace(/\u00a0/g, '');
+    const newTested = $('#block_5e9990e25ffff > div > p').text().replace("Všetkýchvykonaných testovPribudlo: ", '').replace(/\u00a0/g, '');
+    const newDeceased = $('#block_5e9991ed60005 > div > p').text().replace("Úmrtí Pribudlo: ", '').replace(/\u00a0/g, '');
+    const newRecovered = $("#block_5e99921b60008 > div > p").text().replace("VyliečenýchpacientovPribudlo: ", '').replace(/\u00a0/g, '');
+
 
     // find the correct table (to avoid using dynamic selectors, i.e. #block_5e9f669647a94)
     // const table = $('.govuk-grid-column-two-thirds').find(t => t.querySelector('h2') && t.querySelector('h2').innerText === 'Počet pozitívne testovaných za kraje');
@@ -52,6 +57,10 @@ Apify.main(async () => {
         tested: Number(tested),
         recovered: Number(recovered),
         deceased: Number(deceased),
+        newInfected: Number(newInfected),
+        newTested: Number(newTested),
+        newRecovered: Number(newRecovered),
+        newDeceased: Number(newDeceased),
         regionsData,
         updated,
         lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
