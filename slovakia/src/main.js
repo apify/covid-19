@@ -4,14 +4,34 @@ const cheerio = require('cheerio');
 const sourceUrl = 'https://korona.gov.sk/koronavirus-na-slovensku-v-cislach/';
 const LATEST = 'LATEST';
 
+
+const getRegionData = async () => {
+    var districts = new Array();
+    const myUrl = "https://mapa.covid.chat/map_data";
+    const { body } = await httpRequest({ url: myUrl });
+    const $ = await cheerio.load(body);
+    const b = JSON.parse(body);
+    const distr = b.districts;
+    const distrLength = distr.length;
+    for (var i = 0; i < distrLength; i++){
+      const town = distr[i].title;
+      const newInfected = distr[i].amount.infected_delta;
+      const totalInfected = distr[i].amount.infected;
+      districts.push({town,newInfected,totalInfected});
+  }
+    return {districts}
+}
+
 Apify.main(async () => {
     const kvStore = await Apify.openKeyValueStore('COVID-19-SLOVAK-3');
     const dataset = await Apify.openDataset('COVID-19-SLOVAK-3-HISTORY');
 
+    const { districts } = await getRegionData();
+
     console.log('Getting data...');
     const { body } = await httpRequest({ url: sourceUrl });
     const $ = cheerio.load(body);
-    // const statistics = $.find('h3');
+
 
     const infected = $('#block_5e9991c460002 > div > h3').text().replace(/\u00a0/g, '');
     const tested = $('#block_5e9990e25ffff > div > h3').text().replace(/\u00a0/g, '');
@@ -62,6 +82,7 @@ Apify.main(async () => {
         newRecovered: Number(newRecovered),
         newDeceased: Number(newDeceased),
         regionsData,
+        districts: districts,
         updated,
         lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
         readMe: 'https://apify.com/davidrychly/covid-sk-3'
