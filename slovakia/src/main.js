@@ -6,10 +6,9 @@ const LATEST = 'LATEST';
 
 
 const getRegionData = async () => {
-    var districts = new Array();
+    let districts = new Array();
     const myUrl = "https://mapa.covid.chat/map_data";
     const { body } = await httpRequest({ url: myUrl });
-    const $ = await cheerio.load(body);
     const b = JSON.parse(body);
     const distr = b.districts;
     const distrLength = distr.length;
@@ -33,12 +32,12 @@ Apify.main(async () => {
     const $ = cheerio.load(body);
 
 
-    const infected = $('#block_5e9991c460002 > div > h3').text().replace(/\u00a0/g, '');
-    const tested = $('#block_5e9990e25ffff > div > h3').text().replace(/\u00a0/g, '');
+    const infected = $('#block_5fb76a90e6197 > div > h2').text().replace(/\u00a0/g, '');
+    const tested = $('#block_5fb764f549941 > div > h2').text().replace(/\s/g, '');
     const deceased = $('#block_5e9991ed60005 > div > h3').text();
     const recovered = $("#block_5e99921b60008 > div > h3").text().replace(/\u00a0/g, '');
-    const newInfected = $('#block_5e9991c460002 > div > p').text().replace("Pozitívnetestovaných ľudíPribudlo: ", '').replace(/\u00a0/g, '');
-    const newTested = $('#block_5e9990e25ffff > div > p').text().replace("Všetkýchvykonaných testovPribudlo: ", '').replace(/\u00a0/g, '');
+    const newInfected = $('#block_5fb76a90e6199 > div > p').text().replace("Pozitívnych ľudí testovaných PCR Pribudlo: ", '').replace(/\u00a0/g, '');
+    const newTested = $('#block_5fb76a90e6197 > div > p').text().replace("Vykonaných PCR testovPribudlo: ", '').replace(/\u00a0/g, '');
     const newDeceased = $('#block_5e9991ed60005 > div > p').text().replace("Úmrtí Pribudlo: ", '').replace(/\u00a0/g, '');
     const newRecovered = $("#block_5e99921b60008 > div > p").text().replace("VyliečenýchpacientovPribudlo: ", '').replace(/\u00a0/g, '');
 
