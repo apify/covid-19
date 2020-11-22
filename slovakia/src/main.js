@@ -31,9 +31,9 @@ Apify.main(async () => {
     const { body } = await httpRequest({ url: sourceUrl });
     const $ = cheerio.load(body);
 
-
-    const infected = $('#block_5fb76a90e6197 > div > h2').text().replace(/\u00a0/g, '');
-    const tested = $('#block_5fb764f549941 > div > h2').text().replace(/\s/g, '');
+    const infected = $('#block_5fb76a90e6199 > div > h2').text().replace(/\s/g, '');;
+    const testedAG = $('#block_5fb764f549941 > div > h2').text().replace(/\s/g, '');
+    const testedPCR = $('#block_5fb76a90e6197 > div > h2').text().replace(/\u00a0/g, '');
     const deceased = $('#block_5e9991ed60005 > div > h3').text();
     const recovered = $("#block_5e99921b60008 > div > h3").text().replace(/\u00a0/g, '');
     const newInfected = $('#block_5fb76a90e6199 > div > p').text().replace("Pozitívnych ľudí testovaných PCR Pribudlo: ", '').replace(/\u00a0/g, '');
@@ -73,7 +73,7 @@ Apify.main(async () => {
 
     const result = {
         infected: Number(infected),
-        tested: Number(tested),
+        tested: Number(testedAG) + Number(testedPCR),
         recovered: Number(recovered),
         deceased: Number(deceased),
         newInfected: Number(newInfected),
