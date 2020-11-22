@@ -50,7 +50,7 @@ Apify.main(async () => {
                         json: true,
                     });
                     if (response.statusCode === 200) {
-                        const attributes = response.body.features.filter(f => f.attributes.OBJECTID === 136).map(d => d.attributes)[0];
+                        const attributes = response.body.features.filter(f => f.attributes.Country_Region === 'Netherlands').map(d => d.attributes)[0];
                         totalInfected = attributes.Confirmed;
                         totalDeceased = attributes.Deaths;
                         totalRecovered = attributes.Recovered;
