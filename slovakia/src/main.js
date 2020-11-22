@@ -31,15 +31,18 @@ Apify.main(async () => {
     const { body } = await httpRequest({ url: sourceUrl });
     const $ = cheerio.load(body);
 
-    const infected = $('#block_5fb76a90e6199 > div > h2').text().replace(/\s/g, '');;
+    const infectedPCR = $('#block_5fb76a90e6199 > div > h2').text().replace(/\s/g, '');;
     const testedAG = $('#block_5fb764f549941 > div > h2').text().replace(/\s/g, '');
     const testedPCR = $('#block_5fb76a90e6197 > div > h2').text().replace(/\u00a0/g, '');
     const deceased = $('#block_5e9991ed60005 > div > h3').text();
     const recovered = $("#block_5e99921b60008 > div > h3").text().replace(/\u00a0/g, '');
-    const newInfected = $('#block_5fb76a90e6199 > div > p').text().replace("Pozitívnych ľudí testovaných PCR Pribudlo: ", '').replace(/\u00a0/g, '');
-    const newTested = $('#block_5fb76a90e6197 > div > p').text().replace("Vykonaných PCR testovPribudlo: ", '').replace(/\u00a0/g, '');
+    const newInfectedPCR = $('#block_5fb76a90e6199 > div > p').text().replace("Pozitívnych ľudí testovaných PCR Pribudlo: ", '').replace(/\u00a0/g, '');
+    const newTestedPCR = $('#block_5fb76a90e6197 > div > p').text().replace("Vykonaných PCR testovPribudlo: ", '').replace(/\u00a0/g, '');
     const newDeceased = $('#block_5e9991ed60005 > div > p').text().replace("Úmrtí Pribudlo: ", '').replace(/\u00a0/g, '');
     const newRecovered = $("#block_5e99921b60008 > div > p").text().replace("VyliečenýchpacientovPribudlo: ", '').replace(/\u00a0/g, '');
+    const infectedAG = $("#block_5fb764f549943 > div > h2").text().replace(/\s/g, '');
+    const newInfectedAG = $("#block_5fb764f549943 > div > p").text().replace("Pozitívnych Ag testov*Pribudlo:", '').replace(/\s/g, '');
+    const newTestedAG = $("#block_5fb764f549941 > div > p").text().replace("Vykonaných Ag testovPribudlo:", '').replace(/\s/g, '');
 
 
     // find the correct table (to avoid using dynamic selectors, i.e. #block_5e9f669647a94)
@@ -72,13 +75,17 @@ Apify.main(async () => {
     const updated = $('#block_5e9f629147a8d > div > p').text().replace('Aktualizované ', '');
 
     const result = {
-        infected: Number(infected),
-        tested: Number(testedAG) + Number(testedPCR),
+        infectedPCR: Number(infectedPCR),
+        testedPCR: Number(testedPCR),
+        newInfectedPCR: Number(newInfectedPCR),
+        newTestedPCR: Number(newTestedPCR),
+        infectedAG: Number(infectedAG),
+        testedAG: Number(testedAG),
+        newInfectedAG: Number(newInfectedAG),
+        newTestedAG: Number(newTestedAG),
         recovered: Number(recovered),
-        deceased: Number(deceased),
-        newInfected: Number(newInfected),
-        newTested: Number(newTested),
         newRecovered: Number(newRecovered),
+        deceased: Number(deceased),
         newDeceased: Number(newDeceased),
         regionsData,
         districts: districts,
