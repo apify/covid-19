@@ -27,15 +27,21 @@ Apify.main(async () => {
             const response = await requestAsBrowser({ url });
 
             const $ = cheerio.load(response.body);
+            const $spanTxt = $('span:contains(Patvirtintų ligos atvejų skaičius)').text();
+            // const infected = $('li:contains(Patvirtintų ligos atvejų skaičius konkretiems žmonėms)').text();
+            const infected = $spanTxt.match(/(?<=Patvirtintų ligos atvejų skaičius:)[0-9 ]+/g)[0];
+            // const deceased = $('li:contains(Mirusių nuo koronaviruso žmonių skaičius)').text();
+            const deceased = $spanTxt.match(/(?<=Mirusių nuo koronaviruso žmonių skaičius:)[0-9 ]+/g)[0];
+            // const recovered = $('li:contains(Pasveikusių žmonių skaičius)').text().replace(/\D/g, '');
+            const recovered = $spanTxt.match(/(?<=Pasveikusių žmonių skaičius:)[0-9 ]+/g)[0]
+            // const newInfected = $('li:contains(Per vakar dieną patvirtintų naujų COVID-19 susirgusių žmonių skaičius)').text();
+            const newInfected = $spanTxt.match(/(?<=Per vakar dieną patvirtintų naujų COVID-19 susirgusių žmonių skaičius:)[0-9 ]+/g)[0];
+            // const isolated = $('li:contains(Izoliacijoje esančių asmenų skaičius) b').text().replace(' ', '');
 
-            const infected = $('li:contains(Patvirtintų ligos atvejų skaičius konkretiems žmonėms)').text();
-            const deceased = $('li:contains(Mirusių nuo koronaviruso žmonių skaičius)').text();
-            const recovered = $('li:contains(Pasveikusių žmonių skaičius)').text().replace(/\D/g, '');
-            const newInfected = $('li:contains(Per vakar dieną patvirtintų naujų COVID-19 susirgusių žmonių skaičius)').text();
-            // const isolated = $('div.text ul').eq(0).find('li').last().find('strong').text();
-            const isolated = $('li:contains(Izoliacijoje esančių asmenų skaičius) b').text().replace(' ', '');
-            const connectedDeaths = $('li:contains(Užsikrėtusieji koronavirusu, mirę dėl kitų priežasčių)').text().replace(/\D/g, '')
-            const stillSick = $('li:contains(Sergančių žmonių skaičius)').text();
+            // const connectedDeaths = $('li:contains(Užsikrėtusieji koronavirusu, mirę dėl kitų priežasčių)').text().replace(/\D/g, '')
+            const connectedDeaths = $spanTxt.match(/(?<=Užsikrėtusieji koronavirusu, mirę dėl kitų priežasčių:)[0-9 ]+/g)[0]
+            // const stillSick = $('li:contains(Sergančių žmonių skaičius)').text();
+            const stillSick = $spanTxt.match(/(?<=Sergančių žmonių skaičius:)[0-9 ]+/g)[0];
             const now = new Date();
 
             const result = {
@@ -43,7 +49,7 @@ Apify.main(async () => {
                 recovered: toNumber(recovered),
                 deceased: toNumber(deceased),
                 newInfected: toNumber(newInfected),
-                isolated: toNumber(isolated),
+                // isolated: toNumber(isolated),
                 connectedDeaths: toNumber(connectedDeaths),
                 stillSick: toNumber(stillSick),
                 sourceUrl: 'http://sam.lrv.lt/lt/naujienos/koronavirusas',
