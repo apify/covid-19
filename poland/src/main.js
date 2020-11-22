@@ -7,7 +7,8 @@ const LATEST = 'LATEST';
 let check = false;
 
 Apify.main(async () => {
-    const { email } = await Apify.getValue('INPUT');
+    const email = 'zpelechova@gmail.com'
+    // const { email } = await Apify.getValue('INPUT');
     const requestQueue = await Apify.openRequestQueue();
     const kvStore = await Apify.openKeyValueStore('COVID-19-POLAND');
     const dataset = await Apify.openDataset('COVID-19-POLAND-HISTORY');
@@ -15,20 +16,17 @@ Apify.main(async () => {
     await requestQueue.addRequest({ url: sourceUrl });
     const crawler = new Apify.CheerioCrawler({
         requestQueue,
-        useApifyProxy: true,
-        apifyProxyGroups: ['CZECH_LUMINATI'],
+        useApifyProxy: false,
+        // apifyProxyGroups: ['CZECH_LUMINATI'],
         handlePageTimeoutSecs: 60 * 2,
         handlePageFunction: async ({ $ }) => {
             log.info('Page loaded.');
             const now = new Date();
-            try {
-                const rawData = JSON.parse($('pre#registerData').text().trim());
-                const countryData = JSON.parse(rawData.parsedData);
-            } catch (e) {
-                check = true;
-                return;
-            }
-            log.info(`${countryData.length} of regions loaded.`);
+            
+            const rawData = JSON.parse($('pre#registerData').text().trim());
+            const countryData = JSON.parse(rawData.parsedData);
+            
+            log.info(`${countryData.length} regions loaded.`);
             const infectedByRegion = [];
             let infectedCountTotal = 0;
             let deceasedCountTotal = 0;
@@ -37,7 +35,7 @@ Apify.main(async () => {
             }
             for (const region of countryData) {
                 const regionName = region.Województwo;
-                const city = region['Powiat/Miasto'];
+                //const city = region['Powiat/Miasto'];
                 const infectedCount = region.Liczba ? parseInt(region.Liczba.replace(/ /g, '')) : 0;
                 const deceasedCount = region['Liczba zgonów'] ? parseInt(region['Liczba zgonów'].replace(/ /g, '')) : 0;
 
@@ -47,7 +45,7 @@ Apify.main(async () => {
                 } else {
                     infectedByRegion.push({
                         region: latinize(regionName),
-                        city,
+                        // city,
                         infectedCount,
                         deceasedCount,
                     });
@@ -62,9 +60,11 @@ Apify.main(async () => {
                 readMe: 'https://apify.com/vaclavrut/covid-pl',
             };
 
+            console.log(data)
+
             // Compare and save to history
             const latest = await kvStore.getValue(LATEST);
-            delete latest.lastUpdatedAtApify;
+            if (latest) {delete latest.lastUpdatedAtApify};
             const actual = Object.assign({}, data);
             delete actual.lastUpdatedAtApify;
 
