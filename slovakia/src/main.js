@@ -75,6 +75,10 @@ Apify.main(async () => {
     const updated = $('#block_5e9f629147a8d > div > p').text().replace('Aktualizované ', '');
 
     const result = {
+        tested: Number(newTestedPCR) + Number(newTestedAG),
+        infected: Number(infectedPCR) + Number(infectedAG),
+        recovered: Number(recovered),
+        deceased: deceased,
         infectedPCR: Number(infectedPCR),
         testedPCR: Number(testedPCR),
         newInfectedPCR: Number(newInfectedPCR),
@@ -83,7 +87,6 @@ Apify.main(async () => {
         testedAG: Number(testedAG),
         newInfectedAG: Number(newInfectedAG),
         newTestedAG: Number(newTestedAG),
-        recovered: Number(recovered),
         newRecovered: Number(newRecovered),
         deceased: Number(deceased),
         newDeceased: Number(newDeceased),
