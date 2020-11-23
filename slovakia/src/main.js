@@ -26,6 +26,11 @@ Apify.main(async () => {
     const dataset = await Apify.openDataset('COVID-19-SLOVAK-3-HISTORY');
 
     const { districts } = await getRegionData();
+    //delete and replace the same values of Bratislava and Košice
+    districts.splice(5,4);
+    districts.splice(20,3);
+    districts[4].town= "Bratislava";
+    districts[19].town= "Košice";
 
     console.log('Getting data...');
     const { body } = await httpRequest({ url: sourceUrl });
