@@ -37,7 +37,7 @@ Apify.main(async () => {
                 const regionName = region.Województwo;
                 //const city = region['Powiat/Miasto'];
                 const infectedCount = region.Liczba ? parseInt(region.Liczba.replace(/ /g, '')) : 0;
-                const deceasedCount = region['Liczba zgonów'] ? parseInt(region['Liczba zgonów'].replace(/ /g, '')) : 0;
+                const deceasedCount = region['Wszystkie przypadki śmiertelne'] ? parseInt(region['Wszystkie przypadki śmiertelne'].replace(/ /g, '')) : 0;
 
                 if (regionName === 'Cała Polska') {
                     infectedCountTotal = infectedCount;
