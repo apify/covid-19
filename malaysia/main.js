@@ -46,7 +46,7 @@ Apify.main(async () => {
         case "EXTRACT_DATA":
           log.info("Processing and saving data...");
 
-          const values = body.match(/(?<="text":")\d+(?=")/g);
+          const values = body.match(/(?<="text":")(\d|,)+(?=")/g);
           const srcDate = new Date(
             body.match(/(?<=updatedAt":")[^"]+(?=")/g)[0]
           );
