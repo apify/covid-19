@@ -39,7 +39,7 @@ Apify.main(async () => {
                 const infectedCount = region.Liczba ? parseInt(region.Liczba.replace(/ /g, '')) : 0;
                 const deceasedCount = region['Wszystkie przypadki śmiertelne'] ? parseInt(region['Wszystkie przypadki śmiertelne'].replace(/ /g, '')) : 0;
 
-                if (regionName === 'Cała Polska') {
+                if (regionName === 'Cały kraj') {
                     infectedCountTotal = infectedCount;
                     deceasedCountTotal = deceasedCount;
                 } else {
