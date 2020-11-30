@@ -28,9 +28,9 @@ Apify.main(async () => {
         useApifyProxy: true,
         handleRequestTimeoutSecs: 120,
         additionalMimeTypes: [
-            // "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            // "text/plain",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             "text/csv"
+            // "text/plain",
         ],
         prepareRequestFunction: async ({ request }) => {
             if (request.url.endsWith(".xlsx")) {
