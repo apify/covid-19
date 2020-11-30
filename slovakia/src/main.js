@@ -26,6 +26,11 @@ Apify.main(async () => {
     const dataset = await Apify.openDataset('COVID-19-SLOVAK-3-HISTORY');
 
     const { districts } = await getRegionData();
+    //delete and replace the same values of Bratislava and Košice
+    districts.splice(5,4);
+    districts.splice(20,3);
+    districts[4].town= "Bratislava";
+    districts[19].town= "Košice";
 
     console.log('Getting data...');
     const { body } = await httpRequest({ url: sourceUrl });
@@ -36,13 +41,13 @@ Apify.main(async () => {
     const testedPCR = $('#block_5fb76a90e6197 > div > h2').text().replace(/\u00a0/g, '');
     const deceased = $('#block_5e9991ed60005 > div > h3').text();
     const recovered = $("#block_5e99921b60008 > div > h3").text().replace(/\u00a0/g, '');
-    const newInfectedPCR = $('#block_5fb76a90e6199 > div > p').text().replace("Pozitívnych ľudí testovaných PCR Pribudlo: ", '').replace(/\u00a0/g, '');
-    const newTestedPCR = $('#block_5fb76a90e6197 > div > p').text().replace("Vykonaných PCR testovPribudlo: ", '').replace(/\u00a0/g, '');
-    const newDeceased = $('#block_5e9991ed60005 > div > p').text().replace("Úmrtí Pribudlo: ", '').replace(/\u00a0/g, '');
-    const newRecovered = $("#block_5e99921b60008 > div > p").text().replace("VyliečenýchpacientovPribudlo: ", '').replace(/\u00a0/g, '');
-    const infectedAG = $("#block_5fb764f549943 > div > h2").text().replace(/\s/g, '');
-    const newInfectedAG = $("#block_5fb764f549943 > div > p").text().replace("Pozitívnych Ag testov*Pribudlo:", '').replace(/\s/g, '');
-    const newTestedAG = $("#block_5fb764f549941 > div > p").text().replace("Vykonaných Ag testovPribudlo:", '').replace(/\s/g, '');
+    const newInfectedPCR = $('#block_5fb76a90e6199 > div > p').text().replace(/[^0-9]/g, '');
+    const newTestedPCR = $('#block_5fb76a90e6197 > div > p').text().replace(/[^0-9]/g, '');
+    const newDeceased = $('#block_5e9991ed60005 > div > p').text().replace(/[^0-9]/g, '');
+    const newRecovered = $("#block_5e99921b60008 > div > p").text().replace(/[^0-9]/g, '');
+    const infectedAG = $("#block_5fb764f549943 > div > h2").text().replace(/[^0-9]/g, '');
+    const newInfectedAG = $("#block_5fb764f549943 > div > p").text().replace(/[^0-9]/g, '');
+    const newTestedAG = $("#block_5fb764f549941 > div > p").text().replace(/[^0-9]/g, '');
 
 
     // find the correct table (to avoid using dynamic selectors, i.e. #block_5e9f669647a94)
