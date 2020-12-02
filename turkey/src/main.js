@@ -9,7 +9,6 @@ Apify.main(async () => {
     await requestQueue.addRequest({ url: 'https://covid19.saglik.gov.tr/?_Dil=2' });
 
     const handlePageFunction = async ({ request, $ }) => {
-        const title = $('title').text();
         const script = $('script').toArray().find(scr => $(scr).html().includes('var sondurumjson'));
         const scriptHTML = $(script).html();
         const json = JSON.parse(scriptHTML.substring(scriptHTML.indexOf('var sondurumjson') + 19, scriptHTML.lastIndexOf('}];') + 2));
@@ -25,6 +24,9 @@ Apify.main(async () => {
         const dailyInfected = json[0].gunluk_vaka
         const dailyDeceased = json[0].gunluk_vefat
         const dailyRecovered = json[0].gunluk_iyilesen
+
+        const [day, month, year] = json[0].tarih.split('.')
+        const date = new Date(`${month}.${day}.${year}`)
 
         const now = new Date()
 
@@ -51,6 +53,7 @@ Apify.main(async () => {
                 now.getMinutes()
               )
             ).toISOString(),
+            lastUpdatedAtSource: date.toISOString(),
             readMe: 'https://apify.com/tugkan/covid-tr'
           }
       
