@@ -4,24 +4,24 @@ const LATEST = 'LATEST';
 const {log} = Apify.utils;
 
 Apify.main(async () => {
-  const { notificationEmail } = await Apify.getInput();
+  // const { notificationEmail } = await Apify.getInput();
   const requestQueue = await Apify.openRequestQueue();
   const kvStore = await Apify.openKeyValueStore('COVID-19-GERMANY');
   const dataset = await Apify.openDataset("COVID-19-GERMANY-HISTORY");
   await requestQueue.addRequest({url: SOURCE_URL});
 
-  if (notificationEmail) {
-    await Apify.addWebhook({
-      eventTypes: ['ACTOR.RUN.FAILED', 'ACTOR.RUN.TIMED_OUT'],
-      requestUrl: `https://api.apify.com/v2/acts/mnmkng~email-notification-webhook/runs?token=${Apify.getEnv().token}`,
-      payloadTemplate: `{"notificationEmail": "${notificationEmail}", "eventType": {{eventType}}, "eventData": {{eventData}}, "resource": {{resource}} }`,
-    });
-  }
-  const proxyConfiguration = await Apify.createProxyConfiguration();
+  // if (notificationEmail) {
+  //   await Apify.addWebhook({
+  //     eventTypes: ['ACTOR.RUN.FAILED', 'ACTOR.RUN.TIMED_OUT'],
+  //     requestUrl: `https://api.apify.com/v2/acts/mnmkng~email-notification-webhook/runs?token=${Apify.getEnv().token}`,
+  //     payloadTemplate: `{"notificationEmail": "${notificationEmail}", "eventType": {{eventType}}, "eventData": {{eventData}}, "resource": {{resource}} }`,
+  //   });
+  // }
+  // const proxyConfiguration = await Apify.createProxyConfiguration();
 
   const crawler = new Apify.PuppeteerCrawler({
     requestQueue,
-    proxyConfiguration,
+    // proxyConfiguration,
     gotoFunction: async ({ page, request }) => {
       return page.goto(request.url, { waitUntil: 'networkidle2', timeout: 300000 });
     },
@@ -61,7 +61,7 @@ Apify.main(async () => {
       const { secondColumn, deathColumn, infectedByRegion } = extracted;
 
       const data = {
-        infected: parseInt(secondColumn.replace('.', ''), 10),
+        infected: parseInt(secondColumn.replace(/\D/g, ''), 10),
         tested: undefined,
         deceased: parseInt(deathColumn.replace('.', ''), 10),
         infectedByRegion,
