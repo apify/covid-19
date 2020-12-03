@@ -73,8 +73,12 @@ Apify.main(async () => {
             log.info('Content loaded')
 
             const extracted = await page.evaluate(async () => {
+                // function strToInt(str) {
+                //     return parseInt(str.replace(/( |,)/g, ''), 10)
+                // }
+
                 function strToInt(str) {
-                    return parseInt(str.replace(/( |,)/g, ''), 10)
+                    return parseInt(str.replace(/\D/g, ''))
                 }
 
                 const fullContainer = $('full-container full-container').toArray()
@@ -88,7 +92,7 @@ Apify.main(async () => {
                 const infectedByRegion = $(fullContainer[18]).find('.external-html').toArray().map(item => {
                     return {
                         region: $(item).find('p').text().match(/[^.]+/g)[0],
-                        value: parseFloat($(item).find('strong').text().replace(/( |,)/g, ''), 10)
+                        value: parseFloat($(item).find('strong').text().split(',')[0].replace(/\D/g, '') + '.' + $(item).find('strong').text().split(',')[1])
                     }
                 });
 
@@ -103,7 +107,7 @@ Apify.main(async () => {
                     infectedByRegion
                 }
             })
-            console.log(extracted);
+            // console.log(extracted);
             // ADD:  active, infected, recovered, deceased, newCases, infectedByRegion
             const data = {
                 ...extracted
