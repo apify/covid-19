@@ -43,7 +43,7 @@ Apify.main(async () => {
             dailyInfected: toInt(dailyInfected),
             dailyDeceased: toInt(dailyDeceased),
             dailyRecovered: toInt(dailyRecovered),
-            sourceUrl: 'https://covid19.saglik.gov.tr/covid19api?getir=sondurum',
+            sourceUrl: 'https://covid19.saglik.gov.tr/?_Dil=2',
             lastUpdatedAtApify: new Date(
               Date.UTC(
                 now.getFullYear(),
