@@ -8,7 +8,7 @@ async function waitForContentToLoad(page) {
   const query = "document.querySelectorAll('full-container full-container')"
 
   return page.waitForFunction(
-    `!!${query}[1] && !!${query}[6] && !!${query}[2] && !!${query}[4] && !!${query}[19] && !!${query}[8] && !!${query}[15]` +
+    `!!${query}[1] && !!${query}[6] && !!${query}[2] && !!${query}[4] && !!${query}[19] && !!${query}[8] && !!${query}[16]` +
     ` && !!${query}[1].innerText.includes('ACTIVOS')` +
     ` && !!${query}[6].innerText.includes('CONFIRMADOS')` +
     ` && !!${query}[2].innerText.includes('RECUPERADOS')` +
@@ -17,8 +17,8 @@ async function waitForContentToLoad(page) {
     ` && !!${query}[19].querySelector('text')` +
     // ` && !!${query}[4].innerText.includes('Suspeitos')` +
     ` && !!${query}[8].innerText.includes('Dados relativos ao boletim da DGS')` +
-    ` && !!${query}[15].innerText.includes('Casos por Região de Saúde')` +
-    ` && !!${query}[15].innerHTML.includes('<nav class="feature-list">')`,
+    ` && !!${query}[16].innerText.includes('Casos por Região de Saúde')` +
+    ` && !!${query}[16].innerHTML.includes('<nav class="feature-list">')`,
     { timeout: 45 * 1000 }
   )
 }
@@ -134,7 +134,7 @@ Apify.main(async () => {
             .replace(/\D/g, '')
         )
 
-        const spans = $(fullContainer[15])
+        const spans = $(fullContainer[16])
           .find('nav.feature-list span[id*="ember"]')
           .toArray()
 
