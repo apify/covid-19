@@ -5,20 +5,17 @@ const now = new Date()
 const { log } = Apify.utils
 
 async function waitForContentToLoad(page) {
-  const query = "document.querySelectorAll('full-container full-container')"
-
+  const query = "document.querySelector('full-container')"
   return page.waitForFunction(
-    `!!${query}[1] && !!${query}[6] && !!${query}[2] && !!${query}[4] && !!${query}[19] && !!${query}[8] && !!${query}[16]` +
-    ` && !!${query}[1].innerText.includes('ACTIVOS')` +
-    ` && !!${query}[6].innerText.includes('CONFIRMADOS')` +
-    ` && !!${query}[2].innerText.includes('RECUPERADOS')` +
-    ` && !!${query}[4].innerText.includes('ÓBITOS')` +
-    // ` && !!${query}[19].innerText.includes('AMOSTRAS')` +
-    ` && !!${query}[19].querySelector('text')` +
-    // ` && !!${query}[4].innerText.includes('Suspeitos')` +
-    ` && !!${query}[8].innerText.includes('Dados relativos ao boletim da DGS')` +
-    ` && !!${query}[16].innerText.includes('Casos por Região de Saúde')` +
-    ` && !!${query}[16].innerHTML.includes('<nav class="feature-list">')`,
+    `!!${query}` +
+    `&& !!${query}.innerText.match(/ACTIVOS\\n*\\t*\\r*[0-9,]+/g)` +
+    `&& !!${query}.innerText.match(/CONFIRMADOS\\n*\\t*\\r*[0-9,]+/g)` +
+    `&& !!${query}.innerText.match(/RECUPERADOS\\n*\\t*\\r*[0-9,]+/g)` +
+    `&& !!${query}.innerText.match(/ÓBITOS\\n*\\t*\\r*[0-9,]+/g)` +
+    `&& !!${query}.innerText.match(/Total de Testes.*\\n*\\t*\\r*[0-9,]+/g)` +
+    `&& !!${query}.innerText.match(/Dados relativos ao boletim da DGS.*\\n*\\t*\\r*[0-9,]+/g)` +
+    `&& !!${query}.innerText.match(/Casos por Região de Saúde\\n*\\t*\\r*[0-9,]+/g)` +
+    `&& !!${query}.innerHTML.includes('<nav class="feature-list">')`,
     { timeout: 45 * 1000 }
   )
 }
@@ -83,18 +80,14 @@ Apify.main(async () => {
           return parseInt(str.replace(/( |,)/g, ''), 10)
         }
 
-        const fullContainer = $('full-container full-container').toArray()
-
-        const date = $(fullContainer[8])
+        const date = $('full-container:contains(Dados relativos ao boletim da DGS)').last()
           .find('g')
           .last()
           .text()
-          .trim()
-        // const suspicious = await strToInt(
-        //   $(fullContainer[4]).find("g").last().text().trim()
-        // );
+          .trim();
+
         const active = await strToInt(
-          $(fullContainer[1])
+          $('full-container:contains(ACTIVOS)').last()
             .find('g')
             .last()
             .text()
@@ -102,7 +95,7 @@ Apify.main(async () => {
             .replace(/\D/g, '')
         )
         const infected = await strToInt(
-          $(fullContainer[6])
+          $('full-container:contains(CONFIRMADOS)').last()
             .find('g')
             .last()
             .text()
@@ -110,7 +103,7 @@ Apify.main(async () => {
             .replace(/\D/g, '')
         )
         const recovered = await strToInt(
-          $(fullContainer[2])
+          $('full-container:contains(RECUPERADOS)').last()
             .find('g')
             .last()
             .text()
@@ -118,7 +111,7 @@ Apify.main(async () => {
             .replace(/\D/g, '')
         )
         const deceased = await strToInt(
-          $(fullContainer[4])
+          $('full-container:contains(ÓBITOS)').last()
             .find('g')
             .last()
             .text()
@@ -126,7 +119,7 @@ Apify.main(async () => {
             .replace(/\D/g, '')
         )
         const tested = await strToInt(
-          $(fullContainer[19])
+          $('full-container:contains(Total de Testes (PCR + Antigénio))').last()
             .find('g')
             .last()
             .text()
@@ -134,7 +127,7 @@ Apify.main(async () => {
             .replace(/\D/g, '')
         )
 
-        const spans = $(fullContainer[16])
+        const spans = $('full-container:contains(Casos por Região de Saúde)').last()
           .find('nav.feature-list span[id*="ember"]')
           .toArray()
 
@@ -161,8 +154,8 @@ Apify.main(async () => {
           infectedByRegion
         }
       })
-
-      const sourceDate = new Date(extracted.date.replace(/\.+/g, ''));
+      const splited = extracted.date.split('/');
+      const sourceDate = new Date(`${splited[1]}/${splited[0]}/${splited[2]}`);
       delete extracted.date;
 
       // ADD:  infected, tested, recovered, deceased, suspicious, infectedByRegion
@@ -185,16 +178,15 @@ Apify.main(async () => {
           now.getMinutes()
         )
       ).toISOString()
-      // data.lastUpdatedAtSource = new Date(
-      //   Date.UTC(
-      //     sourceDate.getFullYear(),
-      //     sourceDate.getMonth(),
-      //     sourceDate.getDate(),
-      //     sourceDate.getHours(),
-      //     sourceDate.getMinutes()
-      //   )
-      // ).toISOString();
-      // data.lastUpdatedAtSource = sourceDate.toISOString()
+      data.lastUpdatedAtSource = new Date(
+        Date.UTC(
+          sourceDate.getFullYear(),
+          sourceDate.getMonth(),
+          sourceDate.getDate(),
+          sourceDate.getHours(),
+          sourceDate.getMinutes()
+        )
+      ).toISOString();
 
       data.readMe = 'https://apify.com/onidivo/covid-pt'
 
@@ -233,27 +225,3 @@ Apify.main(async () => {
   }
   log.info('Done.')
 })
-
-// function formatDate (date) {
-//   const arr = date
-//     .replace(/(\n)/g, '')
-//     .trim()
-//     .split('/')
-//   // ["10", "13", "2020 1:00 odpoledne"]
-//   const month = arr[1]
-//   const day = arr[0]
-//   const year = arr[2].split(' ')[0]
-//   const time = arr[2].split(' ')[1]
-//   let am = 'AM'
-//   if (arr[2].split(' ')[2] === 'odpoledne') {
-//     am = 'PM'
-//   }
-
-//   const arra = [month, day, year, time, am]
-
-// function formatDate(date) {
-//   const arr = date.replace(/(\n)/g, "").trim().split("/");
-//   const [a, b, ...others] = [...arr];
-//   return Array.from([b, a, ...others]).join("-");
-  // 
-// }
