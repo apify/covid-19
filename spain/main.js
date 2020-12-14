@@ -79,10 +79,10 @@ Apify.main(async () => {
                         })
                     })
 
-                    const $srcDate = $('span:contains(datos consolidados a las)').eq(0).text();
+                    const $srcDate = $('span:contains(datos consolidados a las)').eq(0).text().match(/\(.*\)/g)[0];
                     const [h, rest] = $srcDate.match(/(?<=a las.*)[^\)]+(?=\))/g)[0].trim().replace(/[^:\d. ]/g, '')
-                        .replace(/  /g, '').split(' ')
-                    const [d, m, y] = rest.split('.')
+                        .replace(/  +/g, ' ').split(' ');
+                    const [d, m, y] = rest.split('.');
 
                     const srcDate = new Date(`${h} ${m}-${d}-${y}`);
 
