@@ -14,7 +14,7 @@ async function waitForContentToLoad(page) {
     `&& !!${query}.innerText.match(/ÓBITOS\\n*\\t*\\r*[0-9,]+/g)` +
     `&& !!${query}.innerText.match(/Total de Testes.*\\n*\\t*\\r*[0-9,]+/g)` +
     `&& !!${query}.innerText.match(/Dados relativos ao boletim da DGS.*\\n*\\t*\\r*[0-9,]+/g)` +
-    `&& !!${query}.innerText.match(/Casos por Região de Saúde\\n*\\t*\\r*[0-9,]+/g)` +
+    // `&& !!${query}.innerText.match(/Casos por Região de Saúde\\n*\\t*\\r*[0-9,]+/g)` +
     `&& !!${query}.innerHTML.includes('<nav class="feature-list">')`,
     { timeout: 45 * 1000 }
   )
