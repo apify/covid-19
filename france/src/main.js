@@ -15,13 +15,16 @@ Apify.main(async () => {
             { url: sourceUrl },
         ],
     });
+    const proxyConfiguration = await Apify.createProxyConfiguration({
+        useApifyProxy: true
+    });
+
     await requestList.initialize();
 
     const crawler = new Apify.PuppeteerCrawler({
         requestList,
+        proxyConfiguration,
         launchPuppeteerOptions: {
-            useApifyProxy: true,
-            apifyProxyGroups: ['SHADER'],
             useChrome: true,
         },
         gotoFunction: ({ request, page }) => {
