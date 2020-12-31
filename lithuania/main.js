@@ -21,19 +21,20 @@ async function waitForContentToLoad(page) {
 
 Apify.main(async () => {
     const url =
-        'https://osp.maps.arcgis.com/apps/opsdashboard/index.html#/4d9b09ed1b4c4ee194e80277a589ed62'
+        'https://ls-osp-sdg.maps.arcgis.com/apps/opsdashboard/index.html#/3bea26e9f2364e8a86c446aca71ce973';
 
     const kvStore = await Apify.openKeyValueStore("COVID-19-LITHUANIA");
     const dataset = await Apify.openDataset("COVID-19-LITHUANIA-HISTORY");
 
-    const requestList = new Apify.RequestList({ sources: [{ url }] })
-    await requestList.initialize()
+    const requestList = new Apify.RequestList({ sources: [{ url }] });
+    await requestList.initialize();
+    const proxyConfiguration = await Apify.createProxyConfiguration();
 
     let criticalErrors = 0
 
     const crawler = new Apify.PuppeteerCrawler({
         requestList,
-        useApifyProxy: true,
+        proxyConfiguration,
         puppeteerPoolOptions: {
             retireInstanceAfterRequestCount: 1
         },
@@ -92,11 +93,9 @@ Apify.main(async () => {
                 const infectedByRegion = $(fullContainer[18]).find('.external-html').toArray().map(item => {
                     return {
                         region: $(item).find('p').text().match(/[^.]+/g)[0],
-                        value: parseFloat($(item).find('strong').text().split(',')[0].replace(/\D/g, '') + '.' + $(item).find('strong').text().split(',')[1])
+                        value: parseFloat($(item).find('strong').text().replace(/,+/g, ''), 10)
                     }
                 });
-
-
 
                 return {
                     active,
@@ -115,7 +114,7 @@ Apify.main(async () => {
 
             data.country = 'LITHUANIA';
             data.historyData = 'https://api.apify.com/v2/datasets/1XdITM6u7PbhUrlmK/items?format=json&clean=1';
-            data.sourceUrl = 'http://sam.lrv.lt/lt/naujienos/koronavirusas';
+            data.sourceUrl = 'https://osp.maps.arcgis.com/apps/MapSeries/index.html?appid=79255eaa219140dfa65c01ae95ed143b';
             data.lastUpdatedAtApify = new Date(
                 Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())
             ).toISOString()
@@ -156,4 +155,4 @@ Apify.main(async () => {
         throw new Error('Some essential requests failed completely!')
     }
     log.info('Done.')
-})
+});
