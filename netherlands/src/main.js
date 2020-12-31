@@ -40,6 +40,7 @@ Apify.main(async () => {
     let totalDeceased = undefined;
     let totalRecovered = undefined;
     let dailyInfected = undefined;
+    let dailyDeceased = undefined;
     let reproductionNumber = undefined;
     let infectedByRegion = [];
     const proxyConfiguration = await Apify.createProxyConfiguration();
@@ -81,6 +82,7 @@ Apify.main(async () => {
                     if (response.statusCode === 200) {
                         const { body } = response;
                         dailyInfected = body.pageProps.data.infected_people_total.last_value.infected_daily_total;
+                        dailyDeceased = body.pageProps.data.deceased_rivm.last_value.covid_daily;
                         reproductionNumber = body.pageProps.data.reproduction_index_last_known_average.last_value.reproduction_index_avg;
                     }
                     break;
