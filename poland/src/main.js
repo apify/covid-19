@@ -20,7 +20,7 @@ Apify.main(async () => {
             const now = new Date();
             const rawData = JSON.parse(latinize($('pre#registerData').text().trim()));
             const countryData = JSON.parse(rawData.parsedData);
-            log.info(`${countryData.length} of regions loaded.`);
+            log.info(`${countryData.length} regions loaded.`);
             const infectedByRegion = [];
             let infectedCountTotal = 0;
             let deceasedCountTotal = 0;
@@ -31,7 +31,7 @@ Apify.main(async () => {
                 const regionName = region.Wojewodztwo;
                 const city = region['Powiat/Miasto'];
                 const infectedCount = region.Liczba ? parseInt(region.Liczba.replace(/ /g, '')) : 0;
-                const deceasedCount = region['Liczba zgonow'] ? parseInt(region['Liczba zgonow'].replace(/ /g, '')) : 0;
+                const deceasedCount = region['Wszystkie przypadki smiertelne'] ? parseInt(region['Wszystkie przypadki smiertelne'].replace(/ /g, '')) : 0;
                 infectedByRegion.push({
                         region: regionName,
                         city,
