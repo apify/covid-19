@@ -4,19 +4,51 @@ const cheerio = require('cheerio');
 const sourceUrl = 'https://korona.gov.sk/koronavirus-na-slovensku-v-cislach/';
 const LATEST = 'LATEST';
 
+
+const getRegionData = async () => {
+    let districts = new Array();
+    const myUrl = "https://mapa.covid.chat/map_data";
+    const { body } = await httpRequest({ url: myUrl });
+    const b = JSON.parse(body);
+    const distr = b.districts;
+    const distrLength = distr.length;
+    for (var i = 0; i < distrLength; i++){
+      const town = distr[i].title;
+      const newInfected = distr[i].amount.infected_delta;
+      const totalInfected = distr[i].amount.infected;
+      districts.push({town,newInfected,totalInfected});
+  }
+    return {districts}
+}
+
 Apify.main(async () => {
     const kvStore = await Apify.openKeyValueStore('COVID-19-SLOVAK-3');
     const dataset = await Apify.openDataset('COVID-19-SLOVAK-3-HISTORY');
 
+    const { districts } = await getRegionData();
+    //delete and replace the same values of Bratislava and Košice
+    districts.splice(5,4);
+    districts.splice(20,3);
+    districts[4].town= "Bratislava";
+    districts[19].town= "Košice";
+
     console.log('Getting data...');
     const { body } = await httpRequest({ url: sourceUrl });
     const $ = cheerio.load(body);
-    // const statistics = $.find('h3');
 
-    const infected = $('#block_5e9991c460002 > div > h3').text().replace(/\u00a0/g, '');
-    const tested = $('#block_5e9990e25ffff > div > h3').text().replace(/\u00a0/g, '');
-    const deceased = $('#block_5e9991ed60005 > div > h3').text();
+    const infectedPCR = $('#block_5fb76a90e6199 > div > h2').text().replace(/\s/g, '');;
+    const testedAG = $('#block_5fb764f549941 > div > h2').text().replace(/\s/g, '');
+    const testedPCR = $('#block_5fb76a90e6197 > div > h2').text().replace(/\u00a0/g, '');
+    const deceased = $('#block_5e9991ed60005 > div > h3').text().replace(/[^0-9]/g, '');
     const recovered = $("#block_5e99921b60008 > div > h3").text().replace(/\u00a0/g, '');
+    const newInfectedPCR = $('#block_5fb76a90e6199 > div > p').text().replace(/[^0-9]/g, '');
+    const newTestedPCR = $('#block_5fb76a90e6197 > div > p').text().replace(/[^0-9]/g, '');
+    const newDeceased = $('#block_5e9991ed60005 > div > p').text().replace(/[^0-9]/g, '');
+    const newRecovered = $("#block_5e99921b60008 > div > p").text().replace(/[^0-9]/g, '');
+    const infectedAG = $("#block_5fb764f549943 > div > h2").text().replace(/[^0-9]/g, '');
+    const newInfectedAG = $("#block_5fb764f549943 > div > p").text().replace(/[^0-9]/g, '');
+    const newTestedAG = $("#block_5fb764f549941 > div > p").text().replace(/[^0-9]/g, '');
+
 
     // find the correct table (to avoid using dynamic selectors, i.e. #block_5e9f669647a94)
     // const table = $('.govuk-grid-column-two-thirds').find(t => t.querySelector('h2') && t.querySelector('h2').innerText === 'Počet pozitívne testovaných za kraje');
@@ -48,11 +80,23 @@ Apify.main(async () => {
     const updated = $('#block_5e9f629147a8d > div > p').text().replace('Aktualizované ', '');
 
     const result = {
-        infected: Number(infected),
-        tested: Number(tested),
+        tested: Number(newTestedPCR) + Number(newTestedAG),
+        infected: Number(infectedPCR) + Number(infectedAG),
         recovered: Number(recovered),
+        deceased: deceased,
+        infectedPCR: Number(infectedPCR),
+        testedPCR: Number(testedPCR),
+        newInfectedPCR: Number(newInfectedPCR),
+        newTestedPCR: Number(newTestedPCR),
+        infectedAG: Number(infectedAG),
+        testedAG: Number(testedAG),
+        newInfectedAG: Number(newInfectedAG),
+        newTestedAG: Number(newTestedAG),
+        newRecovered: Number(newRecovered),
         deceased: Number(deceased),
+        newDeceased: Number(newDeceased),
         regionsData,
+        districts: districts,
         updated,
         lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
         readMe: 'https://apify.com/davidrychly/covid-sk-3'

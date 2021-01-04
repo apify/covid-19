@@ -1,7 +1,7 @@
 
 Coronavirus stats in the Algeria
 
-Actor gets an actual number of examined and infected people in Algeria from http://covid19.sante.gov.dz/carte
+Actor gets an actual number of examined and infected people in Algeria from http://covid19.sante.gov.dz/carte //the page doesn't update anymore so we switched to https://www.worldometers.info/coronavirus/.
 
 Latest data are available at this URL: https://api.apify.com/v2/key-value-stores/pp4Wo2slUJ78ZnaAi/records/LATEST?disableRedirect=true.
 

@@ -15,14 +15,17 @@ Apify.main(async () => {
             { url: sourceUrl },
         ],
     });
+    const proxyConfiguration = await Apify.createProxyConfiguration({
+        useApifyProxy: true
+    });
+
     await requestList.initialize();
 
     const crawler = new Apify.PuppeteerCrawler({
         requestList,
+        proxyConfiguration,
         launchPuppeteerOptions: {
-            useApifyProxy: true,
-            apifyProxyGroups: ['SHADER'],
-            // useChrome: true,
+            useChrome: true,
         },
         gotoFunction: ({ request, page }) => {
             return Apify.utils.puppeteer.gotoExtended(page, request, {
@@ -32,129 +35,44 @@ Apify.main(async () => {
         handlePageFunction: async ({ request, page }) => {
             log.info(`Processing ${request.url}...`);
             await Apify.utils.puppeteer.injectJQuery(page);
+            await page.waitForSelector('.stats');
+
+            const extracted = await page.evaluate(() => {
+                const toNumber = (str) => parseInt(str.replace(/\D+/g, ''), 10);
+
+                const selectors = [
+                    { infected: '.counter:contains(cas confirmés)', index: 0, errMesssage: 'infected' },
+                    { recoverd: '.counter:contains(retours à domicile)', index: 0, errMesssage: 'recovered' },
+                    { deceased: '.counter:contains(cumul des décès)', index: 0, errMesssage: 'deceased' },
+                    { hospitalDeceased: '.counter:contains(décès à l’hôpital)', index: 0, errMesssage: 'hospital deceased' },
+                    { hospitalized: '.counter:contains(patients hospitalisés)', index: 0, errMesssage: 'hospitalized' },
+                    { newlyHospitalized: '.counter:contains(nouveaux patients hospitalisés)', index: 0, errMesssage: 'newly hospitalized' },
+                    { intensiveCare: '.counter:contains(en réanimation)', index: 0, errMesssage: 'intensive care' },
+                    { newlyIntensiveCare: '.counter:contains(en réanimation)', index: 1, errMesssage: 'intensive care' }
+                ];
+                const extracted = {};
+                for (const selec of selectors) {
+                    const values = Object.values(selec);
+                    const value = $(values[0]).eq(values[1]).find('.value')
+                        .clone()    //clone the element
+                        .children() //select all the children
+                        .remove()   //remove all the children
+                        .end()  //again go back to selected element
+                        .text();
+                    if (!value) {
+                        throw new Error(`${values[2]} not found`);
+                    }
+                    extracted[Object.keys(selec)[0]] = toNumber(value);
+                }
+                return extracted;
+            });
+
             const data = {
+                ...extracted,
                 sourceUrl,
                 lastUpdatedAtApify: moment().utc().second(0).millisecond(0).toISOString(),
                 readMe: "https://apify.com/drobnikj/covid-france",
             };
-
-            // Match infected
-            const stringInfected = await page.evaluate(() => {
-                return $('.counter:contains(cas confirmés)').eq(0).find('.value')
-                    .clone()    //clone the element
-                    .children() //select all the children
-                    .remove()   //remove all the children
-                    .end()  //again go back to selected element
-                    .text();
-            });
-            if (stringInfected) {
-                data.infected = parseInt(stringInfected.replace(/\s/g, ''));
-            } else {
-                throw new Error('Infected not found');
-            }
-
-            // Match deceased
-            const stringRecovered = await page.evaluate(() => {
-                return $('.counter:contains(retours à domicile)').eq(0).find('.value')
-                    .clone()    //clone the element
-                    .children() //select all the children
-                    .remove()   //remove all the children
-                    .end()  //again go back to selected element
-                    .text();
-            });
-            if (stringRecovered) {
-                data.recovered = parseInt(stringRecovered.replace(/\s/g, ''));
-            } else {
-                throw new Error('Recovered not found');
-            }
-
-            // Match deceased
-            const stringDeceased = await page.evaluate(() => {
-                return $('.counter:contains(cumul des décès)').eq(0).find('.value')
-                    .clone()    //clone the element
-                    .children() //select all the children
-                    .remove()   //remove all the children
-                    .end()  //again go back to selected element
-                    .text();
-            });
-            if (stringDeceased) {
-                data.deceased = parseInt(stringDeceased.replace(/\s/g, ''));
-            } else {
-                throw new Error('Deceased not found');
-            }
-
-            // Match hospital deceased
-            const stringHospitalDeceased = await page.evaluate(() => {
-                return $('.counter:contains(décès à l’hôpital)').eq(0).find('.value')
-                    .clone()    //clone the element
-                    .children() //select all the children
-                    .remove()   //remove all the children
-                    .end()  //again go back to selected element
-                    .text();
-            });
-            if (stringHospitalDeceased) {
-                data.hospitalDeceased = parseInt(stringHospitalDeceased.replace(/\s/g, ''));
-            } else {
-                throw new Error('Hospital deceased not found');
-            }
-
-            // Match hospitalized
-            const stringHospitalized = await page.evaluate(() => {
-                return $('.counter:contains(hospitalisations)').eq(0).find('.value')
-                    .clone()    //clone the element
-                    .children() //select all the children
-                    .remove()   //remove all the children
-                    .end()  //again go back to selected element
-                    .text();
-            });
-            if (stringHospitalized) {
-                data.hospitalized = parseInt(stringHospitalized.replace(/\s/g, ''));
-            } else {
-                throw new Error('Hospitalized not found');
-            }
-
-            // Match newly hospitalized
-            const stringNewlyHospitalized = await page.evaluate(() => {
-                return $('.counter:contains(nouveaux patients hospitalisés)').eq(0).find('.value')
-                    .clone()    //clone the element
-                    .children() //select all the children
-                    .remove()   //remove all the children
-                    .end()  //again go back to selected element
-                    .text();
-            });
-            if (stringNewlyHospitalized) {
-                data.newlyHospitalized = parseInt(stringNewlyHospitalized.replace(/\s/g, ''));
-            } else {
-                throw new Error('Newly hospitalized not found');
-            }
-
-            // Match intensive care
-            const stringIntensiveCare = await page.evaluate(() => {
-                return $('.counter:contains(en réanimation)').eq(0).find('.value')
-                    .clone()    //clone the element
-                    .children() //select all the children
-                    .remove()   //remove all the children
-                    .end()  //again go back to selected element
-                    .text();
-            });
-            if (stringIntensiveCare) {
-                data.intensiveCare = parseInt(stringIntensiveCare.replace(/\s/g, ''));
-            } else {
-                throw new Error('Intensive care not found');
-            }            // Match newly intensive care
-            const stringNewlyIntensiveCare = await page.evaluate(() => {
-                return $('.counter:contains(en réanimation)').eq(1).find('.value')
-                    .clone()    //clone the element
-                    .children() //select all the children
-                    .remove()   //remove all the children
-                    .end()  //again go back to selected element
-                    .text();
-            });
-            if (stringNewlyIntensiveCare) {
-                data.newlyIntensiveCare = parseInt(stringNewlyIntensiveCare.replace(/\s/g, ''));
-            } else {
-                throw new Error('Newly intensive care not found');
-            }
 
             // Match updatedAt
             const stringUpdatedAt = await page.evaluate(() => {
