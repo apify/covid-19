@@ -239,7 +239,8 @@
     "tested": "tested"
   },
   "United Kingdom": {
-    "infected": "infected"
+    "infected": "infected",
+    "deceased": "deceased"
   },
   "United States": {
     "deceased": "totalDeaths",
