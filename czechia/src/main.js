@@ -87,7 +87,7 @@ Apify.main(async () => {
     });
     const $ = await cheerio.load(response.body);
     const url = $("#covid-content").attr("data-report-url");
-    const totalTested = $("#count-test").text().trim();
+    const totalTested = $("#count-test").first().text().trim();
     const infected = $("#count-sick").attr("data-value").trim();
     const recovered = $("#count-recover").text().trim();
     const deceased = $("#count-dead").text().trim();
