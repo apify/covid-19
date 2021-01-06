@@ -56,8 +56,8 @@ Apify.main(async () => {
 
     const regionsData = $(table).find('table > tbody > tr').toArray().map(row => {
         const region = $(row).find('td').eq(0).text().trim();
-        const newInfected = $(row).find('td').eq(1).text().trim();
-        const totalInfected = $(row).find('td').eq(2).text().trim();
+        const newInfected = parseInt($(row).find('td').eq(1).text().replace(/\s/g, '').trim());
+        const totalInfected = parseInt($(row).find('td').eq(2).text().replace(/\s/g, '').trim());
         return { region, newInfected, totalInfected };
     });
 
