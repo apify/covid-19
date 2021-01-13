@@ -23,8 +23,8 @@ const getRegionData = async () => {
     const url = "https://onemocneni-aktualne.mzcr.cz/covid-19/prehledy-khs"
     const response = await Apify.utils.requestAsBrowser({
         url,
-        // proxyUrl: Apify.getApifyProxyUrl({ groups: ["SHADER"] }
-        // )
+        proxyUrl: Apify.getApifyProxyUrl({ groups: ["SHADER"] }
+        )
     });
     const $ = await cheerio.load(response.body);
 
@@ -39,8 +39,8 @@ const getCummulativeData = async () => {
     const url = "https://onemocneni-aktualne.mzcr.cz/covid-19/kumulativni-prehledy"
     const response = await Apify.utils.requestAsBrowser({
         url,
-        // proxyUrl: Apify.getApifyProxyUrl({ groups: ["SHADER"] }
-        // )
+        proxyUrl: Apify.getApifyProxyUrl({ groups: ["SHADER"] }
+        )
     });
     const $ = await cheerio.load(response.body);
     const infectedData = JSON.parse($("#js-cummulative-total-persons-data").attr("data-linechart"));
@@ -52,8 +52,8 @@ const getHospitalizationData = async () => {
     const url = "https://onemocneni-aktualne.mzcr.cz/covid-19/prehled-hospitalizaci"
     const response = await Apify.utils.requestAsBrowser({
         url,
-        // proxyUrl: Apify.getApifyProxyUrl({ groups: ["SHADER"] }
-        // )
+        proxyUrl: Apify.getApifyProxyUrl({ groups: ["SHADER"] }
+        )
     });
     const $ = await cheerio.load(response.body);
 
@@ -82,8 +82,8 @@ Apify.main(async () => {
 
     const response = await Apify.utils.requestAsBrowser({
         url: "https://onemocneni-aktualne.mzcr.cz/covid-19",
-        // proxyUrl: Apify.getApifyProxyUrl({ groups: ["SHADER"] }
-        // )
+        proxyUrl: Apify.getApifyProxyUrl({ groups: ["SHADER"] }
+        )
     });
     const $ = await cheerio.load(response.body);
     const url = $("#covid-content").attr("data-report-url");
