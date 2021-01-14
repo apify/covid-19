@@ -28,7 +28,7 @@ Apify.main(async () => {
         requestList,
         maxRequestRetries: 5,
         requestTimeoutSecs: 90,
-        useApifyProxy: true,
+        // useApifyProxy: true,
         additionalMimeTypes: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/plain'],
         prepareRequestFunction: async ({ request }) => {
             log.info(`Downloading xlsx file ...`)
@@ -52,11 +52,11 @@ Apify.main(async () => {
 
 
             for (i = (everything.length - 1); i > 0; i--) {
-                if (typeof everything[i]['Date'] === 'number') {
+                if (typeof everything[i]['Date'] === 'number' && everything[i]['Tested (all)'] != undefined ) {
                     lastApdate = everything[i];
                     break;
                 }
-                if (typeof everything[i]['Dátum'] === 'number') {
+                if (typeof everything[i]['Dátum'] === 'number' && everything[i]['Mintavételek száma (összesen)'] != undefined ) {
                     lastApdate = everything[i];
                     inHangrois = true
                     break;
@@ -68,8 +68,8 @@ Apify.main(async () => {
                 testedCases: inHangrois ? lastApdate['Mintavételek száma (összesen)'] : lastApdate['Tested (all)'],
                 infectedCases: inHangrois ? lastApdate['pozitív esetek száma (összesen)'] : lastApdate['Positive (all)'],
                 numberOfDeath: inHangrois ? lastApdate['elhunytak száma összesen'] : lastApdate['Deaths (all)'],
-                dailyTested: inHangrois ? lastApdate['mintavételek száma'] : lastApdate['Tested (daily)'],
-                dailyInfected: inHangrois ? lastApdate['napi pozitív esetszám'] : lastApdate['Positive (daily)'],
+                dailyTested: inHangrois ? lastApdate['mintavételek száma'] : lastApdate['Tested (all, daily)'],
+                dailyInfected: inHangrois ? lastApdate['napi pozitív esetszám'] : lastApdate['Positive (all, daily)'],
                 dailyDeaths: inHangrois ? lastApdate['elhunytak'] : lastApdate['Deaths (daily)'],
                 dailyDischarged: inHangrois ? lastApdate['a kórházból elbocsátottak napi száma'] : lastApdate.Discharged,
                 dailyHospitalized: inHangrois ? lastApdate['hospitalizált'] : lastApdate['All hospitalized on certain day'],
