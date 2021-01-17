@@ -4,21 +4,6 @@ const LATEST = 'LATEST'
 const now = new Date()
 const { log } = Apify.utils
 
-async function waitForContentToLoad(page) {
-    const query = "document.querySelectorAll('full-container full-container')"
-
-    return page.waitForFunction(
-        `!!${query}[5] && !!${query}[12] && !!${query}[13] && !!${query}[14] && !!${query}[15] && !!${query}[18]` +
-        ` && !!${query}[5].innerText.match(/Nauji atvejai([\\n\\r]|.*)+[0-9,]+/g)` +
-        ` && !!${query}[12].innerText.match(/Serga([\\n\\r]|.*)+[0-9,]+/g)` +
-        ` && !!${query}[13].innerText.match(/Patvirtinti atvejai([\\n\\r]|.*)+[0-9,]+/g)` +
-        ` && !!${query}[14].innerText.match(/Pasveiko([\\n\\r]|.*)+[0-9,]+/g)` +
-        ` && !!${query}[15].innerText.match(/Mirė([\\n\\r]|.*)+[0-9,]+/g)` +
-        ` && !!${query}[18].innerHTML.includes('<nav class="feature-list">')`,
-        { timeout: 90 * 1000 }
-    )
-}
-
 Apify.main(async () => {
     const url =
         'https://ls-osp-sdg.maps.arcgis.com/apps/opsdashboard/index.html#/3bea26e9f2364e8a86c446aca71ce973';
@@ -62,54 +47,38 @@ Apify.main(async () => {
             return page.goto(request.url, { timeout: 1000 * 60 });
         },
         handlePageFunction: async ({ page, request }) => {
-            log.info(`Handling ${request.url}`)
+            log.info(`Handling ${request.url}`);
 
-            await Apify.utils.puppeteer.injectJQuery(page)
-            log.info('Waiting for content to load')
+            await Apify.utils.puppeteer.injectJQuery(page);
+            log.info('Waiting for content to load');
 
-            // await page.waitForNavigation({ timeout: 60 * 1000 });
-            // waitUntil: 'domcontentloaded',
-            await waitForContentToLoad(page);
+            const responses = await Promise.all([
+                page.waitForResponse(request => request.url().match(/municipality_code.*asc/g)),
+                page.waitForResponse(request => request.url().match(/confirmed_cases_in_14days_per_1.*desc/g))
+            ]);
 
-            log.info('Content loaded')
+            const { features: allData } = await responses[0].json();
+            const { features: regionsData } = await responses[1].json();
 
-            const extracted = await page.evaluate(async () => {
-                // function strToInt(str) {
-                //     return parseInt(str.replace(/( |,)/g, ''), 10)
-                // }
+            log.info('Content loaded');
 
-                function strToInt(str) {
-                    return parseInt(str.replace(/\D/g, ''))
-                }
-
-                const fullContainer = $('full-container full-container').toArray()
-
-                const newCases = strToInt($(fullContainer[5]).find('text').last().text());
-                const active = strToInt($(fullContainer[12]).find('text').last().text());
-                const infected = strToInt($(fullContainer[13]).find('text').last().text());
-                const recovered = strToInt($(fullContainer[14]).find('text').last().text());
-                const deceased = strToInt($(fullContainer[15]).find('text').last().text());
-
-                const infectedByRegion = $(fullContainer[18]).find('.external-html').toArray().map(item => {
-                    return {
-                        region: $(item).find('p').text().match(/[^.]+/g)[0],
-                        value: parseFloat($(item).find('strong').text().replace(/,+/g, ''), 10)
-                    }
-                });
-
-                return {
-                    active,
-                    infected,
-                    recovered,
-                    deceased,
-                    newCases,
-                    infectedByRegion
-                }
-            })
-            // console.log(extracted);
-            // ADD:  active, infected, recovered, deceased, newCases, infectedByRegion
             const data = {
-                ...extracted
+                active: allData[0].attributes.active_cases,
+                infected: allData[0].attributes.confirmed_cases,
+                recovered: allData[0].attributes.recovered_cases,
+                deceased: allData[0].attributes.deaths,
+                newCases: allData[0].attributes.new_cases_yesterday,
+                infectedByRegion: regionsData.map(({ attributes }) => {
+                    return {
+                        region: attributes.municipality_name,
+                        value: parseFloat(attributes.confirmed_cases_in_14days_per_1.toFixed(1)),
+                        active: attributes.active_cases,
+                        infected: attributes.confirmed_cases,
+                        recovered: attributes.recovered_cases,
+                        deceased: attributes.deaths,
+                        newCases: attributes.new_cases_yesterday,
+                    }
+                }),
             }
 
             data.country = 'LITHUANIA';
