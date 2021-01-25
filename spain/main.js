@@ -37,10 +37,11 @@ Apify.main(async () => {
                     const { body } = await requestAsBrowser({ url });
                     const $ = cheerio.load(body)
 
-                    const pdfLink = $('div.imagen_texto ul li:nth-child(2) a').attr('href').match(/profesionales.*/g)[0];
+                    const pdfLink = $('div.imagen_texto ul li:nth-child(2) a').attr('href');
+                    //.match(/profesionales.*/g)[0]; //stolen from the previous link, didnt work with it anymore
 
                     await requestQueue.addRequest({
-                        url: `https://www.mscbs.gob.es/${pdfLink}`,
+                        url: `https://www.mscbs.gob.es/profesionales/saludPublica/ccayes/alertasActual/nCov/${pdfLink}`,
                         userData: {
                             label: 'EXTRACT_DATA'
                         }
