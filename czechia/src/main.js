@@ -43,7 +43,8 @@ const getCummulativeData = async () => {
         )
     });
     const $ = await cheerio.load(response.body);
-    const infectedData = JSON.parse($("#js-cummulative-total-persons-data").attr("data-linechart"));
+
+    const infectedData = JSON.parse($("#js-cumulative-total-persons-data").attr("data-linechart"));
     const numberOfTestedData = JSON.parse($("#js-cumulative-total-tests-data").attr("data-linechart"))[0];
     return { infectedData, numberOfTestedData }
 }
