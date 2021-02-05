@@ -121,10 +121,10 @@ Apify.main(async () => {
         critical,
         totalPositiveTests: connectDataFromGraph(infectedData),
         numberOfTestedGraph: connectDataFromGraph(numberOfTestedData),
-        infectedByRegion: infectedByRegionData.values.map(({ x, y }) => ({ name: x, value: y })),
+        infectedByRegion: infectedByRegionData[0].values.map(({ x, y }) => ({ name: x, value: y })),
         recoveredByRegion: recoveredByRegionData.values.map(({ x, y }) => ({ name: x, value: y })),
         deceasedByRegion: deathsByRegionData.values.map(({ x, y }) => ({ name: x, value: y })),
-        infectedDaily: connectDataFromGraph(infectedDailyData),
+        infectedDaily: connectDataFromGraph(infectedDailyData[0]),
         infectedByAgeSex: sexAgeData.map((sexData) => ({
             sex: sexData.key,
             infectedByAge: sexData.values.map(({ x, y }) => ({
