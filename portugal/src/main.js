@@ -4,22 +4,6 @@ const LATEST = 'LATEST'
 const now = new Date()
 const { log } = Apify.utils
 
-async function waitForContentToLoad(page) {
-  const query = "document.querySelector('full-container')"
-  return page.waitForFunction(
-    `!!${query}` +
-    `&& !!${query}.innerText.match(/ACTIVOS\\n*\\t*\\r*[0-9,]+/g)` +
-    `&& !!${query}.innerText.match(/CONFIRMADOS\\n*\\t*\\r*[0-9,]+/g)` +
-    `&& !!${query}.innerText.match(/RECUPERADOS\\n*\\t*\\r*[0-9,]+/g)` +
-    `&& !!${query}.innerText.match(/ÓBITOS\\n*\\t*\\r*[0-9,]+/g)` +
-    `&& !!${query}.innerText.match(/Total de Testes.*\\n*\\t*\\r*[0-9,]+/g)` +
-    `&& !!${query}.innerText.match(/Dados relativos ao boletim da DGS.*\\n*\\t*\\r*[0-9,]+/g)` +
-    // `&& !!${query}.innerText.match(/Casos por Região de Saúde\\n*\\t*\\r*[0-9,]+/g)` +
-    `&& !!${query}.innerHTML.includes('<nav class="feature-list">')`,
-    { timeout: 45 * 1000 }
-  )
-}
-
 Apify.main(async () => {
   const url =
     'https://esriportugal.maps.arcgis.com/apps/opsdashboard/index.html#/acf023da9a0b4f9dbb2332c13f635829'
@@ -68,129 +52,71 @@ Apify.main(async () => {
     handlePageFunction: async ({ page, request }) => {
       log.info(`Handling ${request.url}`)
 
-      await Apify.utils.puppeteer.injectJQuery(page)
       log.info('Waiting for content to load')
+      const responses = await Promise.all([
+        page.waitForResponse(request => request.url().match(/where=ARSNome.*Nacional.*spatialRel=esriSpatialRelIntersects.*resultRecordCount=50/g)),
+        page.waitForResponse(request => request.url().match(/where=1.*1.*spatialRel=esriSpatialRelIntersects.*Total_Amostras_Novas/g)),
+        page.waitForResponse(request => request.url().match(/where=ARSNome.*Nacional.*AND.*ARSNome.*Estrangeiro.*spatialRel=esriSpatialRelIntersects/g)),
+      ]);
+      log.info('Content loaded, Processing and savind data...')
 
-      await waitForContentToLoad(page)
+      const { features: allData } = await responses[0].json();
+      const { features: testesData } = await responses[1].json();
+      const { features: regionData } = await responses[2].json();
 
-      log.info('Content loaded')
+      const allDatalastRecord = allData[0].attributes;
+      const sourceDate = new Date(allDatalastRecord.Data_ARS);
 
-      const extracted = await page.evaluate(async () => {
-        async function strToInt(str) {
-          return parseInt(str.replace(/( |,)/g, ''), 10)
-        }
-
-        const date = $('full-container:contains(Dados relativos ao boletim da DGS)').last()
-          .find('g')
-          .last()
-          .text()
-          .trim();
-
-        const active = await strToInt(
-          $('full-container:contains(ACTIVOS)').last()
-            .find('g')
-            .last()
-            .text()
-            .trim()
-            .replace(/\D/g, '')
-        )
-        const infected = await strToInt(
-          $('full-container:contains(CONFIRMADOS)').last()
-            .find('g')
-            .last()
-            .text()
-            .trim()
-            .replace(/\D/g, '')
-        )
-        const recovered = await strToInt(
-          $('full-container:contains(RECUPERADOS)').last()
-            .find('g')
-            .last()
-            .text()
-            .trim()
-            .replace(/\D/g, '')
-        )
-        const deceased = await strToInt(
-          $('full-container:contains(ÓBITOS)').last()
-            .find('g')
-            .last()
-            .text()
-            .trim()
-            .replace(/\D/g, '')
-        )
-        const tested = await strToInt(
-          $('full-container:contains(Total de Testes (PCR + Antigénio))').last()
-            .find('g')
-            .last()
-            .text()
-            .trim()
-            .replace(/\D/g, '')
-        )
-
-        const spans = $('full-container:contains(Casos por Região de Saúde)').last()
-          .find('nav.feature-list span[id*="ember"]')
-          .toArray()
-
-        const infectedByRegion = []
-        for (const span of spans) {
-          const text = $(span)
-            .text()
-            .trim()
-          const [value] = text.match(/(\d|,)+/g)
-          infectedByRegion.push({
-            value: await strToInt(value.replace(/ |,/g, '')),
-            region: text.replace(/(\d|,)+/g, '').trim()
-          })
-        }
-
-        return {
-          date,
-          active,
-          infected,
-          tested,
-          recovered,
-          deceased,
-          // suspicious,
-          infectedByRegion
-        }
-      })
-      const splited = extracted.date.split('/');
-      const sourceDate = new Date(`${splited[1]}/${splited[0]}/${splited[2]}`);
-      delete extracted.date;
-
-      // ADD:  infected, tested, recovered, deceased, suspicious, infectedByRegion
       const data = {
-        ...extracted
+        active: allDatalastRecord.Activos_ARS,
+        infected: allDatalastRecord.ConfirmadosAcumulado_ARS,
+        tested: testesData[0].attributes.value,
+        recovered: allDatalastRecord.Recuperados_ARS,
+        deceased: allDatalastRecord.Obitos_ARS,
+        newlyInfected: allDatalastRecord.VarConfirmados_ARS,
+        newlyDeceased: allDatalastRecord.VarObitos_ARS,
+        newlyRecovered: allDatalastRecord.VarRecuperados_ARS,
+        suspicious: allDatalastRecord.Suspeitos_ARS,
+        infectedByRegion: regionData.map(({ attributes: {
+          ARSNome, ConfirmadosAcumulado_ARS, ConfirmadosNovos_ARS, Recuperados_ARS, RecuperadosNovos_ARS,
+          Obitos_ARS, ObitosNovos_ARS, Suspeitos_ARS, Activos_ARS }
+        }) => {
+          return {
+            active: Activos_ARS,
+            infected: ConfirmadosAcumulado_ARS,
+            recovered: Recuperados_ARS,
+            deceased: Obitos_ARS,
+            suspicious: Suspeitos_ARS,
+            newlyInfected: ConfirmadosNovos_ARS,
+            newlyDeceased: ObitosNovos_ARS,
+            newlyRecovered: RecuperadosNovos_ARS,
+            value: ConfirmadosAcumulado_ARS,
+            region: ARSNome
+          }
+        }),
+        country: 'Portugal',
+        historyData: 'https://api.apify.com/v2/datasets/f1Qd4cMBzV1E0oRNc/items?format=json&clean=1',
+        sourceUrl: 'https://covid19.min-saude.pt/ponto-de-situacao-atual-em-portugal/',
+        lastUpdatedAtApify: new Date(
+          Date.UTC(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+            now.getHours(),
+            now.getMinutes()
+          )
+        ).toISOString(),
+        lastUpdatedAtSource: new Date(
+          Date.UTC(
+            sourceDate.getFullYear(),
+            sourceDate.getMonth(),
+            sourceDate.getDate(),
+            sourceDate.getHours(),
+            sourceDate.getMinutes()
+          )
+        ).toISOString(),
+        readMe: 'https://apify.com/onidivo/covid-pt'
       }
-
-      // ADD: infectedByRegion, lastUpdatedAtApify, lastUpdatedAtSource
-      data.country = 'Portugal'
-      data.historyData =
-        'https://api.apify.com/v2/datasets/f1Qd4cMBzV1E0oRNc/items?format=json&clean=1'
-      data.sourceUrl =
-        'https://covid19.min-saude.pt/ponto-de-situacao-atual-em-portugal/'
-      data.lastUpdatedAtApify = new Date(
-        Date.UTC(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate(),
-          now.getHours(),
-          now.getMinutes()
-        )
-      ).toISOString()
-      data.lastUpdatedAtSource = new Date(
-        Date.UTC(
-          sourceDate.getFullYear(),
-          sourceDate.getMonth(),
-          sourceDate.getDate(),
-          sourceDate.getHours(),
-          sourceDate.getMinutes()
-        )
-      ).toISOString();
-
-      data.readMe = 'https://apify.com/onidivo/covid-pt'
-
-      console.log(data)
 
       // Push the data
       let latest = await kvStore.getValue(LATEST)
