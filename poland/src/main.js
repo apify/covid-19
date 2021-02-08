@@ -9,7 +9,7 @@ const detailsDataUrl = 'https://rcb-info.maps.arcgis.com/apps/opsdashboard/index
 const regionDataUrl = 'https://rcb-info.maps.arcgis.com/apps/opsdashboard/index.html#/d9369efa6356430a8816ac3734a90274'
 
 Apify.main(async () => {
-    const { email } = await Apify.getValue('INPUT');
+    // const { email } = await Apify.getValue('INPUT');
 
     const kvStore = await Apify.openKeyValueStore('COVID-19-POLAND');
     const dataset = await Apify.openDataset('COVID-19-POLAND-HISTORY');
@@ -21,7 +21,7 @@ Apify.main(async () => {
 
     const crawler = new Apify.PuppeteerCrawler({
         requestList,
-        useApifyProxy: true,
+        // useApifyProxy: true,
         // apifyProxyGroups: ['CZECH_LUMINATI'],
         puppeteerPoolOptions: {
             retireInstanceAfterRequestCount: 1
@@ -29,7 +29,7 @@ Apify.main(async () => {
         handlePageTimeoutSecs: 120,
         launchPuppeteerFunction: () => {
             const options = {
-                useApifyProxy: true,
+                // useApifyProxy: true,
                 // useChrome: true
             }
             return Apify.launchPuppeteer(options)
@@ -70,9 +70,10 @@ Apify.main(async () => {
 
             const sourceDate = new Date(allData.Data);
             const data = {
-                infected: allData.AKTUALNE_ZAKAZENIA,
+                infected: allData.LICZBA_ZAKAZEN,
                 deceased: allData.LICZBA_ZGONOW,
                 recovered: allData.LICZBA_OZDROWIENCOW,
+                activeCase: allData.AKTUALNE_ZAKAZENIA, 
                 dailyInfected: allData.ZAKAZENIA_DZIENNE,
                 dailyTested: allData.TESTY,
                 dailyPositiveTests: allData.TESTY_POZYTYWNE,
@@ -143,20 +144,20 @@ Apify.main(async () => {
     })
     await crawler.run()
     // if there are no data, send email, because that means something is wrong
-    if (criticalErrors > 0) {
-        const env = await Apify.getEnv();
-        await Apify.call(
-            'apify/send-mail',
-            {
-                to: email,
-                subject: `Covid-19 PL from ${env.startedAt} failed `,
-                html: `Hi, ${'<br/>'}
-                        <a href="https://my.apify.com/actors/${env.actorId}#/runs/${env.actorRunId}">this</a> 
-                        run had 0 regions, check it out.`,
-            },
-            { waitSecs: 0 },
-        );
-        throw new Error('Some essential requests failed completely!')
-    }
+    // if (criticalErrors > 0) {
+    //     const env = await Apify.getEnv();
+    //     await Apify.call(
+    //         'apify/send-mail',
+    //         {
+    //             to: email,
+    //             subject: `Covid-19 PL from ${env.startedAt} failed `,
+    //             html: `Hi, ${'<br/>'}
+    //                     <a href="https://my.apify.com/actors/${env.actorId}#/runs/${env.actorRunId}">this</a> 
+    //                     run had 0 regions, check it out.`,
+    //         },
+    //         { waitSecs: 0 },
+    //     );
+    //     throw new Error('Some essential requests failed completely!')
+    // }
     log.info('Done.')
 })
