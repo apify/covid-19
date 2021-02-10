@@ -63,7 +63,7 @@ Apify.main(async () => {
             
             const testedText = $('.journal-content-article').eq(0).find('ul li').eq(1).text();
             parts = testedText.match(/\d+/g);
-            const tested = Number(parts[0]+parts[1]);
+            const tested = Number(parts[0]+parts[1] + parts[2]);
             
 
             const deathsText = $('li:contains(Tautiin)').text();
