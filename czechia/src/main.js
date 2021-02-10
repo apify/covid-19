@@ -88,7 +88,8 @@ Apify.main(async () => {
     });
     const $ = await cheerio.load(response.body);
     const url = $("#covid-content").attr("data-report-url");
-    const totalTested = $("#count-test").first().text().trim();
+    const testedPCR = $("#count-test").first().text().trim();
+    const testedAG = $('#prehled p:contains(Provedené antigenní testy)').next().text().split('(')[0].trim().replace(/\D/g, '')
     const infected = $("#count-sick").attr("data-value").trim();
     const recovered = $("#count-recover").text().trim();
     const deceased = $("#count-dead").text().trim();
@@ -112,7 +113,9 @@ Apify.main(async () => {
 
     const now = new Date();
     const data = {
-        totalTested: toNumber(totalTested),
+        totalTested: toNumber(testedAG) + toNumber(testedPCR),
+        testedAG: toNumber(testedAG),
+        testedPCR: toNumber(testedPCR),
         infected: toNumber(infected),
         recovered: toNumber(recovered),
         deceased: toNumber(deceased),
