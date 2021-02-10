@@ -1,0 +1,14 @@
+{
+    "id": "C5CE9E5neH0QlDq",
+    "url": "https://www.moh.gov.bh/COVID19",
+    "loadedUrl": "https://www.moh.gov.bh/COVID19",
+    "uniqueKey": "https://www.moh.gov.bh/COVID19",
+    "method": "GET",
+    "payload": null,
+    "noRetry": false,
+    "retryCount": 0,
+    "errorMessages": null,
+    "headers": {},
+    "userData": {},
+    "handledAt": "2021-02-10T11:34:28.457Z"
+}

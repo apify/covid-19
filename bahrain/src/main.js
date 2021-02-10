@@ -19,7 +19,7 @@ Apify.main(async () => {
             log.info('Page loaded.');
             const now = new Date();
 
-            const [infected,stable,undercare,deceased, recipients] = $($('table').get(0)).find('tr td span').map((i,el) => parseInt($(el).text(),10)).get();
+            const [infected,stable,undercare,ICU,recipients,deceased] = $($('table').get(0)).find('tr td span').map((i,el) => parseInt($(el).text(),10)).get();
 
             const data = {
                 tested: parseInt($($('table').get(0)).find('th span').text(),10),
@@ -27,6 +27,7 @@ Apify.main(async () => {
                 infected: infected + recipients + deceased,
                 stable,
                 undercare,
+                ICU,
                 recipients,
                 deceased,
                 sourceUrl,
