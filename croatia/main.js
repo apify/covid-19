@@ -12,11 +12,17 @@ Apify.main(async () => {
     console.log('Getting data...');
     const { body } = await httpRequest({ url: sourceUrl });
     const $ = cheerio.load(body);
-    const infected = $('body > div:nth-child(3) > div > div > ul > li:nth-child(2) > strong:nth-child(2)').text().replace('.','');
-    const recovered = $('body > div:nth-child(3) > div > div > ul > li:nth-child(3) > strong:nth-child(2)').text().replace('.','');
-    const deceased = $('body > div:nth-child(3) > div > div > ul > li:nth-child(4) > strong:nth-child(2)').text();
+    const infected = $('h2:contains(Cases)').next().text().replace('.','');
+    const recovered = $('h2:contains(Cured)').next().text().replace('.','');
+    const deceased = $('h2:contains(Deceased)').next().text().replace('.','');
 
-    const daily = JSON.parse(decodeHtml($('#canvas2').attr('data-barchart')));
+    const toBeDate = $('.counter-updated').text().split(' ');
+    const year = "2012";
+    const month = toBeDate[1];
+    const day = toBeDate[2];
+    const time = toBeDate[4];
+    
+    // const daily = JSON.parse(decodeHtml($('#canvas2').attr('data-barchart')));
 
     const now = new Date();
 
@@ -26,7 +32,7 @@ Apify.main(async () => {
         deceased: Number(deceased),
         lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
         readMe: 'https://apify.com/zuzka/covid-hr',
-        daily
+        // daily
     };
     console.log(result)
 
