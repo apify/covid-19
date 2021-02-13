@@ -1,13 +1,13 @@
 {
-  "name": "COVID-RO",
-  "version": "0.0.1",
-  "dependencies": {
-      "@apify/http-request": "^1.1.5",
-      "apify": "^0.20.3",
-      "moment": "^2.24.0"
-  },
-  "scripts": {
-      "start": "node main.js"
-  },
-  "author": "Me!"
+    "name": "COVID-RO",
+    "version": "0.0.1",
+    "dependencies": {
+        "@apify/http-request": "^1.1.5",
+        "apify": "^0.20.3",
+        "moment": "^2.24.0"
+    },
+    "scripts": {
+        "start": "node main.js"
+    },
+    "author": "Me!"
 }
