@@ -36,7 +36,8 @@ Apify.main(async () => {
     const { body } = await httpRequest({ url: sourceUrl });
     const $ = cheerio.load(body);
 
-    const infectedPCR = $('#block_5fb76a90e6199 > div > h2').text().replace(/\s/g, '');;
+    const infectedPCR = $('#block_5fb76a90e6199 > div > h2').text().replace(/\s/g, '');
+    const infectedAG = $("#block_5fb764f549943 > div > h2").text().replace(/[^0-9]/g, '');
     const testedAG = $('#block_5fb764f549941 > div > h2').text().replace(/\s/g, '');
     const testedPCR = $('#block_5fb76a90e6197 > div > h2').text().replace(/\u00a0/g, '');
     const deceased = $('#block_5e9991ed60005 > div > h3').text().replace(/[^0-9]/g, '');
@@ -45,7 +46,6 @@ Apify.main(async () => {
     const newTestedPCR = $('#block_5fb76a90e6197 > div > p').text().replace(/[^0-9]/g, '');
     const newDeceased = $('#block_5e9991ed60005 > div > p').text().replace(/[^0-9]/g, '');
     const newRecovered = $("#block_5e99921b60008 > div > p").text().replace(/[^0-9]/g, '');
-    const infectedAG = $("#block_5fb764f549943 > div > h2").text().replace(/[^0-9]/g, '');
     const newInfectedAG = $("#block_5fb764f549943 > div > p").text().replace(/[^0-9]/g, '');
     const newTestedAG = $("#block_5fb764f549941 > div > p").text().replace(/[^0-9]/g, '');
 
@@ -61,26 +61,12 @@ Apify.main(async () => {
         return { region, newInfected, totalInfected };
     });
 
-    // Or this way:
-
-    // const table = $('.govuk-grid-column-two-thirds').toArray().find(t => $(t).find('h2') && $(t).find('h2').text() === 'Počet pozitívne testovaných za kraje');
-    // const tableRows = Array.from($(table).find('table > tbody > tr'));
-    // const regionData = [];
-    // for (const row of tableRows) {
-    //     const cells = Array.from($(row).find('td')).map(td => $(td).text().trim());
-    //     regionData.push({
-    //         region: cells[0],
-    //         increase: cells[1],
-    //         overall: cells[2]
-    //     });
-    // }
-
     const now = new Date();
 
     const updated = $('#block_5e9f629147a8d > div > p').text().replace('Aktualizované ', '');
 
     const result = {
-        tested: Number(newTestedPCR),
+        tested: Number(testedPCR),
         infected: Number(infectedPCR),
         recovered: Number(recovered),
         deceased: deceased,
