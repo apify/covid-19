@@ -196,8 +196,7 @@
   "Serbia": {
     "tested": "tested",
     "infected": "infected",
-    "deceased": "deceased",
-    "recovered": "recovered"
+    "deceased": "deceased"
   },
   "Singapore": {
     "deceased": "deceased",
