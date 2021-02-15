@@ -44,7 +44,7 @@ Apify.main(async () => {
             const $values = $('.table.table-bordered').eq(0).find('tbody tr').eq(0).find('td');
 
             data.infected = toNumber($($values[1]).text());
-            data.tested = toNumber($('.table.table-bordered').eq(14).find('tfoot').text())
+            data.tested = toNumber($('.table.table-bordered').eq(13).find('tfoot').text().replace('Total', '').replace('100%', '').trim())
             data.recovered = toNumber($($values[2]).text());
             data.deceased = toNumber($($values[3]).text())
             data.active = toNumber($($values[4]).text())
