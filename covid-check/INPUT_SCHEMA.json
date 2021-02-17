@@ -11,6 +11,5 @@
       "prefill": "zuzka@apify.com",
       "editor": "textfield"
     }
-  },
-  "required": ["email"]
+  }
 }
