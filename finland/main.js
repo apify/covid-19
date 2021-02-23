@@ -8,7 +8,7 @@ log.setLevel(log.LEVELS.INFO);
 const LATEST = 'LATEST';
 
 Apify.main(async () => {
-    const sourceUrl = 'https://thl.fi/fi/web/infektiotaudit-ja-rokotukset/ajankohtaista/ajankohtaista-koronaviruksesta-covid-19/tilannekatsaus-koronaviruksesta';
+    const sourceUrl = 'https://thl.fi/en/web/infectious-diseases-and-vaccinations/what-s-new/coronavirus-covid-19-latest-updates/situation-update-on-coronavirus';
     const kvStore = await Apify.openKeyValueStore("COVID-19-FINLAND");
     const dataset = await Apify.openDataset("COVID-19-FINLAND-HISTORY");
 
@@ -33,47 +33,32 @@ Apify.main(async () => {
             const confirmedDateText = $('#column-2-2 .journal-content-article > p:nth-child(2)').text();
             const matchUpadatedAt = confirmedDateText.match(/(\d+).(\d+). klo (\d+).(\d+)/);
 
-            // if (matchUpadatedAt && matchUpadatedAt.length > 4) {
-            //     const currentYear = moment().tz('Europe/Helsinki').year();
-            //     const dateTimeStr = `${currentYear}.${matchUpadatedAt[2]}.${matchUpadatedAt[1]} ${matchUpadatedAt[3]}:${matchUpadatedAt[4]}`;
-            //     const dateTime = moment.tz(dateTimeStr, "YYYY.MM.DD H:mm", 'Europe/Helsinki');
-
-            //     data.lastUpdatedAtSource = dateTime.toISOString();
-            // } else {
-            //     throw new Error('lastUpdatedAtSource not found');
-            // }
-
-            // const liList = $('.journal-content-article').eq(0).find('ul li');
-            // for (let index=0; index < liList.length; index++) {
-            //     const el = $(liList[index]);
-            //     if (el.text().includes('Finland')) {
-            //         const confirmedCasesText = el.next().find('li:first-child').text();
-            //         log.info(confirmedCasesText);
-            //         const parts = confirmedCasesText.match(/\s+(\d+)\s+/);
-            //         if (parts) {
-            //             data.confirmedCases = parseInt(parts[1]);
-            //             break;
-            //         }
-            //     }
-            // }
-
-            const infectedText = $('.journal-content-article').eq(0).find('ul li').eq(0).text();
-            let parts = infectedText.match(/\d+/g);
-            const infected = Number(parts[0]+parts[1]);
-            
-            const testedText = $('.journal-content-article').eq(0).find('ul li').eq(1).text();
-            parts = testedText.match(/\d+/g);
-            const tested = Number(parts[0]+parts[1] + parts[2]);
-            
-
-            const deathsText = $('li:contains(Tautiin)').text();
-            parts = deathsText.match(/\d+/g);
-            const deaths = Number(parts[0]);
+            const infected = Number($('li:contains(Reported cases in total: )').text().split('(')[0].replace(/\D/g,''));
+            const infectedDaily = Number($('li:contains(Reported cases in total: )').text().split('(')[1].replace(/\D/g,''));
+            const tested = Number($('li:contains(Tested samples in total approx)').text().split('(')[0].replace(/\D/g,''))
+            const testedDaily = Number($('li:contains(Tested samples in total approx)').text().split('(')[1].replace(/\D/g,''));
+            const deaths = Number($('li:contains(Cumulative number of reported deaths associated with the disease:)').text().split('(')[0].replace(/\D/g,''));
+            const deathsDaily = Number($('li:contains(Cumulative number of reported deaths associated with the disease:)').text().split('(')[1].replace(/\D/g,''));
+            const ICU = Number($('li:contains(Number of patients in intensive care)').text().split('(')[0].replace(/\D/g,''));
+            const ICUDaily = Number($('li:contains(Number of patients in intensive care)').text().split('(')[1].replace(/\D/g,''));
+            const specializedHealthCare = Number($('li:contains(Number of patients in specialised medical care wards)').text().split('(')[0].replace(/\D/g,''));
+            const specializedHealthCareDaily = Number($('li:contains(Number of patients in specialised medical care wards)').text().split('(')[1].replace(/\D/g,''));
+            const primaryHealthCare = Number($('li:contains(Number of patients in primary)').text().split('(')[0].replace(/\D/g,''));
+            const primaryHealthCareDaily = Number($('li:contains(Number of patients in primary)').text().split('(')[1].replace(/\D/g,''));
             
             const data = {
                 infected,
+                infectedDaily,
                 tested,
+                testedDaily,
                 deaths,
+                deathsDaily,
+                ICU,
+                ICUDaily,
+                specializedHealthCare,
+                specializedHealthCareDaily,
+                primaryHealthCare,
+                primaryHealthCareDaily,
                 country: "Finland",
                 historyData: "https://api.apify.com/v2/datasets/BDEAOLx0DzEW91s5L/items?format=json&clean=1",
                 sourceUrl,
