@@ -116,6 +116,19 @@ Apify.main(async () => {
                 }
             });
             data.infectedByRegion = infectedByRegion;
+            // In case infected and deceased not found, calculte it from region data
+            if (!data.infected) {
+                data.infected = data.infectedByRegion.map(({ infectedCount }) => infectedCount)
+                    .reduce((prev, cur) => {
+                        return prev + cur;
+                    }, 0);
+            }
+            if (!data.deceased) {
+                data.deceased = data.infectedByRegion.map(({ deceasedCount }) => deceasedCount)
+                    .reduce((prev, cur) => {
+                        return prev + cur;
+                    }, 0);
+            }
 
             // Push the data
             let latest = await kvStore.getValue(LATEST)
