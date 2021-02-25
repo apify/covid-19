@@ -33,8 +33,8 @@ Apify.main(async () => {
             const confirmedDateText = $('#column-2-2 .journal-content-article > p:nth-child(2)').text();
             const matchUpadatedAt = confirmedDateText.match(/(\d+).(\d+). klo (\d+).(\d+)/);
 
-            const infected = Number($('li:contains(Reported cases in total: )').text().split('(')[0].replace(/\D/g,''));
-            const infectedDaily = Number($('li:contains(Reported cases in total: )').text().split('(')[1].replace(/\D/g,''));
+            const infected = Number($('li:contains(Reported cases in total)').text().split('(')[0].replace(/\D/g,''));
+            const infectedDaily = Number($('li:contains(Reported cases in total)').text().split('(')[1].replace(/\D/g,''));
             const tested = Number($('li:contains(Tested samples in total approx)').text().split('(')[0].replace(/\D/g,''))
             const testedDaily = Number($('li:contains(Tested samples in total approx)').text().split('(')[1].replace(/\D/g,''));
             const deaths = Number($('li:contains(Cumulative number of reported deaths associated with the disease:)').text().split('(')[0].replace(/\D/g,''));
