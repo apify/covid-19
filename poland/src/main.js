@@ -9,7 +9,7 @@ const detailsDataUrl = 'https://rcb-info.maps.arcgis.com/apps/opsdashboard/index
 const regionDataUrl = 'https://rcb-info.maps.arcgis.com/apps/opsdashboard/index.html#/d9369efa6356430a8816ac3734a90274'
 
 Apify.main(async () => {
-    
+
     const kvStore = await Apify.openKeyValueStore('COVID-19-POLAND');
     const dataset = await Apify.openDataset('COVID-19-POLAND-HISTORY');
 
@@ -65,19 +65,22 @@ Apify.main(async () => {
             const { features: secondPart } = await allDataResponses[1].json();
 
             const dailyRecovered = firstPart[0].attributes.LICZBA_OZDROWIENCOW;
-            const allData = { ...firstPart[0].attributes, ...secondPart[0].attributes };
+            const allData = {
+                ...firstPart[0].attributes,
+                ...(secondPart[0] && secondPart[0].attributes ? secondPart[0].attributes : [])
+            };
 
             const sourceDate = new Date(allData.Data);
             const data = {
-                infected: allData.LICZBA_ZAKAZEN,
-                deceased: allData.LICZBA_ZGONOW,
-                recovered: allData.LICZBA_OZDROWIENCOW,
-                activeCase: allData.AKTUALNE_ZAKAZENIA, 
-                dailyInfected: allData.ZAKAZENIA_DZIENNE,
-                dailyTested: allData.TESTY,
-                dailyPositiveTests: allData.TESTY_POZYTYWNE,
-                dailyDeceased: allData.ZGONY_DZIENNE,
-                dailyDeceasedDueToCovid: allData.ZGONY_COVID,
+                infected: allData.LICZBA_ZAKAZEN || "",
+                deceased: allData.LICZBA_ZGONOW || "",
+                recovered: allData.LICZBA_OZDROWIENCOW || "",
+                activeCase: allData.AKTUALNE_ZAKAZENIA || "",
+                dailyInfected: allData.ZAKAZENIA_DZIENNE || "",
+                dailyTested: allData.TESTY || "",
+                dailyPositiveTests: allData.TESTY_POZYTYWNE || "",
+                dailyDeceased: allData.ZGONY_DZIENNE || "",
+                dailyDeceasedDueToCovid: allData.ZGONY_COVID || "",
                 dailyRecovered,
                 dailyQuarantine: allData.KWARANTANNA,
                 lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
@@ -95,7 +98,7 @@ Apify.main(async () => {
             const regionResponse = await Promise.all([
                 page.waitForResponse(request => request.url().match(/where=1.*1.*spatialRel=esriSpatialRelIntersects.*resultRecordCount=25/g)),
             ]);
-            log.info('Content loaded, Processing and savind data...')
+            log.info('Content loaded, Processing and saving data...')
 
             const { features: regionData } = await regionResponse[0].json();
             const infectedByRegion = regionData.map(({ attributes: {
@@ -113,6 +116,19 @@ Apify.main(async () => {
                 }
             });
             data.infectedByRegion = infectedByRegion;
+            // In case infected and deceased not found, calculte it from region data
+            if (!data.infected) {
+                data.infected = data.infectedByRegion.map(({ infectedCount }) => infectedCount)
+                    .reduce((prev, cur) => {
+                        return prev + cur;
+                    }, 0);
+            }
+            if (!data.deceased) {
+                data.deceased = data.infectedByRegion.map(({ deceasedCount }) => deceasedCount)
+                    .reduce((prev, cur) => {
+                        return prev + cur;
+                    }, 0);
+            }
 
             // Push the data
             let latest = await kvStore.getValue(LATEST)
