@@ -37,23 +37,23 @@ Apify.main(async () => {
     const $ = cheerio.load(body);
 
     const infectedPCR = $('#block_6037862491b9a > div > p').text().replace(/[^0-9]/g, '');
-    const infectedAG = $("#block_60378c0bc4f85 > div > p").text().replace(/[^0-9]/g, '');
-    const testedAG = $("#block_60378ba2c4f83 > div > p").text().replace(/[^0-9]/g, '');
+    const infectedAG = $('#block_60378c0bc4f85 > div > p').text().replace(/[^0-9]/g, '');
+    const testedAG = $('#block_60378ba2c4f83 > div > p').text().replace(/[^0-9]/g, '');
     const testedPCR = $('#block_603780b691b98 > div > p').text().replace(/[^0-9]/g, '');
     const deceased = $('#block_60378d5bc4f89 > div > p').text().replace(/[^0-9]/g, '');
-    const recovered = $("#block_5e99921b60008 > div > h3").text().replace(/\u00a0/g, ''); // No longer available
+    // const recovered = $('#block_5e99921b60008 > div > h3').text().replace(/\u00a0/g, ''); // No longer available
     const newInfectedPCR = $('#block_6037862491b9a > div > h2').text().replace(/[^0-9]/g, '');
     const newTestedPCR = $('#block_603780b691b98 > div > h2').text().replace(/[^0-9]/g, '');
     const newDeceased = $('#block_60378d5bc4f89 > div > h2').text().replace(/[^0-9]/g, '');
-    const newRecovered = $("#block_5e99921b60008 > div > p").text().replace(/[^0-9]/g, ''); // No longer available
-    const newInfectedAG = $("#block_60378c0bc4f85 > div > h2").text().replace(/[^0-9]/g, '');
+    // const newRecovered = $('#block_5e99921b60008 > div > p').text().replace(/[^0-9]/g, ''); // No longer available
+    const newInfectedAG = $('#block_60378c0bc4f85 > div > h2').text().replace(/[^0-9]/g, '');
     const newTestedAG = $('#block_60378ba2c4f83 > div > h2').text().replace(/[^0-9]/g, '');
-    const vacinatedFirstDose = $("#block_60379179c4f8b > div > p").text().replace(/[^0-9]/g, '');
-    const newVacinatedFirstDose = $("#block_60379179c4f8b > div > h2").text().replace(/[^0-9]/g, '');
-    const vacinatedSecondDose = $("#block_603791edc4f8d > div > p").text().replace(/[^0-9]/g, '');
-    const newVacinatedSecondDose = $("#block_603791edc4f8d > div > h2").text().replace(/[^0-9]/g, '');
-    const hospitalized = $("#block_60378c91c4f87 > div > p").text().replace(/[^0-9]/g, '');
-    const newHospitalized = $("#block_60378c91c4f87 > div > h2").text().replace(/[^0-9]/g, '');
+    const vacinatedFirstDose = $('#block_60379179c4f8b > div > p').text().replace(/[^0-9]/g, '');
+    const newVacinatedFirstDose = $('#block_60379179c4f8b > div > h2').text().replace(/[^0-9]/g, '');
+    const vacinatedSecondDose = $('#block_603791edc4f8d > div > p').text().replace(/[^0-9]/g, '');
+    const newVacinatedSecondDose = $('#block_603791edc4f8d > div > h2').text().replace(/[^0-9]/g, '');
+    const hospitalized = $('#block_60378c91c4f87 > div > p').text().replace(/[^0-9]/g, '');
+    const newHospitalized = $('#block_60378c91c4f87 > div > h2').text().replace(/[^0-9]/g, '');
 
 
     // Find the correct table (to avoid using dynamic selectors, i.e. #block_5e9f669647a94)
@@ -73,7 +73,7 @@ Apify.main(async () => {
     const result = {
         tested: Number(testedPCR),
         infected: Number(infectedPCR),
-        recovered: Number(recovered),
+        // recovered: Number(recovered),
         deceased: Number(deceased),
         infectedPCR: Number(infectedPCR),
         testedPCR: Number(testedPCR),
@@ -83,7 +83,7 @@ Apify.main(async () => {
         testedAG: Number(testedAG),
         newInfectedAG: Number(newInfectedAG),
         newTestedAG: Number(newTestedAG),
-        newRecovered: Number(newRecovered),
+        // newRecovered: Number(newRecovered),
         newDeceased: Number(newDeceased),
         vacinatedFirstDose: Number(vacinatedFirstDose),
         newVacinatedFirstDose: Number(newVacinatedFirstDose),
