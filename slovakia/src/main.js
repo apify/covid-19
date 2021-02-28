@@ -93,7 +93,7 @@ Apify.main(async () => {
         newHospitalized: Number(newHospitalized),
         regionsData,
         districts,
-        updated,
+        lastUpdatedAtSource: updated,
         lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
         readMe: 'https://apify.com/davidrychly/covid-sk-3'
     };
