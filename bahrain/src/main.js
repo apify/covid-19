@@ -35,6 +35,8 @@ Apify.main(async () => {
                 readMe: 'https://apify.com/tugkan/covid-bh',
             };
 
+            console.log(data);
+
             // Compare and save to history
             const latest = await kvStore.getValue(LATEST) || {};
             delete latest.lastUpdatedAtApify;
