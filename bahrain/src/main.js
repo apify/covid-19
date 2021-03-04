@@ -37,21 +37,25 @@ Apify.main(async () => {
 
             console.log(data);
 
-            // Compare and save to history
-            const latest = await kvStore.getValue(LATEST) || {};
-            delete latest.lastUpdatedAtApify;
-            const actual = Object.assign({}, data);
-            delete actual.lastUpdatedAtApify;
+            if (data.infected > 124000) {
+                // Compare and save to history
+                const latest = await kvStore.getValue(LATEST) || {};
+                delete latest.lastUpdatedAtApify;
+                const actual = Object.assign({}, data);
+                delete actual.lastUpdatedAtApify;
 
-            await Apify.pushData({...data});
+                await Apify.pushData({...data});
 
-            if (JSON.stringify(latest) !== JSON.stringify(actual)) {
-                log.info('Data did change :( storing new to dataset.');
-                await dataset.pushData(data);
+                if (JSON.stringify(latest) !== JSON.stringify(actual)) {
+                    log.info('Data did change :( storing new to dataset.');
+                    await dataset.pushData(data);
+                }
+
+                await kvStore.setValue(LATEST, data);
+                log.info('Data stored, finished.');
+            } else {
+                log.info('No data on the page at the moment, nothing stored.');
             }
-
-            await kvStore.setValue(LATEST, data);
-            log.info('Data stored, finished.');
         },
 
         // This function is called if the page processing failed more than maxRequestRetries+1 times.
