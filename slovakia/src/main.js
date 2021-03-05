@@ -1,6 +1,7 @@
 const Apify = require('apify');
 const httpRequest = require('@apify/http-request')
 const cheerio = require('cheerio');
+const moment = require('moment');
 const sourceUrl = 'https://korona.gov.sk/koronavirus-na-slovensku-v-cislach/';
 const LATEST = 'LATEST';
 
@@ -93,7 +94,7 @@ Apify.main(async () => {
         newHospitalized: Number(newHospitalized),
         regionsData,
         districts,
-        lastUpdatedAtSource: updated,
+        lastUpdatedAtSource: moment(updated, 'D. M. YYYY').toISOString(),
         lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
         readMe: 'https://apify.com/davidrychly/covid-sk-3'
     };
