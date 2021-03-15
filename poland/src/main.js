@@ -5,8 +5,8 @@ const LATEST = 'LATEST'
 const now = new Date()
 
 const sourceUrl = 'https://www.gov.pl/web/koronawirus/wykaz-zarazen-koronawirusem-sars-cov-2';
-const detailsDataUrl = 'https://rcb-info.maps.arcgis.com/apps/opsdashboard/index.html#/24eb82b7230e4f39aabd65f42b9d0636'
-const regionDataUrl = 'https://rcb-info.maps.arcgis.com/apps/opsdashboard/index.html#/d9369efa6356430a8816ac3734a90274'
+const detailsDataUrl = 'https://rcb-gis.maps.arcgis.com/apps/opsdashboard/index.html#/e496f00bd8b947099ff95d9e26418a2c'
+const regionDataUrl = 'https://rcb-gis.maps.arcgis.com/apps/opsdashboard/index.html#/a0dd36f27d8c4fd895f4c1c78a6757f0'
 
 Apify.main(async () => {
 
