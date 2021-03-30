@@ -79,7 +79,7 @@ Apify.main(async () => {
                             || lastItem["Nb de résidents positifs"]),
                         newlyRecovered: lastItem["[9.TotalPatientDepartHopital]"],
                         sourceUrl,
-                        country: 'cdLuxembourg',
+                        country: 'Luxembourg',
                         historyData: 'https://api.apify.com/v2/datasets/oZH6thpQSdIyo3ky2/items?format=json&clean=1',
                         lastUpdatedAtSource: new Date(Date.UTC(srcDate.getFullYear(), srcDate.getMonth(), srcDate.getDate(), srcDate.getHours(), srcDate.getMinutes())).toISOString(),
                         lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
