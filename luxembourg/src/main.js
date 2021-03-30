@@ -44,7 +44,7 @@ Apify.main(async () => {
                 case "GET_XLSX_LINK":
                     log.info(`Proccecing ${request.url}`);
                     log.info(`Getting xlsx download link.`);
-                    const { contentUrl, dateModified: fileDateModified } = JSON.parse($('script#json_ld').html().replace(/\\|/g, '')).distribution[1];
+                    const { contentUrl, dateModified: fileDateModified } = JSON.parse($('script#json_ld').html().replace(/\\|/g, '')).distribution[0];
 
                     await requestQueue.addRequest({
                         url: contentUrl,
@@ -79,7 +79,7 @@ Apify.main(async () => {
                             || lastItem["Nb de résidents positifs"],
                         newlyRecovered: lastItem["[9.TotalPatientDepartHopital]"],
                         sourceUrl,
-                        country: ' Luxembourg',
+                        country: 'cdLuxembourg',
                         historyData: 'https://api.apify.com/v2/datasets/oZH6thpQSdIyo3ky2/items?format=json&clean=1',
                         lastUpdatedAtSource: new Date(Date.UTC(srcDate.getFullYear(), srcDate.getMonth(), srcDate.getDate(), srcDate.getHours(), srcDate.getMinutes())).toISOString(),
                         lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
