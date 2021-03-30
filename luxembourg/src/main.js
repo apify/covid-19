@@ -65,18 +65,18 @@ Apify.main(async () => {
                     const srcDate = new Date(request.userData.dateModified);
                     const lastItem = total.pop();
                     const data = {
-                        tested: lastItem["Nb de tests effectués cumulés"]
-                            || lastItem["Nb de tests effectués sur résidents cumulés"],
-                        infected: lastItem["Nb de positifs cumulé"]
-                            || lastItem["Nb de résidents positifs cumulé"],
-                        deceased: lastItem["[1.NbMorts]"],
-                        intensiveCare: lastItem["Soins intensifs"]
-                            || lastItem["Soins intensifs (sans GE)"],
-                        normalCare: lastItem["Soins normaux"],
-                        newlyTested: lastItem["Nb de tests effectués"]
-                            || lastItem["Nb de tests effectués sur résidents"],
-                        newlyInfected: lastItem["Nb de positifs"]
-                            || lastItem["Nb de résidents positifs"],
+                        tested: Number(lastItem["Nb de tests effectués cumulés"]
+                            || lastItem["Nb de tests effectués sur résidents cumulés"]),
+                        infected: Number(lastItem["Nb de positifs cumulé"]
+                            || lastItem["Nb de résidents positifs cumulé"]),
+                        deceased: Number(lastItem["[1.NbMorts]"]),
+                        intensiveCare: Number(lastItem["Soins intensifs"]
+                            || lastItem["Soins intensifs (sans GE)"]),
+                        normalCare: Number(lastItem["Soins normaux"]),
+                        newlyTested: Number(lastItem["Nb de tests effectués"]
+                            || lastItem["Nb de tests effectués sur résidents"]),
+                        newlyInfected: Number(lastItem["Nb de positifs"]
+                            || lastItem["Nb de résidents positifs"]),
                         newlyRecovered: lastItem["[9.TotalPatientDepartHopital]"],
                         sourceUrl,
                         country: 'cdLuxembourg',
