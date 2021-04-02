@@ -16,7 +16,7 @@ Apify.main(async () => {
         ],
     });
     const proxyConfiguration = await Apify.createProxyConfiguration({
-        useApifyProxy: false
+        useApifyProxy: true
     });
 
     await requestList.initialize();
