@@ -16,7 +16,7 @@ Apify.main(async () => {
         ],
     });
     const proxyConfiguration = await Apify.createProxyConfiguration({
-        useApifyProxy: true
+        useApifyProxy: false
     });
 
     await requestList.initialize();
@@ -43,7 +43,7 @@ Apify.main(async () => {
                 const selectors = [
                     { infected: '.counter:contains(cas confirmés)', index: 0, errMesssage: 'infected' },
                     { recoverd: '.counter:contains(retours à domicile)', index: 0, errMesssage: 'recovered' },
-                    { deceased: '.counter:contains(cumul des décès)', index: 0, errMesssage: 'deceased' },
+                    { deceased: '.counter:contains(décès à l’hôpital)', index: 0, errMesssage: 'deceased' },
                     { hospitalDeceased: '.counter:contains(décès à l’hôpital)', index: 0, errMesssage: 'hospital deceased' },
                     { hospitalized: '.counter:contains(patients hospitalisés)', index: 0, errMesssage: 'hospitalized' },
                     { newlyHospitalized: '.counter:contains(nouveaux patients hospitalisés)', index: 0, errMesssage: 'newly hospitalized' },
