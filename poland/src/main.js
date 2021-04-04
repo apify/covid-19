@@ -57,17 +57,17 @@ Apify.main(async () => {
             log.info('Waiting for all data to load...')
             const allDataResponses = await Promise.all([
                 page.waitForResponse(request => request.url().match(/where=1.*1.*spatialRel=esriSpatialRelIntersects.*resultRecordCount=1/g)),
-                page.waitForResponse(request => request.url().match(/where=Data.*BETWEEN.*(.*).*AND.*CURRENT_TIMESTAMP.*spatialRel=esriSpatialRelIntersects.*resultRecordCount=1/g)),
+                // page.waitForResponse(request => request.url().match(/where=Data.*BETWEEN.*(.*).*AND.*CURRENT_TIMESTAMP.*spatialRel=esriSpatialRelIntersects.*resultRecordCount=1/g)),
             ]);
             log.info('Content loaded, Processing data...')
 
             const { features: firstPart } = await allDataResponses[0].json();
-            const { features: secondPart } = await allDataResponses[1].json();
+            // const { features: secondPart } = await allDataResponses[1].json();
 
             const dailyRecovered = firstPart[0].attributes.LICZBA_OZDROWIENCOW;
             const allData = {
                 ...firstPart[0].attributes,
-                ...(secondPart[0] && secondPart[0].attributes ? secondPart[0].attributes : [])
+                // ...(secondPart[0] && secondPart[0].attributes ? secondPart[0].attributes : [])
             };
 
             const sourceDate = new Date(allData.Data);
