@@ -3,7 +3,7 @@
     "version": "0.0.1",
     "dependencies": {
         "@apify/http-request": "^1.1.5",
-        "apify": "^0.20.3",
+        "apify": "^0.21.0",
         "moment": "^2.24.0"
     },
     "scripts": {
