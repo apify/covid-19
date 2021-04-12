@@ -20,7 +20,7 @@ const connectDataFromGraph = (graphData) => {
     }));
 };
 
-const getRegionData = async () => {
+const getRegionData = async (proxyConfiguration) => {
     const url = "https://onemocneni-aktualne.mzcr.cz/covid-19/prehledy-khs"
     const response = await Apify.utils.requestAsBrowser({
         url,
@@ -35,7 +35,7 @@ const getRegionData = async () => {
     return { sexAgeData, recoveredByRegionData, deathsByRegionData }
 }
 
-const getCummulativeData = async () => {
+const getCummulativeData = async (proxyConfiguration) => {
     const url = "https://onemocneni-aktualne.mzcr.cz/covid-19/kumulativni-prehledy"
     const response = await Apify.utils.requestAsBrowser({
         url,
@@ -48,7 +48,7 @@ const getCummulativeData = async () => {
     return { infectedData, numberOfTestedData }
 }
 
-const getHospitalizationData = async () => {
+const getHospitalizationData = async (proxyConfiguration) => {
     const url = "https://onemocneni-aktualne.mzcr.cz/covid-19/prehled-hospitalizaci"
     const response = await Apify.utils.requestAsBrowser({
         url,
