@@ -6,4 +6,4 @@ Latest data in English are available at this URL: https://api.apify.com/v2/key-v
 
 You can find a dataset with unique history items here: https://api.apify.com/v2/datasets/CUdKmb25Z3HjkoDiN/items?format=json&clean=1
 
-Data are being queried from source every 5 minutes.
+Data are being queried from source every hour.

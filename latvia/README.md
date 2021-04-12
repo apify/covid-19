@@ -6,4 +6,4 @@ The latest information can be found in https://api.apify.com/v2/key-value-stores
 
 Actor ready-to-use on the Apify platform is available in https://apify.com/janpetr/covid-latvia
 
-URL is being scraped every 5 minutes.
+URL is being scraped every hour.
