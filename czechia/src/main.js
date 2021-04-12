@@ -19,12 +19,12 @@ const connectDataFromGraph = (graphData) => {
         date: parseDateToUTC(value.x).toISOString()
     }));
 };
+
 const getRegionData = async () => {
     const url = "https://onemocneni-aktualne.mzcr.cz/covid-19/prehledy-khs"
     const response = await Apify.utils.requestAsBrowser({
         url,
-        proxyUrl: Apify.getApifyProxyUrl({ groups: ["SHADER"] }
-        )
+        proxyUrl: proxyConfiguration.newUrl()
     });
     const $ = await cheerio.load(response.body);
 
@@ -39,8 +39,7 @@ const getCummulativeData = async () => {
     const url = "https://onemocneni-aktualne.mzcr.cz/covid-19/kumulativni-prehledy"
     const response = await Apify.utils.requestAsBrowser({
         url,
-        proxyUrl: Apify.getApifyProxyUrl({ groups: ["SHADER"] }
-        )
+        proxyUrl: proxyConfiguration.newUrl()
     });
     const $ = await cheerio.load(response.body);
 
@@ -53,8 +52,7 @@ const getHospitalizationData = async () => {
     const url = "https://onemocneni-aktualne.mzcr.cz/covid-19/prehled-hospitalizaci"
     const response = await Apify.utils.requestAsBrowser({
         url,
-        proxyUrl: Apify.getApifyProxyUrl({ groups: ["SHADER"] }
-        )
+        proxyUrl: proxyConfiguration.newUrl()
     });
     const $ = await cheerio.load(response.body);
 
@@ -81,11 +79,14 @@ Apify.main(async () => {
     const kvStore = await Apify.openKeyValueStore("COVID-19-CZECH");
     const dataset = await Apify.openDataset("COVID-19-CZECH-HISTORY");
 
+    const proxyConfiguration = await Apify.createProxyConfiguration({
+        groups: ['SHADER']
+      });
+
     const response = await Apify.utils.requestAsBrowser({
         url: "https://onemocneni-aktualne.mzcr.cz/covid-19",
-        proxyUrl: Apify.getApifyProxyUrl({ groups: ["SHADER"] }
+        proxyUrl: proxyConfiguration.newUrl()}
         )
-    });
     const $ = await cheerio.load(response.body);
     const url = $("#covid-content").attr("data-report-url");
     const testedPCR = $("#count-test").first().text().trim();
