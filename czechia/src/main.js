@@ -99,9 +99,9 @@ Apify.main(async () => {
     const infectedDailyData = JSON.parse($("#js-total-persons-data").attr("data-linechart"));
     const infectedByRegionData = JSON.parse(decodeHtml($('#panel2-districts-regions-maps div[data-barchart]').attr('data-barchart')));
 
-    const { recoveredByRegionData, deathsByRegionData, sexAgeData } = await getRegionData();
-    const { infectedData, numberOfTestedData } = await getCummulativeData();
-    const hospitalizationTableData = await getHospitalizationData();
+    const { recoveredByRegionData, deathsByRegionData, sexAgeData } = await getRegionData(proxyConfiguration);
+    const { infectedData, numberOfTestedData } = await getCummulativeData(proxyConfiguration);
+    const hospitalizationTableData = await getHospitalizationData(proxyConfiguration);
 
 
     const lastUpdated = $("#last-modified-datetime").text().trim().replace("k datu:", "").replace(/\u00a0/g, "");
