@@ -97,15 +97,15 @@ Apify.main(async () => {
     const hospitalized = $("#count-hospitalization").text().trim();
     const active = $("#count-active").text().trim();
     const infectedDailyData = JSON.parse($("#js-total-persons-data").attr("data-linechart"));
-    const infectedByRegionData = JSON.parse(decodeHtml($('#panel2-districts-regions-maps div[data-barchart]').attr('data-barchart')));
+    // const infectedByRegionData = JSON.parse(decodeHtml($('#panel2-districts-regions-maps div[data-barchart]').attr('data-barchart')));
 
     const { recoveredByRegionData, deathsByRegionData, sexAgeData } = await getRegionData(proxyConfiguration);
     const { infectedData, numberOfTestedData } = await getCummulativeData(proxyConfiguration);
     const hospitalizationTableData = await getHospitalizationData(proxyConfiguration);
 
 
-    const lastUpdated = $("#last-modified-datetime").text().trim().replace("k datu:", "").replace(/\u00a0/g, "");
-    const parts = lastUpdated.split("v");
+    const lastUpdated = $("#last-modified-datetime").text().trim().replace("k datu:", "").replace(/\u00a0/g, "").trim();
+    const parts = lastUpdated.split(" ");
     const splited = parts[0].split(".");
     let lastUpdatedParsed = new Date(`${splited[1]}.${splited[0]}.${splited[2]} ${parts[1].replace("h", "").replace(".", ":")}`);
     lastUpdatedParsed = new Date(Date.UTC(lastUpdatedParsed.getFullYear(), lastUpdatedParsed.getMonth(), lastUpdatedParsed.getDate(), lastUpdatedParsed.getHours() - 1, lastUpdatedParsed.getMinutes()));
@@ -125,7 +125,7 @@ Apify.main(async () => {
         critical,
         totalPositiveTests: connectDataFromGraph(infectedData),
         numberOfTestedGraph: connectDataFromGraph(numberOfTestedData),
-        infectedByRegion: infectedByRegionData[0].values.map(({ x, y }) => ({ name: x, value: y })),
+        // infectedByRegion: infectedByRegionData[0].values.map(({ x, y }) => ({ name: x, value: y })),
         recoveredByRegion: recoveredByRegionData.values.map(({ x, y }) => ({ name: x, value: y })),
         deceasedByRegion: deathsByRegionData.values.map(({ x, y }) => ({ name: x, value: y })),
         infectedDaily: connectDataFromGraph(infectedDailyData[0]),
