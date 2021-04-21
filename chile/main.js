@@ -64,7 +64,7 @@ Apify.main(async () => {
             nationalReport.regions = regions;
             nationalReport.lastUpdatedAtSource = new Date(Date.UTC(srcDate.getFullYear(), srcDate.getMonth(), srcDate.getDate(), (srcDate.getHours()), srcDate.getMinutes())).toISOString()
             nationalReport.lastUpdatedAtApify = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString();
-            nationalReport.historyData = '';
+            nationalReport.historyData = 'https://api.apify.com/v2/datasets/Dc7asb1F0Ic19PPWg/items?format=json&clean=1';
             nationalReport.sourceUrl = 'https://www.minsal.cl/nuevo-coronavirus-2019-ncov/casos-confirmados-en-chile-covid-19/';
             nationalReport.README = '';
 
