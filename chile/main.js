@@ -66,7 +66,7 @@ Apify.main(async () => {
             nationalReport.lastUpdatedAtApify = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString();
             nationalReport.historyData = 'https://api.apify.com/v2/datasets/Dc7asb1F0Ic19PPWg/items?format=json&clean=1';
             nationalReport.sourceUrl = 'https://www.minsal.cl/nuevo-coronavirus-2019-ncov/casos-confirmados-en-chile-covid-19/';
-            nationalReport.README = '';
+            nationalReport.README = 'https://apify.com/enco/covid-cl';
 
             //Save data
             let latest = await kvStore.getValue('LATEST');
