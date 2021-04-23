@@ -97,7 +97,7 @@ Apify.main(async () => {
     const hospitalized = $("#count-hospitalization").text().trim();
     const active = $("#count-active").text().trim();
     const infectedDailyData = JSON.parse($("#js-total-persons-data").attr("data-linechart"));
-    // const infectedByRegionData = JSON.parse(decodeHtml($('#panel2-districts-regions-maps div[data-barchart]').attr('data-barchart')));
+    const infectedByRegionData = JSON.parse(decodeHtml($('#js-total-isin-regions-data').attr('data-barchart')));
 
     const { recoveredByRegionData, deathsByRegionData, sexAgeData } = await getRegionData(proxyConfiguration);
     const { infectedData, numberOfTestedData } = await getCummulativeData(proxyConfiguration);
@@ -125,7 +125,7 @@ Apify.main(async () => {
         critical,
         totalPositiveTests: connectDataFromGraph(infectedData),
         numberOfTestedGraph: connectDataFromGraph(numberOfTestedData),
-        // infectedByRegion: infectedByRegionData[0].values.map(({ x, y }) => ({ name: x, value: y })),
+        infectedByRegion: infectedByRegionData[0].values.map(({ x, y }) => ({ name: x, value: y })),
         recoveredByRegion: recoveredByRegionData.values.map(({ x, y }) => ({ name: x, value: y })),
         deceasedByRegion: deathsByRegionData.values.map(({ x, y }) => ({ name: x, value: y })),
         infectedDaily: connectDataFromGraph(infectedDailyData[0]),
