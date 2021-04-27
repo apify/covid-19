@@ -40,6 +40,11 @@
     "deceased": "deceased",
     "infected": "infected"
   },
+  "Chile": {
+    "deceased": "deceased",
+    "infected": "infected",
+    "recovered": "recovered"
+  },
   "China": {
     "deceased": "deceased",
     "infected": "infected",
