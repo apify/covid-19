@@ -22,7 +22,7 @@ Apify.main(async () => {
     puppeteerPoolOptions: {
       retireInstanceAfterRequestCount: 1
     },
-    handlePageTimeoutSecs: 90,
+    handlePageTimeoutSecs: 120,
     launchPuppeteerFunction: () => {
       const options = { useApifyProxy: true, useChrome: true }
       // if (Apify.isAtHome()) {
@@ -52,71 +52,64 @@ Apify.main(async () => {
     handlePageFunction: async ({ page, request }) => {
       log.info(`Handling ${request.url}`)
 
-      log.info('Waiting for content to load')
-      const responses = await Promise.all([
-        page.waitForResponse(request => request.url().match(/where=ARSNome.*Nacional.*spatialRel=esriSpatialRelIntersects.*resultRecordCount=50/g)),
-        page.waitForResponse(request => request.url().match(/where=1.*1.*spatialRel=esriSpatialRelIntersects.*Total_Amostras_Novas/g)),
-        page.waitForResponse(request => request.url().match(/where=ARSNome.*Nacional.*AND.*ARSNome.*Estrangeiro.*spatialRel=esriSpatialRelIntersects/g)),
-      ]);
-      log.info('Content loaded, Processing and savind data...')
+      log.info('Waiting for content to load');
+      await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 1000 * 90 });
+      await Apify.utils.puppeteer.injectJQuery(page);
+      log.info('Content loaded');
 
-      const { features: allData } = await responses[0].json();
-      const { features: testesData } = await responses[1].json();
-      const { features: regionData } = await responses[2].json();
+      log.info('Extracting and processing data...');
 
-      const allDatalastRecord = allData[0].attributes;
-      const sourceDate = new Date(allDatalastRecord.Data_ARS);
+      const data = await page.evaluate(async () => {
+        const toNumber = (str) => parseInt(str.replace(/\D+/g, ''));
+        const toString = (str) => str.replace(/\d+|\.+/g, '').trim();
 
-      const data = {
-        active: allDatalastRecord.Activos_ARS,
-        infected: allDatalastRecord.ConfirmadosAcumulado_ARS,
-        tested: testesData[0].attributes.value,
-        recovered: allDatalastRecord.Recuperados_ARS,
-        deceased: allDatalastRecord.Obitos_ARS,
-        newlyInfected: allDatalastRecord.VarConfirmados_ARS,
-        newlyDeceased: allDatalastRecord.VarObitos_ARS,
-        newlyRecovered: allDatalastRecord.VarRecuperados_ARS,
-        suspicious: allDatalastRecord.Suspeitos_ARS,
-        infectedByRegion: regionData.map(({ attributes: {
-          ARSNome, ConfirmadosAcumulado_ARS, ConfirmadosNovos_ARS, Recuperados_ARS, RecuperadosNovos_ARS,
-          Obitos_ARS, ObitosNovos_ARS, Suspeitos_ARS, Activos_ARS }
-        }) => {
-          return {
-            active: Activos_ARS,
-            infected: ConfirmadosAcumulado_ARS,
-            recovered: Recuperados_ARS,
-            deceased: Obitos_ARS,
-            suspicious: Suspeitos_ARS,
-            newlyInfected: ConfirmadosNovos_ARS,
-            newlyDeceased: ObitosNovos_ARS,
-            newlyRecovered: RecuperadosNovos_ARS,
-            value: ConfirmadosAcumulado_ARS,
-            region: ARSNome
-          }
-        }),
-        country: 'Portugal',
-        historyData: 'https://api.apify.com/v2/datasets/f1Qd4cMBzV1E0oRNc/items?format=json&clean=1',
-        sourceUrl: 'https://covid19.min-saude.pt/ponto-de-situacao-atual-em-portugal/',
-        lastUpdatedAtApify: new Date(
-          Date.UTC(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate(),
-            now.getHours(),
-            now.getMinutes()
-          )
-        ).toISOString(),
-        lastUpdatedAtSource: new Date(
-          Date.UTC(
-            sourceDate.getFullYear(),
-            sourceDate.getMonth(),
-            sourceDate.getDate(),
-            sourceDate.getHours(),
-            sourceDate.getMinutes()
-          )
-        ).toISOString(),
-        readMe: 'https://apify.com/onidivo/covid-pt'
-      }
+        return {
+          active: toNumber($('full-container:contains(ACTIVOS)').last().text()),
+          infected: toNumber($('full-container:contains(CONFIRMADOS)').last().find('text').eq(1).text()),
+          tested: toNumber($('full-container:contains(Testes (PCR + Antigénio))').last().find('text').eq(1).text()),
+          recovered: toNumber($('full-container:contains(RECUPERADOS)').last().find('text').eq(1).text()),
+          deceased: toNumber($('full-container:contains(ÓBITOS)').last().find('text').eq(1).text()),
+          newlyInfected: toNumber($('full-container:contains(CONFIRMADOS)').last().find('text').eq(2).text()),
+          newlyRecovered: toNumber($('full-container:contains(RECUPERADOS)').last().find('text').eq(2).text()),
+          newlyDeceased: toNumber($('full-container:contains(ÓBITOS)').last().find('text').eq(2).text()),
+          infectedByRegion: $('.feature-list').last().find('.feature-list-item').toArray().map(div => {
+            const text = $(div).find('p').text();
+            return {
+              region: toString(text),
+              infected: toNumber(text),
+            }
+          }),
+          reportingDay: $('full-container:contains(Dados relativos ao boletim da DGS de)').last().text().match(/[0-9]+\/[0-9]+\/[0-9]+/g)[0]
+        }
+      });
+
+      const [d, m, y] = data.reportingDay.split('/')
+      const sourceDate = new Date(`${m}/${d}/${y}`);
+      delete data.reportingDay;
+
+      data.country = 'Portugal';
+      data.historyData = 'https://api.apify.com/v2/datasets/f1Qd4cMBzV1E0oRNc/items?format=json&clean=1';
+      data.sourceUrl = 'https://covid19.min-saude.pt/ponto-de-situacao-atual-em-portugal/';
+      data.lastUpdatedAtApify = new Date(
+        Date.UTC(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          now.getHours(),
+          now.getMinutes()
+        )
+      ).toISOString();
+      data.lastUpdatedAtSource = new Date(
+        Date.UTC(
+          sourceDate.getFullYear(),
+          sourceDate.getMonth(),
+          sourceDate.getDate(),
+          sourceDate.getHours(),
+          sourceDate.getMinutes()
+        )
+      ).toISOString();
+      data.readMe = 'https://apify.com/onidivo/covid-pt';
+
 
       // Push the data
       let latest = await kvStore.getValue(LATEST)
@@ -141,8 +134,13 @@ Apify.main(async () => {
 
       log.info('Data saved.')
     },
-    handleFailedRequestFunction: ({ requst, error }) => {
-      criticalErrors++
+    handleFailedRequestFunction: async ({ requst, error }) => {
+      log.error(error);
+      await Apify.pushData({
+        '#request': requst,
+        '#error': error
+      });
+      criticalErrors++;
     }
   })
   await crawler.run()
