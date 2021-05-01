@@ -22,7 +22,7 @@ Apify.main(async () => {
     puppeteerPoolOptions: {
       retireInstanceAfterRequestCount: 1
     },
-    handlePageTimeoutSecs: 120,
+    handlePageTimeoutSecs: 145,
     launchPuppeteerFunction: () => {
       const options = { useApifyProxy: true, useChrome: true }
       // if (Apify.isAtHome()) {
@@ -47,15 +47,24 @@ Apify.main(async () => {
           ".woff",
         ],
       });
-      return page.goto(request.url, { timeout: 1000 * 60 });
+      return page.goto(request.url, { timeout: 1000 * 120 });
     },
     handlePageFunction: async ({ page, request }) => {
       log.info(`Handling ${request.url}`)
 
       log.info('Waiting for content to load');
-      await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 1000 * 90 });
-      await Apify.utils.puppeteer.injectJQuery(page);
+      await page.waitForFunction(`!!document.querySelector(\'full-container\') 
+      && !!document.querySelector(\'full-container\').innerText.match(/ACTIVOS(\\n| )+[0-9.]+/g)
+      && !!document.querySelector(\'full-container\').innerText.match(/RECUPERADOS(\\n| )+[0-9.]+/g)
+      && !!document.querySelector(\'full-container\').innerText.match(/ÓBITOS(\\n| )+[0-9.]+/g)
+      && !!document.querySelector(\'full-container\').innerText.match(/CONFIRMADOS(\\n| )+[0-9.]+/g)
+      && !!document.querySelector(\'full-container\').innerText.match(/Testes \\(PCR \\+ Antigénio\\)(\\n| )+[0-9.]+/g)
+      && !!document.querySelector(\'full-container\').innerText.match(/Dados relativos ao boletim da DGS de:(\\n| )+[0-9.]+/g)
+      && !!document.querySelector('.feature-list')`, { timeout: 1000 * 120 });
+
       log.info('Content loaded');
+
+      await Apify.utils.puppeteer.injectJQuery(page);
 
       log.info('Extracting and processing data...');
 
