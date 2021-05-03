@@ -67,7 +67,7 @@ Apify.main(async () => {
             sourceUrl: 'https://www.mohfw.gov.in/',
             lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
             readMe: 'https://github.com/zpelechova/covid-in/blob/master/README.md',
-            regionData: regionData[0],
+            regionData: regionData,
         };
         return data;
 
