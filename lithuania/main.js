@@ -23,7 +23,7 @@ Apify.main(async () => {
         puppeteerPoolOptions: {
             retireInstanceAfterRequestCount: 1
         },
-        handlePageTimeoutSecs: 90,
+        handlePageTimeoutSecs: 120,
         launchPuppeteerFunction: () => {
             const options = {
                 useApifyProxy: true,
@@ -52,37 +52,43 @@ Apify.main(async () => {
         handlePageFunction: async ({ page, request }) => {
             log.info(`Handling ${request.url}`);
 
-            await Apify.utils.puppeteer.injectJQuery(page);
             log.info('Waiting for content to load');
-
-            const responses = await Promise.all([
-                page.waitForResponse(request => request.url().match(/municipality_order.*asc&resultOffset=0&resultRecordCount=1/g)),
-                page.waitForResponse(request => request.url().match(/spatialRel=esriSpatialRelIntersects&outFields=\*&orderByFields=incidence_per14d_per100.*asc/g))
-            ]);
-
-            const { features: allData } = await responses[0].json();
-            const { features: regionsData } = await responses[1].json();
-
+            await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 1000 * 90 });
+            await Apify.utils.puppeteer.injectJQuery(page);
             log.info('Content loaded');
 
-            const data = {
-                active: allData[0].attributes.active_sttstcl,
-                infected: allData[0].attributes.total_cases,
-                recovered: allData[0].attributes.recovered_sttstcl,
-                deceased: allData[0].attributes.total_deaths_def1,
-                newCases: allData[0].attributes.incidence,
-                infectedByRegion: regionsData.map(({ attributes }) => {
-                    return {
-                        region: attributes.municipality_name,
-                        value: parseFloat(attributes.incidence_per14d_per100k.toFixed(1)),
-                        active: attributes.active_sttstcl,
-                        infected: attributes.total_cases,
-                        recovered: attributes.recovered_sttstcl,
-                        deceased: attributes.total_deaths_def1,
-                        newCases: attributes.incidence,
-                    }
-                }),
-            }
+            log.info('Extracting and processing data...');
+            const data = await page.evaluate(async () => {
+                const toNumber = (str) => parseInt(str.replace(/\D+/g, ''));
+                const toString = (str) => str.replace(/\d+|:+|,+/g, '').trim();
+
+                return {
+                    active: toNumber($('full-container:contains(Šiuo metu serga)')
+                        .last()
+                        .find('text:contains(statistiškai)')
+                        .text()),
+                    recovered: toNumber($('full-container:contains(Pasveiko)')
+                        .eq(1)
+                        .find('text:contains(statistiškai)')
+                        .text()),
+                    deceased: toNumber($('full-container:contains(Ligos atvejai)')
+                        .last()
+                        .text()),
+                    newCases: toNumber($('full-container:contains(Paros nauji atvejai)')
+                        .last().find('text').first().text()),
+                    infectedByRegion: $('.feature-list').first().find('div.external-html').toArray().map(div => {
+                        const text = $(div).find('p').text();
+                        return {
+                            region: toString(text),
+                            newCases: toNumber(text),
+                        }
+                    }),
+                    reportingDay: $('full-container:contains(Ataskaitinė para)').last().find('strong').text().trim()
+                }
+            });
+
+            const sourceDate = new Date(data.reportingDay);
+            delete data.reportingDay;
 
             data.country = 'LITHUANIA';
             data.historyData = 'https://api.apify.com/v2/datasets/1XdITM6u7PbhUrlmK/items?format=json&clean=1';
@@ -91,7 +97,7 @@ Apify.main(async () => {
                 Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())
             ).toISOString();
 
-            const sourceDate = new Date(allData[0].attributes.date);
+
             data.lastUpdatedAtSource = new Date(
                 Date.UTC(sourceDate.getFullYear(), sourceDate.getMonth(), sourceDate.getDate(), sourceDate.getHours(), sourceDate.getMinutes())
             ).toISOString();
@@ -121,7 +127,12 @@ Apify.main(async () => {
 
             log.info('Data saved.')
         },
-        handleFailedRequestFunction: ({ requst, error }) => {
+        handleFailedRequestFunction: async ({ requst, error }) => {
+            log.error(error);
+            await Apify.pushData({
+                '#request': requst,
+                '#error': error
+            });
             criticalErrors++
         }
     })
