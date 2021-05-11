@@ -7,7 +7,7 @@ Apify.main(async () =>
 
     const kvStore = await Apify.openKeyValueStore('COVID-19-UK');
     const dataset = await Apify.openDataset('COVID-19-UK-HISTORY');
-    const { email } = await Apify.getValue('INPUT');
+    //const { email } = await Apify.getValue('INPUT');
 
     try{
 
@@ -31,7 +31,7 @@ Apify.main(async () =>
         const getInt = (x)=>{
             return parseInt(x.replace(' ','').replace(/,/g,''))};
                   
-        const dailyConfirmed = $( "span:contains(' Daily number of people tested positive')").parent().text();
+        const dailyConfirmed = $( "span:contains('Daily number of people tested positive ')").parent().text()
         const dailyTested = $( "span:contains('Daily number of virus tests ')").parent().text();
         const dailyDeceasedWithin28Days = $( "span:contains('Daily number of deaths within 28 days ')").parent().text();
        
