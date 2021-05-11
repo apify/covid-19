@@ -7,9 +7,7 @@ Apify.main(async () =>
 
     const kvStore = await Apify.openKeyValueStore('COVID-19-UK');
     const dataset = await Apify.openDataset('COVID-19-UK-HISTORY');
-    const { email } = await Apify.getValue('INPUT');
-
-    try{
+    //const { email } = await Apify.getValue('INPUT');
 
     console.log('Launching Puppeteer...');
     const browser = await Apify.launchPuppeteer();
