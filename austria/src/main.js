@@ -3,85 +3,112 @@ const extractNumbers = require('extract-numbers');
 
 const LATEST = 'LATEST';
 const parseNum = (str) => {
-    return parseInt(extractNumbers(str)[0].replace('.', ''), 10);
+    return parseInt(extractNumbers(str)[0].replace(/\D+/g, ''), 10);
 };
+const MAIN_STATS = 'MAIN_STATS';
 
 Apify.main(async () => {
-    const url = 'https://www.sozialministerium.at/Informationen-zum-Coronavirus/Neuartiges-Coronavirus-(2019-nCov).html';
     const kvStore = await Apify.openKeyValueStore('COVID-19-AUSTRIA');
     const dataset = await Apify.openDataset('COVID-19-AUSTRIA-HISTORY');
 
-    const browser = await Apify.launchPuppeteer({ useApifyProxy: true, apifyProxyGroups: ['SHADER'] });
-    const page = await browser.newPage();
-    await Apify.utils.puppeteer.injectJQuery(page);
-    await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
-    const extracted = await page.evaluate(() => {
-        const getNameAndValue = (str) => {
-            const split = str.split(' (');
-            return { name: split[0].trim(), value: parseInt(split[1].replace(')', '').trim(), 10) };
-        };
-        const processInfoString = (str) => {
-            const split = str.split(',');
-            split.splice(0, 3);
-            const info = [];
-            split.forEach((region) => {
-                const regionString = region.replace('nach Bundesländern:', '').trim();
-                if (regionString.includes('und')) {
-                    const [first, second] = regionString.split('und');
-                    info.push(getNameAndValue(first));
-                    info.push(getNameAndValue(second));
-                } else {
-                    info.push(getNameAndValue(regionString));
-                }
-            });
-            return info;
-        };
-
-        const totalTested = $('p:contains(Bisher durchgeführte Testungen)').text();
-        console.log(totalTested, 'TESTED');
-        const splitDate = date.split('.');
-        const dummyDate = new Date(`${splitDate[1]}/${splitDate[0]}/${splitDate[2]} ${hours.trim().slice(0, 4)}`);
-        const lastUpdated = new Date(Date.UTC(dummyDate.getFullYear(), dummyDate.getMonth(), dummyDate.getDate(), dummyDate.getHours()));
-
-        const infectedByRegionString = $('p:contains(Bestätigte Fälle,)').text();
-        const infectedByRegion = processInfoString(infectedByRegionString);
-
-
-        const curedByRegionString = $('p:contains(Genesene Personen,)').text();
-        const curedByRegion = processInfoString(curedByRegionString);
-
-        // TODO: Fix after there are more examples :(
-        const deathByRegionString = $('p:contains(Todesfälle,)').text();
-        const deathByRegion = processInfoString(deathByRegionString);
-
-
-        return {
-            totalTested,
-            totalInfected,
-            totalCured,
-            totalDeaths,
-            lastUpdated: lastUpdated.toISOString(),
-            infectedByRegion,
-            curedByRegion,
-            deathByRegion,
-        };
+    const requestQueue = await Apify.openRequestQueue();
+    await requestQueue.addRequest({
+        url: 'https://www.sozialministerium.at/Informationen-zum-Coronavirus/Neuartiges-Coronavirus-(2019-nCov).html',
+        userData: {
+            label: MAIN_STATS,
+        },
     });
+    const data = {};
 
+    const crawler = new Apify.CheerioCrawler({
+        requestQueue,
+        handlePageFunction: async ({ request, $ }) => {
+            const { label } = request.userData;
 
+            switch (label) {
+                case MAIN_STATS:
+                    const table = $('.table-responsive table');
+                    const headers = [];
+                    let infected;
+                    let tested;
+                    let deceased;
+                    let recovered;
+                    let icu;
+                    let hospitalized;
+                    let lastUpdatedAtSource;
+                    $(table).find('thead th').each((index, element) => {
+                        headers.push($(element).text().trim());
+                    });
+
+                    const processRow = (element) => {
+                        const byRegion = [];
+                        let total;
+                        $(element).find('td').each((index, el) => {
+                            const value = parseNum($(el).text());
+                            if (index === 9) {
+                                total = value;
+                            } else {
+                                byRegion.push({ name: headers[index + 1], value });
+                            }
+                        });
+
+                        return { byRegion, total };
+                    };
+                    $(table).find('tbody tr').each((index, element) => {
+                        if (index === 0) {
+                            const text = $(element).find('th').text();
+                            const dateString = text.split('(Stand ')[1].replace(' Uhr)', '');
+                            const split = dateString.split(',');
+                            const dateSplit = split[0].split('.');
+                            const date = new Date(`${dateSplit[1]}/${dateSplit[0]} /${dateSplit[2]} ${split[1].match(/[0-9:]+/g)[0]}`);
+                            lastUpdatedAtSource = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() - 2, date.getMinutes())).toISOString();
+
+                            infected = processRow(element);
+                        } else if (index === 1) {
+                            deceased = processRow(element);
+                        } else if (index === 2) {
+                            recovered = processRow(element);
+                        } else if (index === 3) {
+                            hospitalized = processRow(element);
+                        } else if (index === 4) {
+                            icu = processRow(element);
+                        } else if (index === 5) {
+                            tested = processRow(element);
+                        }
+                    });
+
+                    data.infected = infected.total;
+                    data.infectedByRegion = infected.byRegion;
+                    data.deceased = deceased.total;
+                    data.deceasedByRegion = deceased.byRegion;
+                    data.recovered = recovered.total;
+                    data.recoveredByRegion = recovered.byRegion;
+                    data.tested = tested.total;
+                    data.testedByRegion = tested.byRegion;
+                    data.totalIcu = icu.total;
+                    data.icuByRegion = icu.byRegion;
+                    data.totalHospitalized = hospitalized.total;
+                    data.hospitalizedByRegion = hospitalized.byRegion;
+                    data.country = "Austria";
+                    data.historyData = "https://api.apify.com/v2/datasets/EFWZ2Q5JAtC6QDSwV/items?format=json&clean=1";
+                    data.sourceUrl = "https://www.sozialministerium.at/Informationen-zum-Coronavirus/Neuartiges-Coronavirus-(2019-nCov).html";
+                    data.lastudpatedAtSource = lastUpdatedAtSource;
+                    break;
+                default:
+                    break;
+            }
+        },
+        handleFailedRequestFunction: async ({ request }) => {
+            await Apify.pushData({
+                '#debug': Apify.utils.createRequestDebugInfo(request),
+            });
+        },
+    });
+    await crawler.run();
     const now = new Date();
-    const data = {
-        totalTested: parseNum(extracted.totalTested),
-        totalCases: parseNum(extracted.totalInfected),
-        totalDeaths: parseNum(extracted.totalDeaths),
-        infectedByRegion: extracted.infectedByRegion,
-        curedByRegion: extracted.curedByRegion,
-        deathByRegion: extracted.deathByRegion,
-        sourceUrl: url,
-        lastUpdatedAtSource: extracted.lastUpdated,
-        lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
-        readMe: 'https://apify.com/petrpatek/covid-austria',
-    };
+    data.lastUpdatedAtApify = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString();
 
+    console.log(data);
 
     let latest = await kvStore.getValue(LATEST);
     if (!latest) {
@@ -99,8 +126,5 @@ Apify.main(async () => {
     await kvStore.setValue('LATEST', data);
     await Apify.pushData(data);
 
-
-    console.log('Closing Puppeteer...');
-    await browser.close();
     console.log('Done.');
 });

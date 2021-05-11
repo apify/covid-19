@@ -19,7 +19,7 @@ Apify.main(async () => {
             log.info('Page loaded.');
             const now = new Date();
 
-            const [infected,stable,undercare,deceased, recipients] = $($('table').get(0)).find('tr td span').map((i,el) => parseInt($(el).text(),10)).get();
+            const [infected,stable,undercare,ICU,recipients,deceased] = $($('table').get(0)).find('tr td span').map((i,el) => parseInt($(el).text(),10)).get();
 
             const data = {
                 tested: parseInt($($('table').get(0)).find('th span').text(),10),
@@ -27,6 +27,7 @@ Apify.main(async () => {
                 infected: infected + recipients + deceased,
                 stable,
                 undercare,
+                ICU,
                 recipients,
                 deceased,
                 sourceUrl,
@@ -34,21 +35,27 @@ Apify.main(async () => {
                 readMe: 'https://apify.com/tugkan/covid-bh',
             };
 
-            // Compare and save to history
-            const latest = await kvStore.getValue(LATEST) || {};
-            delete latest.lastUpdatedAtApify;
-            const actual = Object.assign({}, data);
-            delete actual.lastUpdatedAtApify;
+            console.log(data);
 
-            await Apify.pushData({...data});
+            if (data.infected > 124000) {
+                // Compare and save to history
+                const latest = await kvStore.getValue(LATEST) || {};
+                delete latest.lastUpdatedAtApify;
+                const actual = Object.assign({}, data);
+                delete actual.lastUpdatedAtApify;
 
-            if (JSON.stringify(latest) !== JSON.stringify(actual)) {
-                log.info('Data did change :( storing new to dataset.');
-                await dataset.pushData(data);
+                await Apify.pushData({...data});
+
+                if (JSON.stringify(latest) !== JSON.stringify(actual)) {
+                    log.info('Data did change :( storing new to dataset.');
+                    await dataset.pushData(data);
+                }
+
+                await kvStore.setValue(LATEST, data);
+                log.info('Data stored, finished.');
+            } else {
+                log.info('No data on the page at the moment, nothing stored.');
             }
-
-            await kvStore.setValue(LATEST, data);
-            log.info('Data stored, finished.');
         },
 
         // This function is called if the page processing failed more than maxRequestRetries+1 times.

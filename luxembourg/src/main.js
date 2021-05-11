@@ -44,7 +44,7 @@ Apify.main(async () => {
                 case "GET_XLSX_LINK":
                     log.info(`Proccecing ${request.url}`);
                     log.info(`Getting xlsx download link.`);
-                    const { contentUrl, dateModified: fileDateModified } = JSON.parse($('script#json_ld').html().replace(/\\|/g, '')).distribution[1];
+                    const { contentUrl, dateModified: fileDateModified } = JSON.parse($('script#json_ld').html().replace(/\\|/g, '')).distribution[0];
 
                     await requestQueue.addRequest({
                         url: contentUrl,
@@ -65,21 +65,21 @@ Apify.main(async () => {
                     const srcDate = new Date(request.userData.dateModified);
                     const lastItem = total.pop();
                     const data = {
-                        tested: lastItem["Nb de tests effectués cumulés"]
-                            || lastItem["Nb de tests effectués sur résidents cumulés"],
-                        infected: lastItem["Nb de positifs cumulé"]
-                            || lastItem["Nb de résidents positifs cumulé"],
-                        deceased: lastItem["[1.NbMorts]"],
-                        intensiveCare: lastItem["Soins intensifs"]
-                            || lastItem["Soins intensifs (sans GE)"],
-                        normalCare: lastItem["Soins normaux"],
-                        newlyTested: lastItem["Nb de tests effectués"]
-                            || lastItem["Nb de tests effectués sur résidents"],
-                        newlyInfected: lastItem["Nb de positifs"]
-                            || lastItem["Nb de résidents positifs"],
+                        tested: Number(lastItem["Nb de tests effectués cumulés"]
+                            || lastItem["Nb de tests effectués sur résidents cumulés"]),
+                        infected: Number(lastItem["Nb de positifs cumulé"]
+                            || lastItem["Nb de résidents positifs cumulé"]),
+                        deceased: Number(lastItem["[1.NbMorts]"]),
+                        intensiveCare: Number(lastItem["Soins intensifs"]
+                            || lastItem["Soins intensifs (sans GE)"]),
+                        normalCare: Number(lastItem["Soins normaux"]),
+                        newlyTested: Number(lastItem["Nb de tests effectués"]
+                            || lastItem["Nb de tests effectués sur résidents"]),
+                        newlyInfected: Number(lastItem["Nb de positifs"]
+                            || lastItem["Nb de résidents positifs"]),
                         newlyRecovered: lastItem["[9.TotalPatientDepartHopital]"],
                         sourceUrl,
-                        country: ' Luxembourg',
+                        country: 'Luxembourg',
                         historyData: 'https://api.apify.com/v2/datasets/oZH6thpQSdIyo3ky2/items?format=json&clean=1',
                         lastUpdatedAtSource: new Date(Date.UTC(srcDate.getFullYear(), srcDate.getMonth(), srcDate.getDate(), srcDate.getHours(), srcDate.getMinutes())).toISOString(),
                         lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),

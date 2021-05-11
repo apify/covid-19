@@ -32,10 +32,10 @@ Apify.main(async () => {
       log.info("Page opened.", { label, url: request.url });
 
       switch (label) {
-        case "GET_IFRAME":
-          const iframUrl = $("#g-intro script")
-            .attr("id")
-            .match(/(?<=_)[^_]+$/g)[0];
+        case "GET_IFRAME": {
+          const iframUrl = $('script[title*="Dashboard Ringkas"]').attr('id')
+            .match(/[^_]+/g).pop();
+
           await requestQueue.addRequest({
             url: `https://e.infogram.com/${iframUrl}`,
             userData: {
@@ -43,7 +43,8 @@ Apify.main(async () => {
             },
           });
           break;
-        case "EXTRACT_DATA":
+        }
+        case "EXTRACT_DATA": {
           log.info("Processing and saving data...");
 
           const values = body.match(/(?<="text":")(\d|,)+(?=")/g);
@@ -108,8 +109,7 @@ Apify.main(async () => {
 
           log.info("Data saved.");
           break;
-        default:
-          break;
+        }
       }
     },
     handleFailedRequestFunction: async ({ request }) => {

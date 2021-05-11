@@ -19,12 +19,12 @@ const connectDataFromGraph = (graphData) => {
         date: parseDateToUTC(value.x).toISOString()
     }));
 };
-const getRegionData = async () => {
+
+const getRegionData = async (proxyConfiguration) => {
     const url = "https://onemocneni-aktualne.mzcr.cz/covid-19/prehledy-khs"
     const response = await Apify.utils.requestAsBrowser({
         url,
-        proxyUrl: Apify.getApifyProxyUrl({ groups: ["SHADER"] }
-        )
+        proxyUrl: proxyConfiguration.newUrl()
     });
     const $ = await cheerio.load(response.body);
 
@@ -35,25 +35,24 @@ const getRegionData = async () => {
     return { sexAgeData, recoveredByRegionData, deathsByRegionData }
 }
 
-const getCummulativeData = async () => {
+const getCummulativeData = async (proxyConfiguration) => {
     const url = "https://onemocneni-aktualne.mzcr.cz/covid-19/kumulativni-prehledy"
     const response = await Apify.utils.requestAsBrowser({
         url,
-        proxyUrl: Apify.getApifyProxyUrl({ groups: ["SHADER"] }
-        )
+        proxyUrl: proxyConfiguration.newUrl()
     });
     const $ = await cheerio.load(response.body);
-    const infectedData = JSON.parse($("#js-cummulative-total-persons-data").attr("data-linechart"));
-    const numberOfTestedData = JSON.parse($("#js-cummulative-total-tests-data").attr("data-linechart"))[0];
+
+    const infectedData = JSON.parse($("#js-cumulative-total-persons-data").attr("data-linechart"));
+    const numberOfTestedData = JSON.parse($("#js-cumulative-total-tests-data").attr("data-linechart"))[0];
     return { infectedData, numberOfTestedData }
 }
 
-const getHospitalizationData = async () => {
+const getHospitalizationData = async (proxyConfiguration) => {
     const url = "https://onemocneni-aktualne.mzcr.cz/covid-19/prehled-hospitalizaci"
     const response = await Apify.utils.requestAsBrowser({
         url,
-        proxyUrl: Apify.getApifyProxyUrl({ groups: ["SHADER"] }
-        )
+        proxyUrl: proxyConfiguration.newUrl()
     });
     const $ = await cheerio.load(response.body);
 
@@ -80,29 +79,33 @@ Apify.main(async () => {
     const kvStore = await Apify.openKeyValueStore("COVID-19-CZECH");
     const dataset = await Apify.openDataset("COVID-19-CZECH-HISTORY");
 
+    const proxyConfiguration = await Apify.createProxyConfiguration({
+        groups: ['SHADER']
+      });
+
     const response = await Apify.utils.requestAsBrowser({
         url: "https://onemocneni-aktualne.mzcr.cz/covid-19",
-        proxyUrl: Apify.getApifyProxyUrl({ groups: ["SHADER"] }
+        proxyUrl: proxyConfiguration.newUrl()}
         )
-    });
     const $ = await cheerio.load(response.body);
     const url = $("#covid-content").attr("data-report-url");
-    const totalTested = $("#count-test").text().trim();
+    const testedPCR = $("#count-test").first().text().trim();
+    const testedAG = $('#prehled p:contains(Provedené antigenní testy)').next().text().split('(')[0].trim().replace(/\D/g, '')
     const infected = $("#count-sick").attr("data-value").trim();
     const recovered = $("#count-recover").text().trim();
     const deceased = $("#count-dead").text().trim();
     const hospitalized = $("#count-hospitalization").text().trim();
     const active = $("#count-active").text().trim();
     const infectedDailyData = JSON.parse($("#js-total-persons-data").attr("data-linechart"));
-    const infectedByRegionData = JSON.parse(decodeHtml($('#panel2-districts-regions-maps div[data-barchart]').attr('data-barchart')));
+    const infectedByRegionData = JSON.parse(decodeHtml($('#js-total-isin-regions-data').attr('data-barchart')));
 
-    const { recoveredByRegionData, deathsByRegionData, sexAgeData } = await getRegionData();
-    const { infectedData, numberOfTestedData } = await getCummulativeData();
-    const hospitalizationTableData = await getHospitalizationData();
+    const { recoveredByRegionData, deathsByRegionData, sexAgeData } = await getRegionData(proxyConfiguration);
+    const { infectedData, numberOfTestedData } = await getCummulativeData(proxyConfiguration);
+    const hospitalizationTableData = await getHospitalizationData(proxyConfiguration);
 
 
-    const lastUpdated = $("#last-modified-datetime").text().trim().replace("k datu:", "").replace(/\u00a0/g, "");
-    const parts = lastUpdated.split("v");
+    const lastUpdated = $("#last-modified-datetime").text().trim().replace("k datu:", "").replace(/\u00a0/g, "").trim();
+    const parts = lastUpdated.split(" ");
     const splited = parts[0].split(".");
     let lastUpdatedParsed = new Date(`${splited[1]}.${splited[0]}.${splited[2]} ${parts[1].replace("h", "").replace(".", ":")}`);
     lastUpdatedParsed = new Date(Date.UTC(lastUpdatedParsed.getFullYear(), lastUpdatedParsed.getMonth(), lastUpdatedParsed.getDate(), lastUpdatedParsed.getHours() - 1, lastUpdatedParsed.getMinutes()));
@@ -111,7 +114,9 @@ Apify.main(async () => {
 
     const now = new Date();
     const data = {
-        totalTested: toNumber(totalTested),
+        totalTested: toNumber(testedAG) + toNumber(testedPCR),
+        testedAG: toNumber(testedAG),
+        testedPCR: toNumber(testedPCR),
         infected: toNumber(infected),
         recovered: toNumber(recovered),
         deceased: toNumber(deceased),
@@ -120,10 +125,10 @@ Apify.main(async () => {
         critical,
         totalPositiveTests: connectDataFromGraph(infectedData),
         numberOfTestedGraph: connectDataFromGraph(numberOfTestedData),
-        infectedByRegion: infectedByRegionData.values.map(({ x, y }) => ({ name: x, value: y })),
+        infectedByRegion: infectedByRegionData[0].values.map(({ x, y }) => ({ name: x, value: y })),
         recoveredByRegion: recoveredByRegionData.values.map(({ x, y }) => ({ name: x, value: y })),
         deceasedByRegion: deathsByRegionData.values.map(({ x, y }) => ({ name: x, value: y })),
-        infectedDaily: connectDataFromGraph(infectedDailyData),
+        infectedDaily: connectDataFromGraph(infectedDailyData[0]),
         infectedByAgeSex: sexAgeData.map((sexData) => ({
             sex: sexData.key,
             infectedByAge: sexData.values.map(({ x, y }) => ({

@@ -51,4 +51,7 @@ Apify.main(async () => {
 
     log.info('Saving LATEST to Key-Value Store');
     await kvStore.setValue('LATEST', data);
+    log.info('Saving data to dataset');
+    console.log(data);
+    await Apify.pushData(data);
 });

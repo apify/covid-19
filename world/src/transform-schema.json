@@ -40,6 +40,11 @@
     "deceased": "deceased",
     "infected": "infected"
   },
+  "Chile": {
+    "deceased": "deceased",
+    "infected": "infected",
+    "recovered": "recovered"
+  },
   "China": {
     "deceased": "deceased",
     "infected": "infected",
@@ -74,7 +79,6 @@
     "tested": "tested"
   },
   "France": {
-    "deceased": "deceased",
     "infected": "infected"
   },
   "Germany": {
@@ -111,11 +115,6 @@
   "Japan": {
     "deceased": "deceased",
     "infected": "infected"
-  },
-  "Kosovo": {
-    "deceased": "deceased",
-    "infected": "infected",
-    "recovered": "recovered"
   },
   "Latvia": {
     "deceased": "deceased",
@@ -196,8 +195,7 @@
   "Serbia": {
     "tested": "tested",
     "infected": "infected",
-    "deceased": "deceased",
-    "recovered": "recovered"
+    "deceased": "deceased"
   },
   "Singapore": {
     "deceased": "deceased",
@@ -207,8 +205,7 @@
   "Slovakia": {
     "deceased": "deceased",
     "infected": "infected",
-    "tested": "tested",
-    "recovered": "recovered"
+    "tested": "tested"
   },
   "Slovenia": {
     "deceased": "numberOfDeath",

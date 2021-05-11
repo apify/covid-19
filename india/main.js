@@ -38,12 +38,13 @@ Apify.main(async () => {
             const cells = Array.from(row.querySelectorAll("td")).map(td => getFormattedNumber(td));
             if (cells[1] !== 'Total#') regionData.push({
                 region: cells[1],
-                totalInfected: Number(cells[2]),
+                activeCases: Number(cells[2]),
                 newInfected: Number(cells[3]),
                 recovered: Number(cells[4]),
                 newRecovered: Number(cells[5]),
                 deceased: Number(cells[6]),
-                newDeceased: Number(cells[7])
+                newDeceased: Number(cells[7]),
+                totalInfected: Number(cells[2]) + Number(cells[4]) + Number(cells[6])
             });
         }
 

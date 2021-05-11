@@ -11,7 +11,7 @@
 		"eslint": "^6.8.0"
 	},
 	"scripts": {
-		"start": "node ./src/main-new.js",
+		"start": "node ./src/main.js",
 		"test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1"
 	},
 	"author": "It's not you it's me",

@@ -62,7 +62,7 @@ Apify.main(async () => {
                         DATA['deceased'] = parseInt($(el).children('strong').text());
                         break;
                     case 'Müayinə aparılıb':
-                        DATA['tested'] = parseInt($(el).children('strong').text().replace(',', ''));
+                        DATA['tested'] = parseInt($(el).children('strong').text().replace(/\D/g, ''));
                         break;
                 }
             });

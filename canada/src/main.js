@@ -36,12 +36,12 @@ Apify.main(async () => {
                 tempByRegion[values[0]] =
                   {
                       "region": values[1],
-                      "infectedCount": values[7],
-                      "deceasedCount": values[6]
+                      "infectedCount": values[5],
+                      "deceasedCount": values[7]
                   };
                 if (values[0]) {
-                    totalInfected = values[7];
-                    totalDeceased = values[6];
+                    totalInfected = values[5];
+                    totalDeceased = values[7];
                 }
             }
             for (const item of tempByRegion) {

@@ -4,24 +4,9 @@ const LATEST = 'LATEST'
 const now = new Date()
 const { log } = Apify.utils
 
-async function waitForContentToLoad(page) {
-    const query = "document.querySelectorAll('full-container full-container')"
-
-    return page.waitForFunction(
-        `!!${query}[5] && !!${query}[12] && !!${query}[13] && !!${query}[14] && !!${query}[15] && !!${query}[18]` +
-        ` && !!${query}[5].innerText.match(/Nauji atvejai([\\n\\r]|.*)+[0-9,]+/g)` +
-        ` && !!${query}[12].innerText.match(/Serga([\\n\\r]|.*)+[0-9,]+/g)` +
-        ` && !!${query}[13].innerText.match(/Patvirtinti atvejai([\\n\\r]|.*)+[0-9,]+/g)` +
-        ` && !!${query}[14].innerText.match(/Pasveiko([\\n\\r]|.*)+[0-9,]+/g)` +
-        ` && !!${query}[15].innerText.match(/Mirė([\\n\\r]|.*)+[0-9,]+/g)` +
-        ` && !!${query}[18].innerHTML.includes('<nav class="feature-list">')`,
-        { timeout: 90 * 1000 }
-    )
-}
-
 Apify.main(async () => {
     const url =
-        'https://ls-osp-sdg.maps.arcgis.com/apps/opsdashboard/index.html#/3bea26e9f2364e8a86c446aca71ce973';
+        'https://ls-osp-sdg.maps.arcgis.com/apps/opsdashboard/index.html#/0ad95e6d5dd24cbabe3f20434c1c6d27';
 
     const kvStore = await Apify.openKeyValueStore("COVID-19-LITHUANIA");
     const dataset = await Apify.openDataset("COVID-19-LITHUANIA-HISTORY");
@@ -38,9 +23,12 @@ Apify.main(async () => {
         puppeteerPoolOptions: {
             retireInstanceAfterRequestCount: 1
         },
-        handlePageTimeoutSecs: 90,
+        handlePageTimeoutSecs: 120,
         launchPuppeteerFunction: () => {
-            const options = { useApifyProxy: true, useChrome: true }
+            const options = {
+                useApifyProxy: true,
+                useChrome: true
+            }
             return Apify.launchPuppeteer(options)
         },
         gotoFunction: async ({ page, request }) => {
@@ -62,66 +50,59 @@ Apify.main(async () => {
             return page.goto(request.url, { timeout: 1000 * 60 });
         },
         handlePageFunction: async ({ page, request }) => {
-            log.info(`Handling ${request.url}`)
+            log.info(`Handling ${request.url}`);
 
-            await Apify.utils.puppeteer.injectJQuery(page)
-            log.info('Waiting for content to load')
+            log.info('Waiting for content to load');
+            await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 1000 * 90 });
+            await Apify.utils.puppeteer.injectJQuery(page);
+            log.info('Content loaded');
 
-            // await page.waitForNavigation({ timeout: 60 * 1000 });
-            // waitUntil: 'domcontentloaded',
-            await waitForContentToLoad(page);
-
-            log.info('Content loaded')
-
-            const extracted = await page.evaluate(async () => {
-                // function strToInt(str) {
-                //     return parseInt(str.replace(/( |,)/g, ''), 10)
-                // }
-
-                function strToInt(str) {
-                    return parseInt(str.replace(/\D/g, ''))
-                }
-
-                const fullContainer = $('full-container full-container').toArray()
-
-                const newCases = strToInt($(fullContainer[5]).find('text').last().text());
-                const active = strToInt($(fullContainer[12]).find('text').last().text());
-                const infected = strToInt($(fullContainer[13]).find('text').last().text());
-                const recovered = strToInt($(fullContainer[14]).find('text').last().text());
-                const deceased = strToInt($(fullContainer[15]).find('text').last().text());
-
-                const infectedByRegion = $(fullContainer[18]).find('.external-html').toArray().map(item => {
-                    return {
-                        region: $(item).find('p').text().match(/[^.]+/g)[0],
-                        value: parseFloat($(item).find('strong').text().replace(/,+/g, ''), 10)
-                    }
-                });
+            log.info('Extracting and processing data...');
+            const data = await page.evaluate(async () => {
+                const toNumber = (str) => parseInt(str.replace(/\D+/g, ''));
+                const toString = (str) => str.replace(/\d+|:+|,+/g, '').trim();
 
                 return {
-                    active,
-                    infected,
-                    recovered,
-                    deceased,
-                    newCases,
-                    infectedByRegion
+                    active: toNumber($('full-container:contains(Šiuo metu serga)')
+                        .last()
+                        .find('text:contains(statistiškai)')
+                        .text()),
+                    recovered: toNumber($('full-container:contains(Pasveiko)')
+                        .eq(1)
+                        .find('text:contains(statistiškai)')
+                        .text()),
+                    deceased: toNumber($('full-container:contains(Ligos atvejai)')
+                        .last()
+                        .text()),
+                    newCases: toNumber($('full-container:contains(Paros nauji atvejai)')
+                        .last().find('text').first().text()),
+                    infectedByRegion: $('.feature-list').first().find('div.external-html').toArray().map(div => {
+                        const text = $(div).find('p').text();
+                        return {
+                            region: toString(text),
+                            newCases: toNumber(text),
+                        }
+                    }),
+                    reportingDay: $('full-container:contains(Ataskaitinė para)').last().find('strong').text().trim()
                 }
-            })
-            // console.log(extracted);
-            // ADD:  active, infected, recovered, deceased, newCases, infectedByRegion
-            const data = {
-                ...extracted
-            }
+            });
+
+            const sourceDate = new Date(data.reportingDay);
+            delete data.reportingDay;
 
             data.country = 'LITHUANIA';
             data.historyData = 'https://api.apify.com/v2/datasets/1XdITM6u7PbhUrlmK/items?format=json&clean=1';
             data.sourceUrl = 'https://osp.maps.arcgis.com/apps/MapSeries/index.html?appid=79255eaa219140dfa65c01ae95ed143b';
             data.lastUpdatedAtApify = new Date(
                 Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())
-            ).toISOString()
+            ).toISOString();
+
+
+            data.lastUpdatedAtSource = new Date(
+                Date.UTC(sourceDate.getFullYear(), sourceDate.getMonth(), sourceDate.getDate(), sourceDate.getHours(), sourceDate.getMinutes())
+            ).toISOString();
 
             data.readMe = 'https://apify.com/dtrungtin/covid-lt'
-
-            console.log(data)
 
             // Push the data
             let latest = await kvStore.getValue(LATEST)
@@ -146,7 +127,12 @@ Apify.main(async () => {
 
             log.info('Data saved.')
         },
-        handleFailedRequestFunction: ({ requst, error }) => {
+        handleFailedRequestFunction: async ({ requst, error }) => {
+            log.error(error);
+            await Apify.pushData({
+                '#request': requst,
+                '#error': error
+            });
             criticalErrors++
         }
     })

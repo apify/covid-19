@@ -1,9 +1,10 @@
 {
-	"name": "switzerland-scraper",
+	"name": "lithuania-scraper",
 	"version": "0.0.1",
 	"description": "This is a boilerplate of an Apify actor.",
 	"dependencies": {
-		"apify": "^0.22.2"
+		"apify": "^0.22.4",
+		"moment": "^2.29.1"
 	},
 	"devDependencies": {},
 	"scripts": {

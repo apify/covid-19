@@ -17,21 +17,19 @@ Apify.main(async () => {
     const tested24hours = $('#main > div > div > div > section.elementor-element.elementor-element-4953d8ff.elementor-section-full_width.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-top-section > div.elementor-container.elementor-column-gap-no > div > div > div > div > section.elementor-element.elementor-element-234f11a9.elementor-hidden-phone.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-inner-section > div > div > div.elementor-element.elementor-element-d7ca9c7.elementor-column.elementor-col-16.elementor-inner-column > div > div > div.elementor-element.elementor-element-39f31511.elementor-widget.elementor-widget-heading > div > p').text()
     const infected24hours = $('#main > div > div > div > section.elementor-element.elementor-element-4953d8ff.elementor-section-full_width.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-top-section > div.elementor-container.elementor-column-gap-no > div > div > div > div > section.elementor-element.elementor-element-234f11a9.elementor-hidden-phone.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-inner-section > div > div > div.elementor-element.elementor-element-71ed3c8f.elementor-column.elementor-col-16.elementor-inner-column > div > div > div.elementor-element.elementor-element-7275fa4a.elementor-widget.elementor-widget-heading > div > p').text()
     const deceased24hours = $('#main > div > div > div > section.elementor-element.elementor-element-4953d8ff.elementor-section-full_width.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-top-section > div.elementor-container.elementor-column-gap-no > div > div > div > div > section.elementor-element.elementor-element-234f11a9.elementor-hidden-phone.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-inner-section > div > div > div.elementor-element.elementor-element-f7b4ffe.elementor-column.elementor-col-16.elementor-inner-column > div > div > div.elementor-element.elementor-element-482359d.elementor-widget.elementor-widget-heading > div > p').text();
-    const active = $('#main > div > div > div > section.elementor-element.elementor-element-4953d8ff.elementor-section-full_width.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-top-section > div.elementor-container.elementor-column-gap-no > div > div > div > div > section.elementor-element.elementor-element-234f11a9.elementor-hidden-phone.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-inner-section > div > div > div.elementor-element.elementor-element-57c69ff4.elementor-column.elementor-col-16.elementor-inner-column > div > div > div.elementor-element.elementor-element-571cb025.elementor-widget.elementor-widget-heading > div > p').text();
+    const hospitalized = $('#main > div > div > div > section.elementor-element.elementor-element-4953d8ff.elementor-section-full_width.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-top-section > div.elementor-container.elementor-column-gap-no > div > div > div > div > section.elementor-element.elementor-element-234f11a9.elementor-hidden-phone.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default.elementor-section.elementor-inner-section > div > div > div.elementor-element.elementor-element-57c69ff4.elementor-column.elementor-col-16.elementor-inner-column > div > div > div.elementor-element.elementor-element-571cb025.elementor-widget.elementor-widget-heading > div > p').text();
+    const patientsOnVentilators = $('#main > div > div > div > section.elementor-section.elementor-top-section.elementor-element.elementor-element-4953d8ff.elementor-section-full_width.elementor-section-height-default.elementor-section-height-default > div.elementor-container.elementor-column-gap-no > div > div > div > div > section.elementor-section.elementor-inner-section.elementor-element.elementor-element-3847b70.elementor-hidden-desktop.elementor-hidden-tablet.elementor-section-boxed.elementor-section-height-default.elementor-section-height-default > div > div > div.elementor-column.elementor-col-16.elementor-inner-column.elementor-element.elementor-element-0351a70 > div > div > div.elementor-element.elementor-element-5344cb8.elementor-widget.elementor-widget-heading > div > p').text();
 
     const toInt = (string) => Number(string.replace(/\D/g, ''));
-
-    const infected = toInt(confirmedCases);
-    const deceased = toInt(deaths);
-    const activeCases = toInt(active);
 
     const now = new Date();
 
     const result = {
-        infected,
-        deceased,
-        recovered: infected - deceased - activeCases,
+        infected: toInt(confirmedCases),
+        deceased: toInt(deaths),
         tested: toInt(tested),
+        hospitalized: toInt(hospitalized),
+        patientsOnVentilators: toInt(patientsOnVentilators),
         tested24hours: toInt(tested24hours),
         infected24hours: toInt(infected24hours),
         deceased24hours: toInt(deceased24hours),
