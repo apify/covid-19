@@ -52,8 +52,9 @@ Apify.main(async () => {
             });
 
             let nationalReport = regions[regions.length - 1];
-            const [d, m, y] = $('#main > div.post > div.texto > div > table:nth-child(9) > tbody > tr:nth-child(3) > td:nth-child(1) > h5').text()
-            .split('Reporte Diario COVID-19').pop().trim().split('-');
+            const [d, m, y] = $('#main > div.post > div.texto > div > table:nth-child(5) > tbody > tr:nth-child(3) > td:nth-child(1) > h5')
+                .text()
+                .split('Reporte Diario COVID-19').pop().trim().split('-');
             const srcDate = new Date(`${'21:00'} ${m}-${d}-${y}`);
 
             regions.pop();
