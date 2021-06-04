@@ -1,0 +1,304 @@
+{
+  "totalCases": 3313002714354,
+  "totalDeaths": 592776437,
+  "casesByState": [
+    {
+      "name": "Alabama",
+      "range": "40,001 or more",
+      "casesReported": 119254
+    },
+    {
+      "name": "Alaska",
+      "range": "1,001 to 5,000",
+      "casesReported": 4895
+    },
+    {
+      "name": "American Samoa",
+      "range": "0 to 1,000",
+      "casesReported": 0
+    },
+    {
+      "name": "Arizona",
+      "range": "40,001 or more",
+      "casesReported": 199459
+    },
+    {
+      "name": "Arkansas",
+      "range": "40,001 or more",
+      "casesReported": 58023
+    },
+    {
+      "name": "California",
+      "range": "40,001 or more",
+      "casesReported": 679099
+    },
+    {
+      "name": "Colorado",
+      "range": "40,001 or more",
+      "casesReported": 55994
+    },
+    {
+      "name": "Connecticut",
+      "range": "40,001 or more",
+      "casesReported": 52220
+    },
+    {
+      "name": "Delaware",
+      "range": "10,001 to 20,000",
+      "casesReported": 16976
+    },
+    {
+      "name": "District of Columbia",
+      "range": "10,001 to 20,000",
+      "casesReported": 13722
+    },
+    {
+      "name": "Florida",
+      "range": "40,001 or more",
+      "casesReported": 602113
+    },
+    {
+      "name": "Georgia",
+      "range": "40,001 or more",
+      "casesReported": 260590
+    },
+    {
+      "name": "Guam",
+      "range": "1,001 to 5,000",
+      "casesReported": 1232
+    },
+    {
+      "name": "Hawaii",
+      "range": "5,001 to 10,000",
+      "casesReported": 6738
+    },
+    {
+      "name": "Idaho",
+      "range": "20,001 to 40,000",
+      "casesReported": 30780
+    },
+    {
+      "name": "Illinois",
+      "range": "40,001 or more",
+      "casesReported": 227044
+    },
+    {
+      "name": "Indiana",
+      "range": "40,001 or more",
+      "casesReported": 89359
+    },
+    {
+      "name": "Iowa",
+      "range": "40,001 or more",
+      "casesReported": 58215
+    },
+    {
+      "name": "Kansas",
+      "range": "20,001 to 40,000",
+      "casesReported": 39937
+    },
+    {
+      "name": "Kentucky",
+      "range": "40,001 or more",
+      "casesReported": 45230
+    },
+    {
+      "name": "Louisiana",
+      "range": "40,001 or more",
+      "casesReported": 145661
+    },
+    {
+      "name": "Maine",
+      "range": "1,001 to 5,000",
+      "casesReported": 4416
+    },
+    {
+      "name": "Marshall Islands",
+      "range": "0 to 1,000",
+      "casesReported": 0
+    },
+    {
+      "name": "Maryland",
+      "range": "40,001 or more",
+      "casesReported": 106063
+    },
+    {
+      "name": "Massachusetts",
+      "range": "40,001 or more",
+      "casesReported": 126503
+    },
+    {
+      "name": "Michigan",
+      "range": "40,001 or more",
+      "casesReported": 109480
+    },
+    {
+      "name": "Micronesia",
+      "range": "0 to 1,000",
+      "casesReported": 0
+    },
+    {
+      "name": "Minnesota",
+      "range": "40,001 or more",
+      "casesReported": 72390
+    },
+    {
+      "name": "Mississippi",
+      "range": "40,001 or more",
+      "casesReported": 80695
+    },
+    {
+      "name": "Missouri",
+      "range": "40,001 or more",
+      "casesReported": 78062
+    },
+    {
+      "name": "Montana",
+      "range": "5,001 to 10,000",
+      "casesReported": 6785
+    },
+    {
+      "name": "Nebraska",
+      "range": "20,001 to 40,000",
+      "casesReported": 32727
+    },
+    {
+      "name": "Nevada",
+      "range": "40,001 or more",
+      "casesReported": 66938
+    },
+    {
+      "name": "New Hampshire",
+      "range": "5,001 to 10,000",
+      "casesReported": 7159
+    },
+    {
+      "name": "New Jersey",
+      "range": "40,001 or more",
+      "casesReported": 190306
+    },
+    {
+      "name": "New Mexico",
+      "range": "20,001 to 40,000",
+      "casesReported": 24732
+    },
+    {
+      "name": "New York",
+      "range": "40,001 or more",
+      "casesReported": 432458
+    },
+    {
+      "name": "North Carolina",
+      "range": "40,001 or more",
+      "casesReported": 158985
+    },
+    {
+      "name": "North Dakota",
+      "range": "10,001 to 20,000",
+      "casesReported": 10800
+    },
+    {
+      "name": "Northern Marianas",
+      "range": "0 to 1,000",
+      "casesReported": 54
+    },
+    {
+      "name": "Ohio",
+      "range": "40,001 or more",
+      "casesReported": 117584
+    },
+    {
+      "name": "Oklahoma",
+      "range": "40,001 or more",
+      "casesReported": 59715
+    },
+    {
+      "name": "Oregon",
+      "range": "20,001 to 40,000",
+      "casesReported": 25571
+    },
+    {
+      "name": "Palau",
+      "range": "0 to 1,000",
+      "casesReported": 0
+    },
+    {
+      "name": "Pennsylvania",
+      "range": "40,001 or more",
+      "casesReported": 130536
+    },
+    {
+      "name": "Puerto Rico",
+      "range": "20,001 to 40,000",
+      "casesReported": 31383
+    },
+    {
+      "name": "Rhode Island",
+      "range": "20,001 to 40,000",
+      "casesReported": 21454
+    },
+    {
+      "name": "South Carolina",
+      "range": "40,001 or more",
+      "casesReported": 114093
+    },
+    {
+      "name": "South Dakota",
+      "range": "10,001 to 20,000",
+      "casesReported": 11571
+    },
+    {
+      "name": "Tennessee",
+      "range": "40,001 or more",
+      "casesReported": 147353
+    },
+    {
+      "name": "Texas",
+      "range": "40,001 or more",
+      "casesReported": 592137
+    },
+    {
+      "name": "Utah",
+      "range": "40,001 or more",
+      "casesReported": 50870
+    },
+    {
+      "name": "Vermont",
+      "range": "1,001 to 5,000",
+      "casesReported": 1577
+    },
+    {
+      "name": "Virgin Islands",
+      "range": "1,001 to 5,000",
+      "casesReported": 1052
+    },
+    {
+      "name": "Virginia",
+      "range": "40,001 or more",
+      "casesReported": 116579
+    },
+    {
+      "name": "Washington",
+      "range": "40,001 or more",
+      "casesReported": 72161
+    },
+    {
+      "name": "West Virginia",
+      "range": "5,001 to 10,000",
+      "casesReported": 9540
+    },
+    {
+      "name": "Wisconsin",
+      "range": "40,001 or more",
+      "casesReported": 77092
+    },
+    {
+      "name": "Wyoming",
+      "range": "1,001 to 5,000",
+      "casesReported": 3684
+    }
+  ],
+  "sourceUrl": "https://covid.cdc.gov/covid-data-tracker/#cases_casesinlast7days",
+  "lastUpdatedAtSource": "2021-06-04T00:00:00.000Z",
+  "readMe": "https://apify.com/petrpatek/covid-usa-cdc"
+}

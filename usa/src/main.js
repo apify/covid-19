@@ -11,7 +11,9 @@ Apify.main(async () => {
     const kvStore = await Apify.openKeyValueStore('COVID-19-USA-CDC');
     const dataset = await Apify.openDataset('COVID-19-USA-CDC-HISTORY');
 
-    const browser = await Apify.launchPuppeteer({ useApifyProxy: true, apifyProxyGroups: ['SHADER'], useChrome: true, headless: false });
+    const browser = await Apify.launchPuppeteer({
+        useApifyProxy: true, apifyProxyGroups: ['SHADER'], 
+        useChrome: true, headless: false });
     const page = await browser.newPage();
     await Apify.utils.puppeteer.injectJQuery(page);
     let {body: casesByStateJson} = await httpRequest({
@@ -26,12 +28,12 @@ Apify.main(async () => {
     casesByStateJson = casesByStateJson.replace("﻿[", "[")
 
     await page.goto(url);
-    await page.waitForSelector("#viz001_uscases .card-number");
+    await page.waitForSelector("#card_001 .card-number");
     await Apify.utils.sleep(1000)
 
     const extracted = await page.evaluate(() => {
-        const totalCases = $('#viz001_uscases .card-number').text().replace(/\D/g, "").trim();
-        const totalDeaths = $('#viz002_usdeaths .card-number').text().replace(/\D/g, '').trim();
+        const totalCases = $("#card_001 .card-number").text().split('\n')[1].replace(/\D/g, "");
+        const totalDeaths = $('#card_003 .card-number').text().split('\n')[1].replace(/\D/g, "")
         let dateUpdated = new Date();
         dateUpdated = new Date(Date.UTC(dateUpdated.getFullYear(), dateUpdated.getMonth(), dateUpdated.getDate())).toISOString();
 
