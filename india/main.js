@@ -24,10 +24,13 @@ Apify.main(async () => {
 
         const activeCases = Number($('strong:contains(Active)').next().text().split("(")[0]);
         const activeCasesNew = Number($('strong:contains(Active)').next().text().split("(")[1].replace(/\D/g, ''));
+        const activeCasesNewDirection = $('strong:contains(Active)').next().children().attr("class");
         const recovered = Number($('strong:contains(Discharged)').next().text().split("(")[0]);
         const recoveredNew = Number($('strong:contains(Discharged)').next().text().split("(")[1].replace(/\D/g, ''));
+        const recoveredNewDirection = $('strong:contains(Discharged)').next().children().children().attr("class")
         const deaths = Number($('strong:contains(Deaths)').next().text().split("(")[0]);
         const deathsNew = Number($('strong:contains(Deaths)').next().text().split("(")[1].replace(/\D/g, ''));
+        const deathsNewDirection = $('strong:contains(Deaths)').next().children().attr("class");
         const previousDayTests = Number($('.header-section > div > div > div > div > div > marquee > span').text().split(" ")[9].split(",").join(""));
 
         const rawTableRows = [...document.querySelectorAll("#state-data > div > div > div > div > table > tbody > tr")];
@@ -57,11 +60,11 @@ Apify.main(async () => {
 
         const data = {
             activeCases,
-            activeCasesNew,
+            activeCasesNew: activeCasesNewDirection === "down" ? activeCasesNew * -1 : activeCasesNew,
             recovered,
-            recoveredNew,
+            recoveredNew: recoveredNewDirection.includes("down") ? recoveredNew * -1 : recoveredNew,
             deaths,
-            deathsNew,
+            deathsNew: deathsNewDirection === "down" ? deathsNew * -1 : deathsNew,
             previousDayTests,
             totalCases: activeCases + recovered + deaths,
             sourceUrl: 'https://www.mohfw.gov.in/',
