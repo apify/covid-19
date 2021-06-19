@@ -57,8 +57,8 @@ Apify.main(async () => {
                     const $ = cheerio.load(run.output.body)
 
                     let totalColumn = $('div:contains(La Rioja)').eq(3).nextAll().toArray();
-                    let hospColumn = $('div:contains(La Rioja)').eq(7).nextAll().toArray();
-                    let deathsColumn = $(`div:contains(La Rioja)`).eq(17).nextAll().toArray();
+                    let hospColumn = $('div:contains(La Rioja)').eq(8).parent().nextAll().toArray();;
+                    let deathsColumn = $(`div:contains(La Rioja)`).eq(16).parent().nextAll().toArray();
 
                     let regionsNames = ['Andalucía', 'Aragón', 'Asturias', "Baleares", "Canarias", "Cantabria", "Castilla La Mancha", "Castilla y León",
                         "Cataluña", "Ceuta", "C. Valenciana", "Extremadura", "Galicia", "Madrid", "Melilla", "Murcia", "Navarra", "País Vasco ", "La Rioja"]
@@ -68,7 +68,7 @@ Apify.main(async () => {
 
                         let firstElem = $(`div:contains(${name})`).eq(3).nextAll().toArray();
                         let secondElem = $(`div:contains(${name})`).eq(7).nextAll().toArray();
-                        let thirdElem = $(`div:contains(${name})`).eq(17).nextAll().toArray();
+                        let thirdElem = $(`div:contains(${name})`).eq(15).nextAll().toArray();
 
                         regions.push({
                             name,
@@ -91,12 +91,12 @@ Apify.main(async () => {
                         infected: toNumber($(totalColumn[11]).text()),
                         recovered: 'N/A',
                         tested: 'N/A',
-                        deceased: toNumber($(deathsColumn[3]).text()),
-                        hospitalised: toNumber($(hospColumn[13]).text()),
-                        ICU: toNumber($(hospColumn[15]).text()),
-                        newlyDeceased: toNumber($(deathsColumn[4]).text()),
-                        newlyHospitalised: toNumber($(hospColumn[14]).text()),
-                        NewlyInICU: toNumber($(hospColumn[16]).text()),
+                        deceased: toNumber($(deathsColumn[4]).text()),
+                        hospitalised: toNumber($(hospColumn[7]).text()),
+                        ICU: toNumber($(hospColumn[9]).text()),
+                        newlyDeceased: toNumber($(deathsColumn[5]).text()),
+                        // newlyHospitalised: toNumber($(hospColumn[11]).text()),
+                        // NewlyInICU: toNumber($(hospColumn[12]).text()),
                         dailyInfected: toNumber($(totalColumn[12]).text()),
                         regions,
                         country: 'Spain',
