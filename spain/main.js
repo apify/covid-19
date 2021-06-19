@@ -28,7 +28,7 @@ Apify.main(async () => {
         requestQueue,
         handleRequestTimeoutSecs: 240,
         handleRequestFunction: async ({ request }) => {
-            const { url, userData: { label } } = request;
+            const { url, userData, userData: { label } } = request;
             log.info('Page opened.', { label, url });
 
             switch (label) {
@@ -40,10 +40,18 @@ Apify.main(async () => {
                     const pdfLink = $('div.imagen_texto ul li:nth-child(2) a').attr('href');
                     //.match(/profesionales.*/g)[0]; //stolen from the previous link, didnt work with it anymore
 
+                    // Extract vaccinated data
+                    const vaccinatedData = {
+                        deliveredDose: toNumber($('div.banner-distribuidas p').last().text()),
+                        managedDose: toNumber($('div.banner-vacunas p').last().text()),
+                        numberOfpeopleFullGuideLine: toNumber($('div.banner-completas p').last().text()),
+                    };
+
                     await requestQueue.addRequest({
                         url: `https://www.mscbs.gob.es/profesionales/saludPublica/ccayes/alertasActual/nCov/${pdfLink}`,
                         userData: {
-                            label: 'EXTRACT_DATA'
+                            label: 'EXTRACT_DATA',
+                            vaccinatedData,
                         }
                     })
                     break;
@@ -98,6 +106,7 @@ Apify.main(async () => {
                         // newlyHospitalised: toNumber($(hospColumn[11]).text()),
                         // NewlyInICU: toNumber($(hospColumn[12]).text()),
                         dailyInfected: toNumber($(totalColumn[12]).text()),
+                        ...userData.vaccinatedData,
                         regions,
                         country: 'Spain',
                         historyData: 'https://api.apify.com/v2/datasets/hxwow9BB75z8RV3JT/items?format=json&clean=1',
