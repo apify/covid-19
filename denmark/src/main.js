@@ -1,10 +1,13 @@
 // main.js
 const Apify = require("apify");
 const { log } = Apify.utils;
+const moment = require("moment")
 
 const LATEST = "LATEST";
 const now = new Date();
-const sourceUrl = "https://www.ssi.dk/sygdomme-beredskab-og-forskning/sygdomsovervaagning/c/covid19-overvaagning";
+// const sourceUrl = "https://www.ssi.dk/sygdomme-beredskab-og-forskning/sygdomsovervaagning/c/covid19-overvaagning";
+const sourceUrl = "https://www.sst.dk/en/english/corona-eng/status-of-the-epidemic/covid-19-updates-statistics-and-charts";
+const toNumber = (str) => parseInt(str.split('\n').filter(str => str)[0].replace(/\D+/g, ''), 10);
 
 Apify.main(async () => {
     log.info("Starting actor.");
@@ -14,7 +17,7 @@ Apify.main(async () => {
 
     const requestQueue = await Apify.openRequestQueue();
     await requestQueue.addRequest({
-        url: 'https://services5.arcgis.com/Hx7l9qUpAnKPyvNz/arcgis/rest/services/stats_all_final/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=Date%20desc&resultOffset=0&resultRecordCount=1&resultType=standard'
+        url: 'https://www.sst.dk/en/english/corona-eng/status-of-the-epidemic/covid-19-updates-statistics-and-charts'
     });
 
     log.debug("Setting up crawler.");
@@ -25,41 +28,36 @@ Apify.main(async () => {
         additionalMimeTypes: [
             "text/plain",
         ],
-        handlePageFunction: async ({ request, body }) => {
+        handlePageFunction: async ({ request, $ }) => {
             log.info(`Processing`, { url: request.url });
             log.info(`Processing and saving data.`);
-            const { Date: date,
-                Tests: tested,
-                Unique_tests: uniqueTests,
-                Infected: infected,
-                Recovered: recovered,
-                Dead: deceased,
-                Daily_Infected: dailyInfected,
-                Daily_Dead: dailyDead,
-                Daily_Recovered: dailyRecovered,
-                Admissions: admissions,
-                Respirator: respirator,
-                Intensive: intensive,
-                New_Admissions: newAdmissions,
-                Admissions_diff: admissionsDiff,
-                Respirator_diff: respiratorDiff,
-                Intensive_diff: intensiveDiff,
-                Unique_tests_Diff: uniqueTestsDiff,
-                Tests_Diff: testsDiff,
-                Daily_Infected_Diff: dailyInfectedDiff,
-            } = JSON.parse(body.toString()).features[0].attributes;
-
-            const srcDate = new Date(date);
+            const extractedDate = $('span:contains(Updated)').eq(0).text().split('-')[0];
+            const sourceDate = new Date(moment(extractedDate, 'DD MMMM YYYY HH A').format());
 
             const data = {
-                tested, infected, recovered, deceased, dailyInfected, dailyDead, dailyRecovered,
-                uniqueTests, admissions, respirator, intensive, newAdmissions,
-                admissionsDiff, respiratorDiff, intensiveDiff, uniqueTestsDiff, testsDiff, dailyInfectedDiff,
+                tested: toNumber($('td:contains(Persons tested)').eq(0).next().text()),
+                pcrTests: toNumber($('td:contains(PCR test)').eq(0).next().text()),
+                infected: toNumber($('td:contains(Confirmed cases)').eq(0).next().text()),
+                recovered: toNumber($('td:contains(Recovered)').eq(0).next().text()),
+                deceased: toNumber($('td:contains(Deaths)').eq(0).next().text()),
+                antigenTest: toNumber($('td:contains(Antigen test)').eq(0).next().text()),
+                initiatedVaccination: toNumber($('td:contains(Vaccination initiated)').eq(0).next().text()),
+                fullyVaccination: toNumber($('td:contains(Fully vaccinated)').eq(0).next().text()),
+                dailyTested: toNumber($('td:contains(Persons tested)').eq(1).next().text()),
+                dailyPcrTests: toNumber($('td:contains(PCR test)').eq(1).next().text()),
+                dailyInfected: toNumber($('td:contains(Confirmed cases)').eq(1).next().text()),
+                dailyRecovered: toNumber($('td:contains(Recovered)').eq(1).next().text()),
+                dailyDead: toNumber($('td:contains(Deaths)').eq(1).next().text()),
+                dailyAntigenTest: toNumber($('td:contains(Antigen test)').eq(1).next().text()),
+                dailyHospitalised: toNumber($('td:contains(Hospitalised)').eq(0).next().text()),
+                dailyIntensiveCare: toNumber($('td:contains(intensive care)').eq(0).next().text()),
+                dailyInitiatedVaccination: toNumber($('td:contains(Vaccination initiated)').eq(0).nextAll().eq(1).text()),
+                dailyFullyVaccination: toNumber($('td:contains(Fully vaccinated)').eq(0).nextAll().eq(1).text()),
                 country: "Denmark",
                 historyData: 'https://api.apify.com/v2/datasets/Ugq8cNqnhUSjfJeHr/items?format=json&clean=1',
                 sourceUrl,
                 lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
-                lastUpdatedAtSource: new Date(Date.UTC(srcDate.getFullYear(), srcDate.getMonth(), srcDate.getDate(), srcDate.getHours(), srcDate.getMinutes())).toISOString(),
+                lastUpdatedAtSource: new Date(Date.UTC(sourceDate.getFullYear(), sourceDate.getMonth(), sourceDate.getDate(), sourceDate.getHours(), sourceDate.getMinutes())).toISOString(),
                 readMe: 'https://apify.com/tugkan/covid-dk'
             };
 
