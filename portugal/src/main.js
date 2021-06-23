@@ -59,6 +59,9 @@ Apify.main(async () => {
       && !!document.querySelector(\'full-container\').innerText.match(/ÓBITOS(\\n| )+[0-9.]+/g)
       && !!document.querySelector(\'full-container\').innerText.match(/CONFIRMADOS(\\n| )+[0-9.]+/g)
       && !!document.querySelector(\'full-container\').innerText.match(/Testes \\(PCR \\+ Antigénio\\)(\\n| )+[0-9.]+/g)
+      && !!document.querySelector(\'full-container\').innerText.match(/Vacinas administradas(\\n| )+[0-9.]+/g)
+      && !!document.querySelector(\'full-container\').innerText.match(/1ª Dose(\\n| )+[0-9.]+/g)
+      && !!document.querySelector(\'full-container\').innerText.match(/2ª Dose(\\n| )+[0-9.]+/g)
       && !!document.querySelector(\'full-container\').innerText.match(/Dados relativos ao boletim da DGS de:(\\n| )+[0-9.]+/g)
       && !!document.querySelector('.feature-list')`, { timeout: 1000 * 120 });
 
@@ -81,6 +84,9 @@ Apify.main(async () => {
           newlyInfected: toNumber($('full-container:contains(CONFIRMADOS)').last().find('text').eq(2).text()),
           newlyRecovered: toNumber($('full-container:contains(RECUPERADOS)').last().find('text').eq(2).text()),
           newlyDeceased: toNumber($('full-container:contains(ÓBITOS)').last().find('text').eq(2).text()),
+          administeredVaccines: toNumber($('full-container:contains(Vacinas administradas)').last().find('text').eq(1).text()),
+          firstDose: toNumber($('full-container:contains(1ª Dose)').last().find('text').eq(1).text()),
+          secondDose: toNumber($('full-container:contains(2ª Dose)').last().find('text').eq(1).text()),
           infectedByRegion: $('.feature-list').last().find('.feature-list-item').toArray().map(div => {
             const text = $(div).find('p').text();
             return {

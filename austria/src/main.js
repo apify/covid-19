@@ -5,7 +5,7 @@ const LATEST = 'LATEST';
 const parseNum = (str) => {
     return parseInt(extractNumbers(str)[0].replace(/\D+/g, ''), 10);
 };
-const MAIN_STATS = 'MAIN_STATS';
+const COVID_DATA = 'COVID_DATA';
 
 Apify.main(async () => {
     const kvStore = await Apify.openKeyValueStore('COVID-19-AUSTRIA');
@@ -13,87 +13,73 @@ Apify.main(async () => {
 
     const requestQueue = await Apify.openRequestQueue();
     await requestQueue.addRequest({
-        url: 'https://www.sozialministerium.at/Informationen-zum-Coronavirus/Neuartiges-Coronavirus-(2019-nCov).html',
+        // url: 'https://www.sozialministerium.at/Informationen-zum-Coronavirus/Neuartiges-Coronavirus-(2019-nCov).html',
+        url: 'https://covid19-dashboard.ages.at/data/JsonData.json',
         userData: {
-            label: MAIN_STATS,
+            label: COVID_DATA,
         },
     });
     const data = {};
 
     const crawler = new Apify.CheerioCrawler({
         requestQueue,
-        handlePageFunction: async ({ request, $ }) => {
+        handlePageFunction: async ({ request, json, $ }) => {
             const { label } = request.userData;
 
             switch (label) {
-                case MAIN_STATS:
-                    const table = $('.table-responsive table');
-                    const headers = [];
-                    let infected;
-                    let tested;
-                    let deceased;
-                    let recovered;
-                    let icu;
-                    let hospitalized;
-                    let lastUpdatedAtSource;
-                    $(table).find('thead th').each((index, element) => {
-                        headers.push($(element).text().trim());
-                    });
+                case COVID_DATA: {
+                    const { TestGesamt: tested, Meldedatum: date } = json.KETDaten.last();
+                    const sourceDate = new Date(date);
+                    const {
+                        AnzahlFaelleSum: infected, AnzahlGeheiltSum: recovered, AnzahlTotSum: deceased
+                    } = json.CovidFaelle_Timeline.last();
 
-                    const processRow = (element) => {
-                        const byRegion = [];
-                        let total;
-                        $(element).find('td').each((index, el) => {
-                            const value = parseNum($(el).text());
-                            if (index === 9) {
-                                total = value;
-                            } else {
-                                byRegion.push({ name: headers[index + 1], value });
-                            }
-                        });
+                    const {
+                        FZHosp: totalHospitalized, FZICU: totalIcu, FZHospFree: availbleHospitalBeds, FZICUFree: availbleIcuBeds
+                    } = json.CovidFallzahlen.last();
 
-                        return { byRegion, total };
-                    };
-                    $(table).find('tbody tr').each((index, element) => {
-                        if (index === 0) {
-                            const text = $(element).find('th').text();
-                            const dateString = text.split('(Stand ')[1].replace(' Uhr)', '');
-                            const split = dateString.split(',');
-                            const dateSplit = split[0].split('.');
-                            const date = new Date(`${dateSplit[1]}/${dateSplit[0]} /${dateSplit[2]} ${split[1].match(/[0-9:]+/g)[0]}`);
-                            lastUpdatedAtSource = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() - 2, date.getMinutes())).toISOString();
-
-                            infected = processRow(element);
-                        } else if (index === 1) {
-                            deceased = processRow(element);
-                        } else if (index === 2) {
-                            recovered = processRow(element);
-                        } else if (index === 3) {
-                            hospitalized = processRow(element);
-                        } else if (index === 4) {
-                            icu = processRow(element);
-                        } else if (index === 5) {
-                            tested = processRow(element);
+                    const infectedByRegion = {};
+                    for (const record of json.CovidFaelle_Timeline) {
+                        const { Bundesland: region, AnzahlFaelleSum: infected, AnzahlGeheiltSum: recovered, AnzahlTotSum: deceased } = record;
+                        if (region === "Österreich") continue;
+                        infectedByRegion[region] = {
+                            region,
+                            infected,
+                            recovered,
+                            deceased,
+                            active: infected - recovered - deceased
                         }
-                    });
+                    }
 
-                    data.infected = infected.total;
-                    data.infectedByRegion = infected.byRegion;
-                    data.deceased = deceased.total;
-                    data.deceasedByRegion = deceased.byRegion;
-                    data.recovered = recovered.total;
-                    data.recoveredByRegion = recovered.byRegion;
-                    data.tested = tested.total;
-                    data.testedByRegion = tested.byRegion;
-                    data.totalIcu = icu.total;
-                    data.icuByRegion = icu.byRegion;
-                    data.totalHospitalized = hospitalized.total;
-                    data.hospitalizedByRegion = hospitalized.byRegion;
+                    data.tested = tested;
+                    data.infected = infected;
+                    data.recovered = recovered;
+                    data.deceased = deceased;
+                    data.active = infected - recovered - deceased;
+                    data.infectedByRegion = Object.values(infectedByRegion).map(value => value);
+                    data.totalHospitalized = totalHospitalized;
+                    data.totalIcu = totalIcu;
+                    data.availbleHospitalBeds = availbleHospitalBeds;
+                    data.availbleIcuBeds = availbleIcuBeds;
+                    // data.deceasedByRegion = deceased.byRegion;
+                    // data.recoveredByRegion = recovered.byRegion;
+                    // data.testedByRegion = tested.byRegion;
+                    // data.icuByRegion = icu.byRegion;
+                    // data.hospitalizedByRegion = hospitalized.byRegion;
                     data.country = "Austria";
                     data.historyData = "https://api.apify.com/v2/datasets/EFWZ2Q5JAtC6QDSwV/items?format=json&clean=1";
                     data.sourceUrl = "https://www.sozialministerium.at/Informationen-zum-Coronavirus/Neuartiges-Coronavirus-(2019-nCov).html";
-                    data.lastudpatedAtSource = lastUpdatedAtSource;
+                    data.lastudpatedAtSource = new Date(
+                        Date.UTC(
+                            sourceDate.getFullYear(),
+                            sourceDate.getMonth(),
+                            sourceDate.getDate(),
+                            sourceDate.getHours(),
+                            sourceDate.getMinutes()
+                        )
+                    ).toISOString();
                     break;
+                }
                 default:
                     break;
             }
@@ -128,3 +114,7 @@ Apify.main(async () => {
 
     console.log('Done.');
 });
+
+Array.prototype.last = function () {
+    return this[this.length - 1];
+}
