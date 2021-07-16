@@ -1,4 +1,5 @@
-const Apify = require('apify')
+const Apify = require('apify');
+const moment = require('moment');
 
 const { log } = Apify.utils
 const LATEST = 'LATEST'
@@ -25,7 +26,7 @@ Apify.main(async () => {
         puppeteerPoolOptions: {
             retireInstanceAfterRequestCount: 1
         },
-        handlePageTimeoutSecs: 120,
+        handlePageTimeoutSecs: 270,
         launchPuppeteerFunction: () => {
             const options = {
                 useApifyProxy: true,
@@ -49,40 +50,41 @@ Apify.main(async () => {
                     ".woff",
                 ],
             });
-            return page.goto(request.url, { timeout: 1000 * 60 });
+            return page.goto(request.url, { timeout: 1000 * 120 });
         },
         handlePageFunction: async ({ page, request }) => {
             log.info(`Handling ${request.url}`)
 
             log.info('Waiting for all data to load...')
-            const allDataResponses = await Promise.all([
-                page.waitForResponse(request => request.url().match(/where=1.*1.*spatialRel=esriSpatialRelIntersects.*resultRecordCount=1/g)),
-                // page.waitForResponse(request => request.url().match(/where=Data.*BETWEEN.*(.*).*AND.*CURRENT_TIMESTAMP.*spatialRel=esriSpatialRelIntersects.*resultRecordCount=1/g)),
-            ]);
-            log.info('Content loaded, Processing data...')
+            await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 1000 * 90 });
+            await Apify.utils.puppeteer.injectJQuery(page);
+            log.info('Content loaded, Processing data...');
+            log.info('Extracting and processing data...');
 
-            const { features: firstPart } = await allDataResponses[0].json();
-            // const { features: secondPart } = await allDataResponses[1].json();
+            const allData = await page.evaluate(async () => {
+                const toNumber = (str) => parseInt(str.replace(/\D+/g, ''));
+                const toString = (str) => str.replace(/\d+|:+|,+/g, '').trim();
 
-            const dailyRecovered = firstPart[0].attributes.LICZBA_OZDROWIENCOW;
-            const allData = {
-                ...firstPart[0].attributes,
-                // ...(secondPart[0] && secondPart[0].attributes ? secondPart[0].attributes : [])
-            };
+                return {
+                    infected: toNumber($('div.external-html:contains(osoby zakażone)').eq(0).find('p').last().text()),
+                    deceased: toNumber($('div.external-html:contains(przypadki śmiertelne)').eq(0).find('p').last().text()),
+                    recovered: toNumber($('div.external-html:contains(osoby, które wyzdrowiały)').eq(0).find('p').last().text()),
+                    // activeCase: toNumber(),
+                    dailyInfected: toNumber($('div.external-html:contains(osoby zakażone)').eq(1).find('p').last().text()),
+                    dailyTested: toNumber($('div.external-html:contains(wykonane testy:)').find('p').last().text()),
+                    dailyPositiveTests: toNumber($('div.external-html:contains(testy z wynikiem pozytywnym)').find('p').last().text()),
+                    dailyDeceased: toNumber($('div.external-html:contains(przypadki śmiertelne)').eq(1).find('p').last().text()),
+                    // dailyDeceasedDueToCovid: allData.ZGONY_COVID || "",
+                    dailyRecovered: toNumber($('div.external-html:contains(osoby, które wyzdrowiały)').eq(1).find('p').last().text()),
+                    dailyQuarantine: toNumber($('div.external-html:contains(osoby na kwarantannie)').find('p').last().text()),
+                    txtDate: $('div.external-html:contains(Dane pochodzą z Ministerstwa Zdrowia z dnia )').find('strong').text(),
+                }
+            });
 
-            const sourceDate = new Date(allData.Data);
+            const sourceDate = new Date(moment(allData.txtDate, 'D.M.Y h:m').format());
+
             const data = {
-                infected: allData.LICZBA_ZAKAZEN || "",
-                deceased: allData.LICZBA_ZGONOW || "",
-                recovered: allData.LICZBA_OZDROWIENCOW || "",
-                activeCase: allData.AKTUALNE_ZAKAZENIA || "",
-                dailyInfected: allData.ZAKAZENIA_DZIENNE || "",
-                dailyTested: allData.TESTY || "",
-                dailyPositiveTests: allData.TESTY_POZYTYWNE || "",
-                dailyDeceased: allData.ZGONY_DZIENNE || "",
-                dailyDeceasedDueToCovid: allData.ZGONY_COVID || "",
-                dailyRecovered,
-                dailyQuarantine: allData.KWARANTANNA,
+                ...allData,
                 lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
                 lastUpdatedAtSource: new Date(Date.UTC(sourceDate.getFullYear(), sourceDate.getMonth(), sourceDate.getDate(), sourceDate.getHours(), sourceDate.getMinutes())).toISOString(),
                 country: 'Poland',
@@ -92,7 +94,7 @@ Apify.main(async () => {
             };
 
             // Extract region data
-            await page.goto(regionDataUrl, { timeout: 1000 * 60 });
+            await page.goto(regionDataUrl, { timeout: 1000 * 120 });
 
             log.info('Waiting for region data to load...');
             const regionResponse = await Promise.all([
