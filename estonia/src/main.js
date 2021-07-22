@@ -42,11 +42,10 @@ Apify.main(async () => {
                         let body = await interceptedRequest.text();
                         log.info('Getting city and province data out of file');
                         let start = body.indexOf('5033:function(t)');
-                        let end = body.indexOf(',"dates1":')
+                        let end = body.indexOf('\')},5189')
                         body = body.substring(start, end);
                         start = body.indexOf('{"')
                         body = body.substring(start);
-                        body = `${body}}`;
                         body = JSON.parse(body);
                         totalInfected = body.confirmedCasesNumber;
                         tested = body.testsAdministeredNumber;
