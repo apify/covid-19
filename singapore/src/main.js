@@ -1,8 +1,10 @@
 const Apify = require('apify');
-
+const moment = require('moment');
 const { log } = Apify.utils;
-const sourceUrl = 'https://www.moh.gov.sg/covid-19';
+const sourceUrl = 'https://www.moh.gov.sg/covid-19/statistics';
 const LATEST = 'LATEST';
+
+const toNumber = (str) => parseInt(str.replace(/\D+/, ''));
 
 Apify.main(async () => {
     const requestQueue = await Apify.openRequestQueue();
@@ -13,18 +15,29 @@ Apify.main(async () => {
     const crawler = new Apify.CheerioCrawler({
         requestQueue,
         useApifyProxy: true,
-        apifyProxyGroups: ['SHADER'],
+        // apifyProxyGroups: ['SHADER'],
         handlePageTimeoutSecs: 60 * 2,
         handlePageFunction: async ({ $ }) => {
             log.info('Page loaded.');
             const now = new Date();
 
-            const activeCases = parseInt($($('#ContentPlaceHolder_contentPlaceholder_C072_Col00 tr td').get(1)).text().trim().replace(/\D/, ''), 10);
-            const stableHospitalized = parseInt($($('#ContentPlaceHolder_contentPlaceholder_C073_Col01 tr td').get(1)).text().trim().replace(/\D/, ''), 10);
-            const criticalHospitalized = parseInt($($('#ContentPlaceHolder_contentPlaceholder_C073_Col02 tr td').get(1)).text().trim().replace(/\D/, ''), 10);
-            const deaths = parseInt($($('#ContentPlaceHolder_contentPlaceholder_C073_Col03 tr td').get(1)).text().trim().replace(/\D/, ''), 10);
-            const discharged = parseInt($($('#ContentPlaceHolder_contentPlaceholder_C072_Col01 tr td').get(1)).text().trim().replace(/\D/, ''), 10);
-            const inCommunityFacilites = parseInt($($('#ContentPlaceHolder_contentPlaceholder_C073_Col00 tr td').get(1)).text().trim().replace(/\D/, ''), 10);
+            const activeCases = toNumber($('tbody:contains(Active Cases) tr').last().text());
+            const stableHospitalized = toNumber($('tbody:contains(Hospitalised (Stable)) tr').last().text());
+            const criticalHospitalized = toNumber($('tbody:contains(Hospitalised (Critical)) tr').last().text());
+            const deaths = toNumber($('tbody:contains(Deaths) tr').last().text());
+            const discharged = toNumber($('tbody:contains(Discharged) tr').last().text());
+            const inCommunityFacilites = toNumber($('tbody:contains(In Community Facilities) tr').last().text());
+
+
+            let srcDate;
+            const dateMatch = $('h4:contains(as at)').first().text().match(/(?<=\(as.*at).*(?=\))/g);
+            if (dateMatch) {
+                console.log(dateMatch[0])
+                srcDate = new Date(moment(dateMatch[0].trim(), 'DD MMM YYYY, h:m').format());
+            } else {
+                log.error('Can not extract the date. Actor need to be checked!');
+                process.exit(1);
+            }
 
             const data = {
                 infected: deaths + discharged + activeCases,
@@ -37,6 +50,7 @@ Apify.main(async () => {
                 recovered: discharged,
                 sourceUrl,
                 lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
+                lastUpdatedAtSource: new Date(Date.UTC(srcDate.getFullYear(), srcDate.getMonth(), srcDate.getDate(), srcDate.getHours(), srcDate.getMinutes())).toISOString(),
                 readMe: 'https://apify.com/tugkan/covid-sg',
             };
 
@@ -46,8 +60,8 @@ Apify.main(async () => {
             const latest = await kvStore.getValue(LATEST) || {};
             delete latest.lastUpdatedAtApify;
             const actual = Object.assign({}, data);
-            delete actual.lastUpdatedAtApify;
 
+            delete actual.lastUpdatedAtApify;
             await Apify.pushData({ ...data });
 
             if (JSON.stringify(latest) !== JSON.stringify(actual)) {
