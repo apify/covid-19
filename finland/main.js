@@ -34,11 +34,11 @@ Apify.main(async () => {
             const matchUpadatedAt = confirmedDateText.match(/(\d+).(\d+). klo (\d+).(\d+)/);
 
             const infected = Number($('li:contains(Reported cases in total)').text().split('(')[0].replace(/\D/g,''));
-            const infectedDaily = Number($('li:contains(Reported cases in total)').text().split('(')[1].replace(/\D/g,''));
+            const infectedDaily = Number($('li:contains(Reported cases in total)').text().split('(')[1].split(')')[0].replace(/\D/g,''));
             const tested = Number($('li:contains(Tested samples in total approx)').text().split('(')[0].replace(/\D/g,''))
             const testedDaily = Number($('li:contains(Tested samples in total approx)').text().split('(')[1].replace(/\D/g,''));
-            const deaths = Number($('li:contains(Cumulative number of reported deaths associated with the disease:)').text().split('(')[0].replace(/\D/g,''));
-            const deathsDaily = Number($('li:contains(Cumulative number of reported deaths associated with the disease:)').text().split('(')[1].replace(/\D/g,''));
+            const deaths = Number($('li:contains(Cumulative number of deaths associated with the disease:)').text().split('(')[0].replace(/\D/g,''));
+            const deathsDaily = Number($('li:contains(Cumulative number of deaths associated with the disease:)').text().split('(')[1].replace(/\D/g,''));
             const ICU = Number($('li:contains(Number of patients in intensive care)').text().split('(')[0].replace(/\D/g,''));
             const ICUDaily = Number($('li:contains(Number of patients in intensive care)').text().split('(')[1].replace(/\D/g,''));
             const specializedHealthCare = Number($('li:contains(Number of patients in specialised medical care wards)').text().split('(')[0].replace(/\D/g,''));
