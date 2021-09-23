@@ -14,7 +14,7 @@ Apify.main(async () => {
   })
 
   let malaysia = worldometerDataRaw.regionData.find(c => c.country === 'Malaysia')
-  const infected = malaysia.totalCases
+  const testedPositive = malaysia.totalCases
   const deceased = malaysia.totalDeaths
   const recovered = malaysia.totalRecovered
   const activeCases = malaysia.activeCases
@@ -24,7 +24,7 @@ Apify.main(async () => {
   const now = new Date()
 
   const result = {
-    infected,
+    testedPositive,
     deceased,
     recovered,
     activeCases,
