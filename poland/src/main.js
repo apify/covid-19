@@ -21,7 +21,7 @@ Apify.main(async () => {
 
     const crawler = new Apify.PuppeteerCrawler({
         requestList,
-       // useApifyProxy: true,
+        useApifyProxy: true,
         // apifyProxyGroups: ['CZECH_LUMINATI'],
         puppeteerPoolOptions: {
             retireInstanceAfterRequestCount: 1
@@ -29,7 +29,7 @@ Apify.main(async () => {
         handlePageTimeoutSecs: 270,
         launchPuppeteerFunction: () => {
             const options = {
-              //  useApifyProxy: true,
+                useApifyProxy: true,
                 // useChrome: true
             }
             return Apify.launchPuppeteer(options)
