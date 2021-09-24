@@ -21,7 +21,7 @@ Apify.main(async () => {
 
     const crawler = new Apify.PuppeteerCrawler({
         requestList,
-        useApifyProxy: true,
+       // useApifyProxy: true,
         // apifyProxyGroups: ['CZECH_LUMINATI'],
         puppeteerPoolOptions: {
             retireInstanceAfterRequestCount: 1
@@ -29,7 +29,7 @@ Apify.main(async () => {
         handlePageTimeoutSecs: 270,
         launchPuppeteerFunction: () => {
             const options = {
-                useApifyProxy: true,
+              //  useApifyProxy: true,
                 // useChrome: true
             }
             return Apify.launchPuppeteer(options)
@@ -97,26 +97,35 @@ Apify.main(async () => {
             await page.goto(regionDataUrl, { timeout: 1000 * 120 });
 
             log.info('Waiting for region data to load...');
-            const regionResponse = await Promise.all([
-                page.waitForResponse(request => request.url().match(/where=1.*1.*spatialRel=esriSpatialRelIntersects.*resultRecordCount=25/g)),
-            ]);
+            await page.waitFor(10000);
+            // const regionResponse = await Promise.all([
+            //     page.waitForResponse(request => request.url().match(/where=1.*1.*spatialRel=esriSpatialRelIntersects.*resultRecordCount=25/g)),
+            // ]);
             log.info('Content loaded, Processing and saving data...')
 
-            const { features: regionData } = await regionResponse[0].json();
-            const infectedByRegion = regionData.map(({ attributes: {
-                jpt_nazwa_, SUM_Confirmed, SUM_Deaths, KWARANTANNA, TESTY, TESTY_POZYTYWNE, TESTY_NEGATYWNE, SUM_Recovered
-            } }) => {
-                return {
-                    region: jpt_nazwa_,
-                    infectedCount: SUM_Confirmed,
-                    recoveredCount: SUM_Recovered,
-                    deceasedCount: SUM_Deaths,
-                    testedCount: TESTY,
-                    quarantineCount: KWARANTANNA,
-                    testedPositive: TESTY_POZYTYWNE,
-                    testedNegative: TESTY_NEGATYWNE,
-                }
-            });
+            // const { features: regionData } = await regionResponse[0].json();
+            // const infectedByRegion = regionData.map(({ attributes: {
+            //     jpt_nazwa_, SUM_Confirmed, SUM_Deaths, KWARANTANNA, TESTY, TESTY_POZYTYWNE, TESTY_NEGATYWNE, SUM_Recovered
+            // } }) => {
+            //     return {
+            //         region: jpt_nazwa_,
+            //         infectedCount: SUM_Confirmed,
+            //         recoveredCount: SUM_Recovered,
+            //         deceasedCount: SUM_Deaths,
+            //         testedCount: TESTY,
+            //         quarantineCount: KWARANTANNA,
+            //         testedPositive: TESTY_POZYTYWNE,
+            //         testedNegative: TESTY_NEGATYWNE,
+            //     }
+            // });
+            await Apify.utils.puppeteer.injectJQuery(page);
+
+            const infectedByRegion = await page.evaluate( function () { 
+                return $('div.widget.flex-vertical:contains(Osoby zakażone w województwach)')
+                .find('div.external-html')
+                .map(function () { return { infectedCount: $(this).find('strong').eq(0).text().trim(), region: $(this).find('span').eq(1).text().trim()}})
+                .get();
+            })
             data.infectedByRegion = infectedByRegion;
             // In case infected and deceased not found, calculte it from region data
             if (!data.infected) {
@@ -125,12 +134,12 @@ Apify.main(async () => {
                         return prev + cur;
                     }, 0);
             }
-            if (!data.deceased) {
-                data.deceased = data.infectedByRegion.map(({ deceasedCount }) => deceasedCount)
-                    .reduce((prev, cur) => {
-                        return prev + cur;
-                    }, 0);
-            }
+            // if (!data.deceased) {
+            //     data.deceased = data.infectedByRegion.map(({ deceasedCount }) => deceasedCount)
+            //         .reduce((prev, cur) => {
+            //             return prev + cur;
+            //         }, 0);
+            // }
 
             // Push the data
             let latest = await kvStore.getValue(LATEST)
