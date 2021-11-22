@@ -7,7 +7,7 @@ const now = new Date()
 
 const sourceUrl = 'https://www.gov.pl/web/koronawirus/wykaz-zarazen-koronawirusem-sars-cov-2';
 const detailsDataUrl = 'https://rcb-gis.maps.arcgis.com/apps/opsdashboard/index.html#/e496f00bd8b947099ff95d9e26418a2c'
-const regionDataUrl = 'https://rcb-gis.maps.arcgis.com/apps/opsdashboard/index.html#/a0dd36f27d8c4fd895f4c1c78a6757f0'
+const regionDataUrl = 'https://rcb-gis.maps.arcgis.com/apps/dashboards/a0dd36f27d8c4fd895f4c1c78a6757f0'
 
 Apify.main(async () => {
 
@@ -22,7 +22,7 @@ Apify.main(async () => {
     const crawler = new Apify.PuppeteerCrawler({
         requestList,
         useApifyProxy: true,
-        // apifyProxyGroups: ['CZECH_LUMINATI'],
+        apifyProxyGroups: ['RESIDENTIAL'],
         puppeteerPoolOptions: {
             retireInstanceAfterRequestCount: 1
         },
